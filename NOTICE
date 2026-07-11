@@ -1,0 +1,28 @@
+# Third-party notices
+
+This project bundles pruned pricing data derived from a third-party
+open-source catalog. Attribution below is required when redistributing
+`prices.json` in whole or in part.
+
+## LiteLLM model_prices_and_context_window.json
+
+- **Project**   : BerriAI/litellm
+- **Repository**: https://github.com/BerriAI/litellm
+- **File**      : https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json
+- **License**   : MIT
+- **Used as**   : Source of `input_cost_per_token`, `output_cost_per_token`,
+                  `cache_read_input_token_cost`, `cache_creation_input_token_cost`,
+                  and `litellm_provider` fields, pruned into `prices.json`.
+- **Modification**: We drop fields we don't consume (context window, supported
+                    modalities, etc.) and add a `_meta` block recording the
+                    source URL, license, and fetch timestamp.
+
+The MIT license notice from LiteLLM travels with the pruned data via the
+`_meta.source_license` key in `prices.json`. When redistributing this data,
+preserve either that key or an equivalent attribution.
+
+## skill-cost itself
+
+- **Project**   : gaia-research/skill-cost
+- **License**   : MIT (see LICENSE)
+- **Authors**   : Gaia Research (https://gaiaskilltree.com)

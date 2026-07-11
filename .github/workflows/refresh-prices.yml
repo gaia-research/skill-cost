@@ -1,0 +1,55 @@
+name: refresh-prices
+
+# Keeps prices.json in sync with the LiteLLM canonical catalog so a fresh
+# `install.sh` always ships current rates -- even before the runtime
+# auto-refresh kicks in. Runs daily; commits only when the diff is real.
+
+on:
+  schedule:
+    - cron: "17 4 * * *"   # 04:17 UTC daily -- offset avoids the top-of-hour rush
+  workflow_dispatch:
+  push:
+    paths:
+      - "cost.py"          # re-run whenever the pruner logic changes
+      - ".github/workflows/refresh-prices.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh prices.json from LiteLLM
+        run: python3 cost.py --refresh-prices
+
+      - name: Smoke-test the parser
+        run: |
+          python3 -c "
+          import json, sys
+          d = json.load(open('prices.json'))
+          # Sanity: catalog must not shrink drastically or lose Claude entries.
+          assert len(d) > 500, f'catalog too small: {len(d)} models'
+          claude = [k for k in d if 'claude' in k.lower()]
+          assert len(claude) > 50, f'claude coverage collapsed: {len(claude)}'
+          print(f'ok: {len(d)} models, {len(claude)} claude entries')
+          "
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- prices.json; then
+            echo "no changes"
+            exit 0
+          fi
+          git config user.name  "gaia-price-bot"
+          git config user.email "bot@gaiaskilltree.com"
+          MODELS=$(python3 -c "import json; print(len(json.load(open('prices.json'))))")
+          git add prices.json
+          git commit -m "chore(prices): refresh from LiteLLM (${MODELS} models)"
+          git push

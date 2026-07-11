@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use skill-cost in a paper, engineering-metrics blog post, or cost-analysis dashboard, cite it as follows."
+title: "cost: multi-harness token-usage cost reporter for AI agent sessions"
+abstract: >-
+  skill-cost reads the JSONL session logs written by AI agent harnesses
+  (pi, Claude Code, OpenAI Codex, opencode) and reports accurate USD cost
+  per session using the LiteLLM canonical model_prices_and_context_window
+  catalog. Prices auto-refresh weekly at runtime and daily upstream via
+  GitHub Actions. Ships as an agent skill (SKILL.md) with a stdlib-only
+  Python script and zero configuration.
+type: software
+license: MIT
+repository-code: "https://github.com/gaia-research/skill-cost"
+url: "https://github.com/gaia-research/skill-cost#readme"
+keywords:
+  - cost
+  - token-usage
+  - pricing
+  - llm-cost
+  - agent-skill
+  - claude-code
+  - codex
+  - opencode
+  - pi-coding-agent
+  - anthropic
+  - openai
+  - litellm
+  - developer-tools
+authors:
+  - name: "Gaia Research"
+    website: "https://gaiaskilltree.com"
