@@ -20,6 +20,24 @@ No pip. No npm. No config. **One Python file, one JSON price sheet, prices auto-
 
 ---
 
+## Why this exists
+
+I kept asking my agent, at the end of long orchestration sessions, "how much did that cost?" It would say things like `~$2` with high confidence. I believed it for a while.
+
+Then I checked the raw token counts. One session it had estimated at $2 was closer to $8 — 4× off. Another one where it reported "under a dollar" had burned through a few million cache-read tokens that its estimate had silently dropped.
+
+There is no single bug. There are several, and they compound:
+
+- **The harness often doesn't know the price.** pi records `cost: 0` because it routes through a proxy that doesn't price. Claude Code's own display uses whatever rate card was baked into the CLI version you installed — which goes stale within weeks of the next Anthropic price change.
+- **Agents that estimate on request will hallucinate the rate card.** When you ask a model "what did this session cost?", it does not read `prices.json`. It guesses, from training-cutoff-era numbers, using whichever of `input`/`output`/`cache_read`/`cache_write` it happens to remember. Cache-read alone was consistently forgotten in my sessions and it is often the largest bucket.
+- **Long sessions compact.** After a compaction, an agent looking at only the tail of the conversation genuinely does not see the pre-compaction turns. It reports the cost of the last chunk and calls it "the session."
+
+So the number you see mid-conversation is decoration. The real bill comes later, from the vendor, and by then the session is over.
+
+`cost` reads the raw JSONL, prices every turn (including cache-read, cache-write, both pre- and post-compaction) against LiteLLM's current rate card, and gives you the number the vendor will bill. No estimates. No trust in a proxy that reports zero. No trust in an agent's opinion of its own bill.
+
+---
+
 ## Install
 
 ```bash
@@ -35,6 +53,35 @@ curl -sL https://raw.githubusercontent.com/gaia-research/skill-cost/main/cost.py
 curl -sL https://raw.githubusercontent.com/gaia-research/skill-cost/main/prices.json -o prices.json
 python3 cost.py
 ```
+
+---
+
+## Cheat sheet
+
+As a slash-command inside an agent conversation (once installed as a skill):
+
+| Command | What it shows |
+|---|---|
+| `/cost` | The currently active session. Newest-mtime JSONL across every harness. Default view. |
+| `/cost --latest` | The latest session per harness in the current `cwd`. Useful when several harnesses have logged from the same project. |
+| `/cost --today` | Everything that touched the wire today (UTC). |
+| `/cost --since 2026-07-01` | Everything since a date. Use `YYYY-MM-DD` or a full ISO timestamp. |
+| `/cost --since 2026-07-01 --by-model` | Same, with a per-model breakdown so you can see whether Opus or Sonnet is doing the damage. |
+| `/cost --cwd $PWD` | Only sessions whose recorded `cwd` matches this directory. "What has this project cost me?" |
+| `/cost --harness pi` | Restrict to one harness. Also: `claude-code`, `codex`, `opencode`. |
+| `/cost --session 019f4e66` | Substring match on session id. Useful when a coworker sends you a session id. |
+| `/cost --all --list` | Every session on the machine, one line each. Sorted by recency. |
+| `/cost --all --list --today` | Today, one line each. Fits on a terminal. |
+| `/cost --json` | Machine-readable. Pipe to `jq` for scripting or dashboards. |
+| `/cost --refresh-prices` | Force-fetch the latest rate card from LiteLLM right now. Bypasses the 7-day cache. |
+| `/cost --offline` | Skip network entirely. Use the bundled `prices.json` as-is. |
+
+At the shell it is the same commands with `python3 cost.py` in place of `/cost`.
+
+Environment knobs:
+
+- `SKILL_COST_MAX_AGE_DAYS=N` — how stale the local `prices.json` may get before auto-refresh (default 7)
+- `SKILL_COST_NO_AUTO_REFRESH=1` — disable auto-refresh entirely; freeze the rate card
 
 ---
 
@@ -54,38 +101,7 @@ No cron on your machine. No background daemon. No `pip install --upgrade`. Set `
 
 ## Run
 
-```bash
-# [default] the currently active session (newest-mtime JSONL across all harnesses)
-python3 cost.py
-
-# Latest session per harness in current cwd
-python3 cost.py --latest
-
-# Every session across every harness
-python3 cost.py --all --list
-
-# Today only, with per-model breakdown
-python3 cost.py --today --by-model
-
-# Since a date, one harness only
-python3 cost.py --since 2026-07-01 --harness claude-code
-
-# Filter by working directory or session-id substring
-python3 cost.py --cwd "$PWD"
-python3 cost.py --session 019f4e66
-
-# Machine-readable output
-python3 cost.py --json
-
-# Prices
-python3 cost.py --refresh-prices    # force a refresh right now
-python3 cost.py --offline           # skip network entirely
-```
-
-Environment knobs:
-
-- `SKILL_COST_MAX_AGE_DAYS=N` — auto-refresh threshold (default `7`)
-- `SKILL_COST_NO_AUTO_REFRESH=1` — freeze prices; never touch the network
+Every flag from the cheat sheet above works at the shell too — substitute `python3 cost.py` for `/cost`. `python3 cost.py --help` for the full argument list.
 
 ---
 
@@ -103,7 +119,7 @@ Environment knobs:
 1 session(s)   tokens=939,985   cost=$1.6104
 ```
 
-The number matches whatever your harness *would* have billed against the canonical Anthropic/OpenAI rate card, including cache-read and cache-write pricing.
+The number matches whatever your harness *would* have billed against the canonical Anthropic/OpenAI rate card — including cache-read and cache-write pricing, both pre- and post-compaction. If your agent estimates a different figure mid-conversation, this one is the invoice-side truth.
 
 ---
 
