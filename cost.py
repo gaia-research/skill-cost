@@ -221,6 +221,7 @@ class SessionAgg:
     first_ts: str = ""
     last_ts: str = ""
     by_model: dict[str, Bucket] = field(default_factory=dict)
+    compactions: list[dict] = field(default_factory=list)   # {ts, tokens_before}
 
     def bucket(self, model: str) -> Bucket:
         return self.by_model.setdefault(model or "<unknown>", Bucket())
@@ -248,6 +249,24 @@ class SessionAgg:
 #   parse(line, agg) - update `agg` with one JSONL line
 # =============================================================================
 
+def _int(v) -> int:
+    """Best-effort int coercion. Non-numeric / NaN / None -> 0.
+    Untrusted JSON can carry anything; the parser must never crash."""
+    if v is None or v is False:
+        return 0
+    if isinstance(v, bool):        # True already caught by False check above
+        return int(v)
+    if isinstance(v, int):
+        return v
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return 0
+    if f != f or f == float("inf") or f == float("-inf"):  # NaN / inf
+        return 0
+    return int(f)
+
+
 def _ts_update(agg: SessionAgg, ts: str) -> None:
     if not ts:
         return
@@ -262,9 +281,23 @@ def parse_pi(line: str, agg: SessionAgg) -> None:
         d = json.loads(line)
     except Exception:
         return
-    if d.get("type") == "session":
+    t = d.get("type")
+    if t == "session":
         agg.session_id = d.get("id", agg.session_id)
         agg.cwd = d.get("cwd", agg.cwd)
+        _ts_update(agg, d.get("timestamp", ""))
+        return
+    if t == "compaction":
+        # Compaction has no `usage` block -- it's a checkpoint, not a billed
+        # API call. The pre-compaction turns already contributed their real
+        # tokens; the first post-compaction turn will re-pay for context
+        # warming via its own cacheWrite. We just record the event so users
+        # can see it in the report.
+        agg.compactions.append({
+            "ts":            d.get("timestamp", ""),
+            "tokens_before": _int(d.get("tokensBefore")),
+            "from_hook":     bool(d.get("fromHook", False)),
+        })
         _ts_update(agg, d.get("timestamp", ""))
         return
     msg = d.get("message") or {}
@@ -273,10 +306,10 @@ def parse_pi(line: str, agg: SessionAgg) -> None:
         return
     model = msg.get("model") or d.get("model") or "<unknown>"
     b = agg.bucket(model)
-    b.input       += int(u.get("input",      0) or 0)
-    b.output      += int(u.get("output",     0) or 0)
-    b.cache_read  += int(u.get("cacheRead",  0) or 0)
-    b.cache_write += int(u.get("cacheWrite", 0) or 0)
+    b.input       += _int(u.get("input"))
+    b.output      += _int(u.get("output"))
+    b.cache_read  += _int(u.get("cacheRead"))
+    b.cache_write += _int(u.get("cacheWrite"))
     _ts_update(agg, d.get("timestamp", ""))
 
 
@@ -290,6 +323,15 @@ def parse_claude_code(line: str, agg: SessionAgg) -> None:
     if not agg.cwd:
         agg.cwd = d.get("cwd", "")
     _ts_update(agg, d.get("timestamp", ""))
+    # Claude Code marks the post-compaction summary message with
+    # `isCompactSummary: true`. Record it (still let its usage bill normally,
+    # because that turn *was* an API call that consumed tokens).
+    if d.get("isCompactSummary") is True or d.get("type") == "compact_summary":
+        agg.compactions.append({
+            "ts":            d.get("timestamp", ""),
+            "tokens_before": 0,        # Claude Code doesn't record this
+            "from_hook":     False,
+        })
     msg = d.get("message") or {}
     u = msg.get("usage")
     if not u:
@@ -298,15 +340,15 @@ def parse_claude_code(line: str, agg: SessionAgg) -> None:
     if model == "<synthetic>":
         return
     b = agg.bucket(model)
-    b.input      += int(u.get("input_tokens",  0) or 0)
-    b.output     += int(u.get("output_tokens", 0) or 0)
-    b.cache_read += int(u.get("cache_read_input_tokens", 0) or 0)
+    b.input      += _int(u.get("input_tokens"))
+    b.output     += _int(u.get("output_tokens"))
+    b.cache_read += _int(u.get("cache_read_input_tokens"))
     cc = u.get("cache_creation") or {}
     if cc:
-        b.cache_write += int(cc.get("ephemeral_5m_input_tokens", 0) or 0)
-        b.cache_write += int(cc.get("ephemeral_1h_input_tokens", 0) or 0)
+        b.cache_write += _int(cc.get("ephemeral_5m_input_tokens"))
+        b.cache_write += _int(cc.get("ephemeral_1h_input_tokens"))
     else:
-        b.cache_write += int(u.get("cache_creation_input_tokens", 0) or 0)
+        b.cache_write += _int(u.get("cache_creation_input_tokens"))
 
 
 def parse_codex(line: str, agg: SessionAgg) -> None:
@@ -325,11 +367,11 @@ def parse_codex(line: str, agg: SessionAgg) -> None:
         return
     model = d.get("model") or (d.get("response") or {}).get("model") or "<unknown>"
     b = agg.bucket(model)
-    b.input       += int(u.get("input_tokens",  u.get("prompt_tokens", 0)) or 0)
-    b.output      += int(u.get("output_tokens", u.get("completion_tokens", 0)) or 0)
+    b.input       += _int(u.get("input_tokens",  u.get("prompt_tokens")))
+    b.output      += _int(u.get("output_tokens", u.get("completion_tokens")))
     # OpenAI cached prompt tokens (Sept-2024+): usage.prompt_tokens_details.cached_tokens
     det = u.get("prompt_tokens_details") or u.get("input_tokens_details") or {}
-    b.cache_read  += int(det.get("cached_tokens", 0) or 0)
+    b.cache_read  += _int(det.get("cached_tokens"))
 
 
 def parse_opencode(line: str, agg: SessionAgg) -> None:
@@ -346,11 +388,11 @@ def parse_opencode(line: str, agg: SessionAgg) -> None:
         return
     model = d.get("modelID") or d.get("model") or "<unknown>"
     b = agg.bucket(model)
-    b.input       += int(tok.get("input",  0) or 0)
-    b.output      += int(tok.get("output", 0) or 0)
+    b.input       += _int(tok.get("input"))
+    b.output      += _int(tok.get("output"))
     cache = tok.get("cache") or {}
-    b.cache_read  += int(cache.get("read",  0) or 0)
-    b.cache_write += int(cache.get("write", 0) or 0)
+    b.cache_read  += _int(cache.get("read"))
+    b.cache_write += _int(cache.get("write"))
 
 
 HARNESSES = {
@@ -446,6 +488,10 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
     print(f"   tokens: in={toks(c.input)} out={toks(c.output)} "
           f"cache_r={toks(c.cache_read)} cache_w={toks(c.cache_write)} "
           f"total={toks(c.total_tokens())}")
+    if a.compactions:
+        tb = [x["tokens_before"] for x in a.compactions if x["tokens_before"]]
+        detail = f" (tokens_before: {', '.join(toks(t) for t in tb)})" if tb else ""
+        print(f"   compact: {len(a.compactions)} event(s){detail}")
     unpriced = a.unpriced(prices)
     line = f"   cost:   {money(a.total_cost(prices))}"
     if unpriced:
@@ -478,6 +524,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
             "total":      c.total_tokens(),
             "cost_usd":   round(a.total_cost(prices), 6),
         },
+        "compactions": a.compactions,
         "by_model": {
             m: {
                 "input":      b.input,
@@ -604,12 +651,13 @@ def main(argv: list[str]) -> int:
         return 0
 
     if args.list:
-        print(f"{'harness':<12} {'session id':<40} {'tokens':>14} {'cost':>12}  cwd")
+        print(f"{'harness':<12} {'session id':<40} {'tokens':>14} {'cost':>12} {'cmp':>4}  cwd")
         for s in sessions:
             b = s.combined()
+            cmp_ = str(len(s.compactions)) if s.compactions else "-"
             print(f"{s.harness:<12} {s.session_id[:40]:<40} "
                   f"{toks(b.total_tokens()):>14} "
-                  f"{money(s.total_cost(prices)):>12}  {s.cwd}")
+                  f"{money(s.total_cost(prices)):>12} {cmp_:>4}  {s.cwd}")
     else:
         for s in sessions:
             print_session(s, prices, args.by_model)
@@ -617,8 +665,12 @@ def main(argv: list[str]) -> int:
 
     tot_cost = sum(s.total_cost(prices) for s in sessions)
     tot_toks = sum(s.combined().total_tokens() for s in sessions)
+    tot_cmp  = sum(len(s.compactions) for s in sessions)
     print("------------------------------------------------------")
-    print(f"{len(sessions)} session(s)   tokens={toks(tot_toks)}   cost={money(tot_cost)}")
+    line = f"{len(sessions)} session(s)   tokens={toks(tot_toks)}   cost={money(tot_cost)}"
+    if tot_cmp:
+        line += f"   compactions={tot_cmp}"
+    print(line)
 
     all_unpriced = {m for s in sessions for m in s.unpriced(prices)}
     if all_unpriced:

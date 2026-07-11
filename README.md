@@ -111,14 +111,20 @@ The number matches whatever your harness *would* have billed against the canonic
 
 Auto-detected from `$HOME`:
 
-| Harness      | JSONL root                              | Verified                     |
-|--------------|-----------------------------------------|------------------------------|
-| pi           | `~/.pi/agent/sessions/**/*.jsonl`       | ✓                            |
-| Claude Code  | `~/.claude/projects/**/*.jsonl`         | ✓                            |
-| OpenAI Codex | `~/.codex/sessions/**/*.jsonl`          | best-effort; PRs welcome     |
-| opencode     | `~/.local/share/opencode/**/*.jsonl`    | best-effort; PRs welcome     |
+| Harness      | JSONL root                              | Status        |
+|--------------|-----------------------------------------|---------------|
+| pi           | `~/.pi/agent/sessions/**/*.jsonl`       | **Verified in production** — primary development target; compaction detection tested against live sessions |
+| Claude Code  | `~/.claude/projects/**/*.jsonl`         | **Experimental** — parser runs cleanly against 1,000+ real sessions on the maintainer's machine, but per-session $ figures have not yet been reconciled against Anthropic invoice line items |
+| OpenAI Codex | `~/.codex/sessions/**/*.jsonl`          | **Schema-only** — parser written from public Codex JSONL docs; no live-session validation yet. PRs welcome |
+| opencode     | `~/.local/share/opencode/**/*.jsonl`    | **Schema-only** — parser written from opencode's assistant-message shape; no live-session validation yet. PRs welcome |
 
-Adding a new harness is a ~15-line `parse_*` function in `cost.py` and a new entry in the `HARNESSES` dict. See the `parse_pi` and `parse_claude_code` implementations for the pattern.
+### What "verified" actually means here
+
+- **Verified in production** — the maintainer runs `/cost` against this harness daily. Compaction events are detected. Token totals match the harness's own reported context-window usage where it exposes one. Model-name normalization is exercised across the current Claude 4.x family.
+- **Experimental** — the JSONL schema is stable and parsing is non-crashing across a large corpus of real logs. Numbers are believed correct (they use the same LiteLLM per-token rates and the same cache-read / cache-creation fields Anthropic bills against), but no one has yet cross-checked them against an actual paid invoice for that harness. Treat the number as directionally correct, not audit-grade.
+- **Schema-only** — the parser is a best-effort implementation from public docs / source. It probably works. It has not been run against a real session on the maintainer's machine. Please open an issue with an example JSONL line if the numbers look off.
+
+Adding a new harness is a ~15-line `parse_*` function in `cost.py` and a new entry in the `HARNESSES` dict. See `parse_pi` and `parse_claude_code` for the pattern.
 
 ---
 
@@ -170,6 +176,22 @@ The agent reads `SKILL.md`, runs the script, and shows the report.
 | [ccusage](https://ccusage.com) | Claude Code / Codex / opencode / Amp / Droid / Codebuff dashboards | `npx ccusage` | Yes | Yes |
 | Harness built-in cost | Whatever the harness emits | Zero | Single-harness | Whatever the vendor ships |
 | Hand-maintained pricing table | Manual | You write it | You maintain it | No — goes stale in weeks |
+
+---
+
+## Behaviors worth knowing
+
+### Compaction is detected but not double-billed
+
+When your agent compacts context (pi writes `type: "compaction"`, Claude Code sets `isCompactSummary: true`), `cost` records the event but does not add anything to your bill for the checkpoint itself. Every pre- and post-compaction turn is already billed independently from its own `usage` block. The `compact:` line in the report just tells you *how many* times it happened and, for pi, *how deep* the context was at each checkpoint (`tokens_before`) so you can spot a session that's thrashing the window.
+
+### Cache pricing follows the vendor
+
+When the LiteLLM catalog carries `cache_read_input_token_cost` and `cache_creation_input_token_cost` for a model, `cost` uses those numbers verbatim. If a model has no cache-rate entry (rare, mostly non-Anthropic), `cost` falls back to Anthropic's public ratios (`0.10× input` for reads, `1.25× input` for ephemeral-5m writes). Any actual figure you see is either the vendor's published rate or clearly flagged as unpriced.
+
+### The reported number is what the vendor *would* have billed
+
+Harnesses like pi that route through a proxy typically emit `cost: 0` in their JSONL because the proxy doesn't price. `cost` deliberately ignores that field and recomputes from token counts against LiteLLM rates — so the number matches what the underlying vendor would have charged for the same call, regardless of whether *you* paid it, your employer's SAP tenancy paid it, or the request was on a free tier.
 
 ---
 
