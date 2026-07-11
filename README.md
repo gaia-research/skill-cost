@@ -3,10 +3,14 @@
 > **Token-usage & USD cost report for AI agent sessions — pi, Claude Code, Codex, opencode**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![Part of Gaia](https://img.shields.io/badge/part%20of-Gaia%20skill--tree-6b46c1)](https://gaiaskilltree.com)
+[![Powered by Gaia](https://img.shields.io/badge/powered%20by-Gaia%20skill--tree-6b46c1)](https://gaiaskilltree.com)
+[![Prices by LiteLLM](https://img.shields.io/badge/prices%20by-BerriAI%2Flitellm-0ea5e9)](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-3776ab.svg)](https://www.python.org)
 [![Zero deps](https://img.shields.io/badge/deps-stdlib%20only-success)](#requirements)
 [![Prices auto-refresh](https://github.com/gaia-research/skill-cost/actions/workflows/refresh-prices.yml/badge.svg)](./.github/workflows/refresh-prices.yml)
+
+> **Prices sourced from [BerriAI/litellm](https://github.com/BerriAI/litellm) (MIT).**
+> **[Powered by Gaia](https://gaiaskilltree.com) — an open registry of AI agent skills.**
 
 **How much did that agent session actually cost?**
 
