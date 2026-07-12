@@ -1,18 +1,18 @@
 ---
 name: cost
 description: >-
-  Report token usage and USD cost for AI agent sessions by parsing the JSONL
-  logs written by pi, Claude Code, OpenAI Codex, and opencode. Prices are
+  Report token usage and USD cost for AI agent sessions by parsing logs from
+  pi, Claude Code, OpenAI Codex, opencode, and Hermes Agent. Prices are
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # cost — Multi-Harness Token Cost Report
 
-Reads the JSONL session logs written by AI agent harnesses on this machine
-and reports **accurate token usage and USD cost** per session. Prices come
+Reads session usage records written by AI agent harnesses on this machine
+and reports persisted token usage plus a **public-rate USD estimate** per session. Prices come
 from [BerriAI/litellm](https://github.com/BerriAI/litellm)'s canonical
 `model_prices_and_context_window.json` catalog and auto-refresh weekly.
 
@@ -20,19 +20,23 @@ from [BerriAI/litellm](https://github.com/BerriAI/litellm)'s canonical
 
 Auto-detected from `~`:
 
-| Harness      | JSONL root                              |
+| Harness      | Session storage                         |
 |--------------|-----------------------------------------|
 | pi           | `~/.pi/agent/sessions/**/*.jsonl`       |
 | Claude Code  | `~/.claude/projects/**/*.jsonl`         |
 | OpenAI Codex | `~/.codex/sessions/**/*.jsonl`          |
 | opencode     | `~/.local/share/opencode/**/*.jsonl`    |
+| Hermes Agent | `$HERMES_HOME/state.db`                 |
 
-Adding a new harness = one small `parse_*` function in `cost.py`.
+Hermes is read through SQLite in `mode=ro`. The parser queries only `sessions`
+and `session_model_usage`; it never reads transcript rows from `messages`.
+
+Adding a new line-oriented harness = one small `parse_*` function in `cost.py`.
 
 ## Run
 
 ```bash
-# [default] the currently active session (newest-mtime JSONL)
+# [default] the newest logical session across all harnesses
 python3 cost.py
 
 # Latest session per harness in current cwd
@@ -46,6 +50,7 @@ python3 cost.py --today --by-model
 
 # Since a date, one harness only
 python3 cost.py --since 2026-07-01 --harness claude-code
+python3 cost.py --harness hermes
 
 # Filter by working directory or session id substring
 python3 cost.py --cwd "$PWD"
@@ -88,6 +93,13 @@ When invoked via `/cost`:
 4. If the output lists any `unpriced` models, suggest
    `python3 cost.py --refresh-prices`.
 5. Do not fabricate numbers — always rely on the script's output.
+
+Hermes' built-in `/usage` and `hermes insights` remain the best live telemetry
+for Hermes itself. This skill complements them by applying one LiteLLM price
+catalog consistently across the active Hermes profile and other harnesses,
+historical sessions, project filters, and combined reports. To inspect a named
+profile, invoke the script with that profile's `HERMES_HOME`; profiles are never
+scanned implicitly.
 
 ## Files
 
