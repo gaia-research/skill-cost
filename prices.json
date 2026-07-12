@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-07-11T06:28:30Z",
-    "model_count": 2487,
+    "fetched_at": "2026-07-12T06:48:12Z",
+    "model_count": 2501,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -701,6 +701,34 @@
     "output": 3.3e-05,
     "provider": "azure"
   },
+  "azure/eu/gpt-5.6": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.6-luna": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 1.1e-06,
+    "output": 6.6e-06,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.6-sol": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.6-terra": {
+    "cache_read": 2.75e-07,
+    "cache_write": null,
+    "input": 2.75e-06,
+    "output": 1.65e-05,
+    "provider": "azure"
+  },
   "azure/eu/o1-2024-12-17": {
     "cache_read": 8.25e-06,
     "cache_write": null,
@@ -1359,6 +1387,34 @@
     "output": 0.00018,
     "provider": "azure"
   },
+  "azure/gpt-5.6": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "azure"
+  },
+  "azure/gpt-5.6-luna": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 6e-06,
+    "provider": "azure"
+  },
+  "azure/gpt-5.6-sol": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "azure"
+  },
+  "azure/gpt-5.6-terra": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
+    "provider": "azure"
+  },
   "azure/gpt-audio-1.5-2026-02-23": {
     "cache_read": null,
     "cache_write": null,
@@ -1770,6 +1826,34 @@
     "cache_write": null,
     "input": 5.5e-06,
     "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.6": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.6-luna": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 1.1e-06,
+    "output": 6.6e-06,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.6-sol": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.6-terra": {
+    "cache_read": 2.75e-07,
+    "cache_write": null,
+    "input": 2.75e-06,
+    "output": 1.65e-05,
     "provider": "azure"
   },
   "azure/us/o1-2024-12-17": {
@@ -9598,6 +9682,13 @@
     "output": 2.75e-05,
     "provider": "bedrock_converse"
   },
+  "jp.anthropic.claude-opus-4-8": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 2.75e-05,
+    "provider": "bedrock_converse"
+  },
   "jp.anthropic.claude-sonnet-4-5-20250929-v1:0": {
     "cache_read": 3.3e-07,
     "cache_write": 4.125e-06,
@@ -10094,6 +10185,13 @@
     "input": 1.7e-07,
     "output": 6.6e-07,
     "provider": "bedrock_converse"
+  },
+  "meta/muse-spark-1.1": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 4.25e-06,
+    "provider": "meta"
   },
   "minimax.minimax-m2": {
     "cache_read": null,
