@@ -1,6 +1,6 @@
 # cost
 
-> **Token-usage & USD cost report for AI agent sessions — pi, Claude Code, Codex, opencode**
+> **Token-usage & USD cost report for AI agent sessions — pi, Claude Code, Codex, opencode, Hermes Agent**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Powered by Gaia](https://img.shields.io/badge/powered%20by-Gaia%20skill--tree-6b46c1)](https://gaiaskilltree.com)
@@ -14,7 +14,7 @@
 
 **How much did that agent session actually cost?**
 
-Your harness writes a JSONL session log on every turn. It records token counts. It often does *not* record dollars — pi records `cost: 0`, self-hosted proxies rarely price anything, and the "cost" number many CLIs surface is stale by a version. `cost` reads the raw token counts, prices them against [LiteLLM's canonical catalog](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json), and gives you the real number.
+Your harness persists token counts in JSONL logs or a local session database. It often does *not* record dollars — pi records `cost: 0`, self-hosted proxies rarely price anything, and the "cost" number many CLIs surface is stale by a version. `cost` reads the persisted token counts and prices them against [LiteLLM's canonical catalog](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json), producing a reproducible public-rate estimate. Subscription-included or negotiated billing may differ from this estimate.
 
 No pip. No npm. No config. **One Python file, one JSON price sheet, prices auto-refresh every 7 days.**
 
@@ -34,7 +34,7 @@ There is no single bug. There are several, and they compound:
 
 So the number you see mid-conversation is decoration. The real bill comes later, from the vendor, and by then the session is over.
 
-`cost` reads the raw JSONL, prices every turn (including cache-read, cache-write, both pre- and post-compaction) against LiteLLM's current rate card, and gives you the number the vendor will bill. No estimates. No trust in a proxy that reports zero. No trust in an agent's opinion of its own bill.
+`cost` reads the harness's persisted usage totals, including cache-read and cache-write tokens across compactions, and prices them against LiteLLM's current rate card. The result is a reproducible public API-equivalent estimate; actual spend can differ for subscriptions, credits, free tiers, custom contracts, and local models.
 
 ---
 
@@ -44,7 +44,7 @@ So the number you see mid-conversation is decoration. The real bill comes later,
 bash <(curl -sL https://raw.githubusercontent.com/gaia-research/skill-cost/main/install.sh)
 ```
 
-Auto-detects `~/.pi/agent/skills`, `~/.claude/skills`, `~/.codex/skills`, `.agents/skills`, or `.claude/skills`. Ships a current `prices.json`, then keeps it fresh silently.
+Auto-detects `~/.pi/agent/skills`, `~/.claude/skills`, `~/.codex/skills`, `~/.hermes/skills`, `.agents/skills`, or `.claude/skills`. Ships a current `prices.json`, then keeps it fresh silently.
 
 ### Or grab the script
 
@@ -62,13 +62,13 @@ As a slash-command inside an agent conversation (once installed as a skill):
 
 | Command | What it shows |
 |---|---|
-| `/cost` | The currently active session. Newest-mtime JSONL across every harness. Default view. |
+| `/cost` | The newest logical session across every harness. Default view. |
 | `/cost --latest` | The latest session per harness in the current `cwd`. Useful when several harnesses have logged from the same project. |
 | `/cost --today` | Everything that touched the wire today (UTC). |
 | `/cost --since 2026-07-01` | Everything since a date. Use `YYYY-MM-DD` or a full ISO timestamp. |
 | `/cost --since 2026-07-01 --by-model` | Same, with a per-model breakdown so you can see whether Opus or Sonnet is doing the damage. |
 | `/cost --cwd $PWD` | Only sessions whose recorded `cwd` matches this directory. "What has this project cost me?" |
-| `/cost --harness pi` | Restrict to one harness. Also: `claude-code`, `codex`, `opencode`. |
+| `/cost --harness pi` | Restrict to one harness. Also: `claude-code`, `codex`, `opencode`, `hermes`. |
 | `/cost --session 019f4e66` | Substring match on session id. Useful when a coworker sends you a session id. |
 | `/cost --all --list` | Every session on the machine, one line each. Sorted by recency. |
 | `/cost --all --list --today` | Today, one line each. Fits on a terminal. |
@@ -119,7 +119,7 @@ Every flag from the cheat sheet above works at the shell too — substitute `pyt
 1 session(s)   tokens=939,985   cost=$1.6104
 ```
 
-The number matches whatever your harness *would* have billed against the canonical Anthropic/OpenAI rate card — including cache-read and cache-write pricing, both pre- and post-compaction. If your agent estimates a different figure mid-conversation, this one is the invoice-side truth.
+The number estimates what the same tokens would cost against the canonical public Anthropic/OpenAI rate card, including cache-read and cache-write pricing. It is not a claim about subscription-included or contract billing.
 
 ---
 
@@ -127,12 +127,13 @@ The number matches whatever your harness *would* have billed against the canonic
 
 Auto-detected from `$HOME`:
 
-| Harness      | JSONL root                              | Status        |
+| Harness      | Session storage                         | Status        |
 |--------------|-----------------------------------------|---------------|
 | pi           | `~/.pi/agent/sessions/**/*.jsonl`       | **Verified in production** — primary development target; compaction detection tested against live sessions |
 | Claude Code  | `~/.claude/projects/**/*.jsonl`         | **Experimental** — parser runs cleanly against 1,000+ real sessions on the maintainer's machine, but per-session $ figures have not yet been reconciled against Anthropic invoice line items |
 | OpenAI Codex | `~/.codex/sessions/**/*.jsonl`          | **Schema-only** — parser written from public Codex JSONL docs; no live-session validation yet. PRs welcome |
 | opencode     | `~/.local/share/opencode/**/*.jsonl`    | **Schema-only** — parser written from opencode's assistant-message shape; no live-session validation yet. PRs welcome |
+| Hermes Agent | `$HERMES_HOME/state.db`                 | **Schema-verified (v20)** — reads aggregate and per-model usage in SQLite read-only mode; never reads message content |
 
 ### What "verified" actually means here
 
@@ -140,7 +141,18 @@ Auto-detected from `$HOME`:
 - **Experimental** — the JSONL schema is stable and parsing is non-crashing across a large corpus of real logs. Numbers are believed correct (they use the same LiteLLM per-token rates and the same cache-read / cache-creation fields Anthropic bills against), but no one has yet cross-checked them against an actual paid invoice for that harness. Treat the number as directionally correct, not audit-grade.
 - **Schema-only** — the parser is a best-effort implementation from public docs / source. It probably works. It has not been run against a real session on the maintainer's machine. Please open an issue with an example JSONL line if the numbers look off.
 
-Adding a new harness is a ~15-line `parse_*` function in `cost.py` and a new entry in the `HARNESSES` dict. See `parse_pi` and `parse_claude_code` for the pattern.
+Adding a new line-oriented harness is a small `parse_*` function in `cost.py` and a new entry in the `HARNESSES` dict. SQLite-backed harnesses can provide a loader like Hermes. See `parse_pi`, `parse_claude_code`, and `load_hermes_db` for the patterns.
+
+### Hermes `/usage` vs `/cost`
+
+Hermes already provides `/usage` for the active session and `hermes insights`
+for native historical analytics. Keep using those for live Hermes telemetry.
+`/cost` is complementary: it reads the same persisted token metadata in
+SQLite read-only mode and reprices it with the same LiteLLM catalog used for
+pi, Claude Code, Codex, and opencode. That makes cross-harness and
+project-filtered comparisons reproducible without reading transcripts. Only
+the active `$HERMES_HOME` is inspected; named profiles remain isolated unless
+the caller explicitly selects one.
 
 ---
 
@@ -188,7 +200,7 @@ The agent reads `SKILL.md`, runs the script, and shows the report.
 
 | Tool | Focus | Setup | Multi-harness | Prices auto-update |
 |---|---|---|---|---|
-| **`cost`** | Any harness JSONL → USD, one file | `curl \| bash` | pi, Claude Code, Codex, opencode | Yes — LiteLLM catalog, 7-day refresh |
+| **`cost`** | Harness logs → USD, one file | `curl \| bash` | pi, Claude Code, Codex, opencode, Hermes | Yes — LiteLLM catalog, 7-day refresh |
 | [ccusage](https://ccusage.com) | Claude Code / Codex / opencode / Amp / Droid / Codebuff dashboards | `npx ccusage` | Yes | Yes |
 | Harness built-in cost | Whatever the harness emits | Zero | Single-harness | Whatever the vendor ships |
 | Hand-maintained pricing table | Manual | You write it | You maintain it | No — goes stale in weeks |

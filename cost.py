@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-cost.py — Compute token-usage cost from agent harness JSONL session logs.
+cost.py — Compute token-usage cost from agent harness session logs.
 
 Supported harnesses (auto-detected):
   - pi           (~/.pi/agent/sessions/**/*.jsonl)
   - claude-code  (~/.claude/projects/**/*.jsonl)
   - codex        (~/.codex/sessions/**/*.jsonl)
   - opencode     (~/.local/share/opencode/**/*.jsonl)
+  - hermes       ($HERMES_HOME/state.db; defaults to ~/.hermes/state.db)
 
 Prices are read from `prices.json` shipped next to this script and refreshed
 weekly from BerriAI/litellm's canonical model_prices_and_context_window.json
@@ -21,6 +22,7 @@ import argparse
 import json
 import os
 import re
+import sqlite3
 import sys
 import urllib.request
 from dataclasses import dataclass, field
@@ -141,6 +143,12 @@ NORMALIZERS: list[Callable[[str], str]] = [
     lambda s: re.sub(
         r"^anthropic--claude-(\d+)\.(\d+)-(opus|sonnet|haiku)$",
         lambda m: f"claude-{m.group(3)}-{m.group(1)}-{m.group(2)}",
+        s,
+    ),
+    # Hermes/direct providers: `anthropic/claude-opus-4.8` -> `claude-opus-4-8`
+    lambda s: re.sub(
+        r"^(?:[a-z_0-9-]+/)*(claude-(?:opus|sonnet|haiku)-\d+)\.(\d+)(.*)$",
+        lambda m: f"{m.group(1)}-{m.group(2)}{m.group(3)}",
         s,
     ),
     # Strip provider prefixes like `openrouter/anthropic/…`, `azure_ai/…`
@@ -395,6 +403,164 @@ def parse_opencode(line: str, agg: SessionAgg) -> None:
     b.cache_write += _int(cache.get("write"))
 
 
+def _epoch_iso(value) -> str:
+    """Convert a Unix timestamp to the ISO form used by the JSONL parsers."""
+    try:
+        return datetime.fromtimestamp(float(value), timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+    except (TypeError, ValueError, OSError):
+        return ""
+
+
+def load_hermes_db(path: str) -> list[SessionAgg]:
+    """Load Hermes token metadata without reading message content.
+
+    The aggregate session row is authoritative. Positive residuals not yet
+    represented in the per-model table are assigned to the session's recorded
+    model, matching Hermes Insights' reconciliation behavior.
+    """
+    uri = Path(path).resolve().as_uri() + "?mode=ro"
+    try:
+        conn = sqlite3.connect(uri, uri=True)
+        conn.row_factory = sqlite3.Row
+    except sqlite3.Error:
+        return []
+
+    try:
+        tables = {
+            row[0]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+            )
+        }
+        if "sessions" not in tables:
+            return []
+
+        session_columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(sessions)")
+        }
+        required = {
+            "id", "model", "started_at", "ended_at", "input_tokens",
+            "output_tokens", "cache_read_tokens", "cache_write_tokens", "cwd",
+        }
+        if not required.issubset(session_columns):
+            return []
+
+        parent_expr = (
+            "parent_session_id"
+            if "parent_session_id" in session_columns
+            else "NULL AS parent_session_id"
+        )
+        end_reason_expr = (
+            "end_reason" if "end_reason" in session_columns else "NULL AS end_reason"
+        )
+        rows = conn.execute(
+            f"""SELECT id, model, started_at, ended_at, cwd,
+                       input_tokens, output_tokens, cache_read_tokens,
+                       cache_write_tokens, {parent_expr}, {end_reason_expr}
+                  FROM sessions"""
+        ).fetchall()
+        aggs: dict[str, SessionAgg] = {}
+        aggregate: dict[str, Bucket] = {}
+        attributed: dict[str, Bucket] = {}
+        by_id = {}
+        for row in rows:
+            sid = str(row["id"] or "")
+            if not sid:
+                continue
+            agg = SessionAgg(harness="hermes", path=path, session_id=sid)
+            agg.cwd = str(row["cwd"] or "")
+            agg.first_ts = _epoch_iso(row["started_at"])
+            agg.last_ts = _epoch_iso(row["ended_at"] or row["started_at"])
+            aggs[sid] = agg
+            by_id[sid] = row
+            aggregate[sid] = Bucket(
+                input=_int(row["input_tokens"]),
+                output=_int(row["output_tokens"]),
+                cache_read=_int(row["cache_read_tokens"]),
+                cache_write=_int(row["cache_write_tokens"]),
+            )
+            attributed[sid] = Bucket()
+
+        if "session_model_usage" in tables:
+            usage_columns = {
+                row[1]
+                for row in conn.execute("PRAGMA table_info(session_model_usage)")
+            }
+            usage_required = {
+                "session_id", "model", "input_tokens", "output_tokens",
+                "cache_read_tokens", "cache_write_tokens", "last_seen",
+            }
+            if usage_required.issubset(usage_columns):
+                usage_rows = conn.execute(
+                    """SELECT session_id, model, input_tokens, output_tokens,
+                              cache_read_tokens, cache_write_tokens, last_seen
+                         FROM session_model_usage"""
+                ).fetchall()
+                for row in usage_rows:
+                    sid = str(row["session_id"] or "")
+                    agg = aggs.get(sid)
+                    if agg is None:
+                        continue
+                    model = str(row["model"] or "<unknown>")
+                    delta = Bucket(
+                        input=_int(row["input_tokens"]),
+                        output=_int(row["output_tokens"]),
+                        cache_read=_int(row["cache_read_tokens"]),
+                        cache_write=_int(row["cache_write_tokens"]),
+                    )
+                    agg.bucket(model).add(delta)
+                    attributed[sid].add(delta)
+                    _ts_update(agg, _epoch_iso(row["last_seen"]))
+
+        for sid, agg in aggs.items():
+            total = aggregate[sid]
+            used = attributed[sid]
+            residual = Bucket(
+                input=max(0, total.input - used.input),
+                output=max(0, total.output - used.output),
+                cache_read=max(0, total.cache_read - used.cache_read),
+                cache_write=max(0, total.cache_write - used.cache_write),
+            )
+            if residual.total_tokens() > 0:
+                model = str(by_id[sid]["model"] or "<unknown>")
+                agg.bucket(model).add(residual)
+
+        # Legacy rotating compression created a continuation session. Merge only
+        # when the parent explicitly ended because of compression; ordinary
+        # branches and delegated children remain independent billable sessions.
+        ordered_ids = sorted(
+            aggs,
+            key=lambda sid: aggs[sid].first_ts or "",
+        )
+        for sid in ordered_ids:
+            child = aggs.get(sid)
+            if child is None:
+                continue
+            parent_id = str(by_id[sid]["parent_session_id"] or "")
+            parent = aggs.get(parent_id)
+            if parent is None or str(by_id[parent_id]["end_reason"] or "") != "compression":
+                continue
+            before = parent.combined().total_tokens()
+            for model, bucket in parent.by_model.items():
+                child.bucket(model).add(bucket)
+            if parent.first_ts and (
+                not child.first_ts or parent.first_ts < child.first_ts
+            ):
+                child.first_ts = parent.first_ts
+            child.compactions = parent.compactions + [
+                {"ts": parent.last_ts, "tokens_before": before}
+            ] + child.compactions
+            del aggs[parent_id]
+
+        return sorted(aggs.values(), key=lambda a: a.last_ts or "", reverse=True)
+    except sqlite3.Error:
+        return []
+    finally:
+        conn.close()
+
+
 HARNESSES = {
     "pi": {
         "roots": [".pi/agent/sessions"],
@@ -412,6 +578,10 @@ HARNESSES = {
         "roots": [".local/share/opencode", ".config/opencode"],
         "parse": parse_opencode,
     },
+    "hermes": {
+        "roots": [".hermes"],
+        "parse": None,
+    },
 }
 
 
@@ -421,6 +591,14 @@ HARNESSES = {
 
 def discover(harness: str) -> list[str]:
     home = Path.home()
+    if harness == "hermes":
+        if sys.platform == "win32":
+            default_root = Path(os.environ.get("LOCALAPPDATA", home)) / "hermes"
+        else:
+            default_root = home / ".hermes"
+        root = Path(os.environ.get("HERMES_HOME", default_root))
+        db = root / "state.db"
+        return [str(db)] if db.is_file() else []
     out: list[str] = []
     for rel in HARNESSES[harness]["roots"]:
         root = home / rel
@@ -444,6 +622,36 @@ def load_session(path: str, harness: str) -> SessionAgg:
     if not agg.session_id:
         agg.session_id = Path(path).stem
     return agg
+
+
+def load_sessions(path: str, harness: str) -> list[SessionAgg]:
+    """Load every logical session stored in one harness artifact."""
+    if harness == "hermes":
+        return load_hermes_db(path)
+    return [load_session(path, harness)]
+
+
+def artifact_activity(path: str, harness: str) -> float:
+    """Read a bounded JSONL tail and return its latest logical timestamp."""
+    parse = HARNESSES[harness]["parse"]
+    try:
+        with open(path, "rb") as f:
+            size = f.seek(0, os.SEEK_END)
+            f.seek(max(0, size - 131_072))
+            tail = f.read()
+        agg = SessionAgg(harness=harness, path=path)
+        for raw in reversed(tail.splitlines()):
+            parse(raw.decode("utf-8", errors="replace"), agg)
+            if agg.last_ts:
+                dt = as_dt(agg.last_ts)
+                if dt:
+                    return dt.timestamp()
+    except OSError:
+        pass
+    try:
+        return os.path.getmtime(path)
+    except OSError:
+        return 0.0
 
 
 # =============================================================================
@@ -546,10 +754,10 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(
-        description="Compute token-usage cost from harness JSONL session logs.",
+        description="Compute token-usage cost from agent harness session logs.",
     )
     ap.add_argument("--current", action="store_true",
-                    help="[default] the currently active session (newest-mtime JSONL)")
+                    help="[default] the newest logical session across selected harnesses")
     ap.add_argument("--latest", action="store_true",
                     help="latest session per harness in the current cwd")
     ap.add_argument("--all", action="store_true", help="every session across every harness")
@@ -583,13 +791,20 @@ def main(argv: list[str]) -> int:
     files: list[tuple[str, str]] = []
 
     if args.current:
-        # Newest-mtime JSONL across the selected harnesses = the active session
+        # Hermes DBs contain many logical sessions, so load each active DB.
+        # JSONL artifacts hold one session each; inspect only a bounded tail to
+        # choose the newest logical session before fully parsing one file.
         all_files = [(h, p) for h in harnesses for p in discover(h)]
         if not all_files:
             print("no session files found", file=sys.stderr)
             return 1
-        newest = max(all_files, key=lambda hp: os.path.getmtime(hp[1]))
-        files = [newest]
+        hermes_files = [(h, p) for h, p in all_files if h == "hermes"]
+        jsonl_files = [(h, p) for h, p in all_files if h != "hermes"]
+        files = hermes_files
+        if jsonl_files:
+            files.append(
+                max(jsonl_files, key=lambda hp: artifact_activity(hp[1], hp[0]))
+            )
     else:
         for h in harnesses:
             files += [(h, p) for p in discover(h)]
@@ -598,7 +813,11 @@ def main(argv: list[str]) -> int:
         print("no session files found", file=sys.stderr)
         return 1
 
-    sessions = [load_session(p, h) for h, p in files]
+    sessions = [
+        session
+        for h, p in files
+        for session in load_sessions(p, h)
+    ]
 
     # Filters
     if args.cwd:
@@ -628,6 +847,8 @@ def main(argv: list[str]) -> int:
     sessions.sort(key=lambda s: s.last_ts or "", reverse=True)
     if not (args.session or args.list):
         sessions = [s for s in sessions if s.combined().total_tokens() > 0]
+    if args.current:
+        sessions = sessions[:1]
 
     if args.json:
         meta = prices.get("_meta") or {}

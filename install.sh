@@ -31,9 +31,11 @@ warn() { printf '%s[!]%s %s\n' "$YELLOW" "$RESET" "$*"; }
 # Locate a skills directory (in preference order)
 # ---------------------------------------------------------------------------
 CANDIDATES=()
+HERMES_ROOT="${HERMES_HOME:-$HOME/.hermes}"
 [ -d "$HOME/.pi/agent/skills" ]   && CANDIDATES+=("$HOME/.pi/agent/skills")
 [ -d "$HOME/.claude/skills" ]     && CANDIDATES+=("$HOME/.claude/skills")
 [ -d "$HOME/.codex/skills" ]      && CANDIDATES+=("$HOME/.codex/skills")
+{ [ -d "$HERMES_ROOT/skills" ] || [ -f "$HERMES_ROOT/state.db" ]; } && CANDIDATES+=("$HERMES_ROOT/skills")
 [ -d "$HOME/.agents/skills" ]     && CANDIDATES+=("$HOME/.agents/skills")
 [ -d ".agents/skills" ]           && CANDIDATES+=(".agents/skills")
 [ -d ".claude/skills" ]           && CANDIDATES+=(".claude/skills")
@@ -94,7 +96,7 @@ if [ -d "$HOME/.pi/agent/prompts" ]; then
   info "Installing pi /cost prompt template..."
   cat > "$HOME/.pi/agent/prompts/cost.md" <<'EOF'
 ---
-description: Report token usage and USD cost from harness JSONL session logs (skill-cost)
+description: Report token usage and public-rate USD cost from harness session stores (skill-cost)
 argument-hint: "[--all|--today|--since DATE|--harness <id>|--session ID|--cwd PATH|--by-model|--list|--json|--refresh-prices]"
 ---
 Load the `cost` skill and follow its instructions.
@@ -102,7 +104,12 @@ Load the `cost` skill and follow its instructions.
 Run:
 
 ```bash
-python3 "$(dirname "$(find ~/.pi/agent/skills ~/.claude/skills ~/.codex/skills ~/.agents/skills .agents/skills .claude/skills -type f -name 'cost.py' 2>/dev/null | head -1)")/cost.py" $ARGUMENTS
+COST_PY="$(find ~/.pi/agent/skills ~/.claude/skills ~/.codex/skills "${HERMES_HOME:-$HOME/.hermes}/skills" ~/.agents/skills .agents/skills .claude/skills -type f -name 'cost.py' 2>/dev/null | head -1)"
+if [ -z "$COST_PY" ]; then
+  echo "cost.py not found in any configured skills directory" >&2
+  exit 1
+fi
+python3 "$COST_PY" $ARGUMENTS
 ```
 
 Then:
@@ -131,13 +138,16 @@ fi
 
 # Sanity-check the install
 if python3 "${INSTALL_DIR}/cost.py" --offline --all --list >/dev/null 2>&1; then
-  ok "cost.py runs cleanly against local session logs"
+  ok "cost.py runs cleanly against local session stores"
 else
-  info "cost.py installed. No harness JSONL logs were found yet -- that's fine."
+  info "cost.py installed. No harness session stores were found yet -- that's fine."
 fi
 
 say ""
 say "${BOLD}${GREEN}cost is ready.${RESET}  Prices auto-refresh every 7 days."
+if [ "$TARGET_DIR" = "$HERMES_ROOT/skills" ]; then
+  info "In an already-running Hermes session, run /reload-skills once."
+fi
 say ""
 say "  ${DIM}# From an agent conversation:${RESET}"
 say "  ${BOLD}/cost${RESET}                    ${DIM}# current session${RESET}"
