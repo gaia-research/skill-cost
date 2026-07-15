@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-07-12T23:54:59Z",
-    "model_count": 2501,
+    "fetched_at": "2026-07-15T06:30:31Z",
+    "model_count": 2503,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -7897,6 +7897,13 @@
     "output": 2e-06,
     "provider": "vertex_ai-language-models"
   },
+  "gemini-omni-flash-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 9e-06,
+    "provider": "vertex_ai-language-models"
+  },
   "gemini-pro-latest": {
     "cache_read": 1.25e-07,
     "cache_write": null,
@@ -8203,6 +8210,13 @@
     "cache_write": null,
     "input": 3e-07,
     "output": 2e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-omni-flash-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 9e-06,
     "provider": "gemini"
   },
   "gemini/gemini-pro-latest": {
