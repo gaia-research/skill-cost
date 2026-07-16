@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-07-15T12:24:55Z",
-    "model_count": 2503,
+    "fetched_at": "2026-07-16T06:33:55Z",
+    "model_count": 2506,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3513,6 +3513,27 @@
     "cache_write": null,
     "input": 5.5e-06,
     "output": 3.3e-05,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/openai.gpt-5.6-luna": {
+    "cache_read": 1.1e-07,
+    "cache_write": 1.375e-06,
+    "input": 1.1e-06,
+    "output": 6.6e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/openai.gpt-5.6-sol": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/openai.gpt-5.6-terra": {
+    "cache_read": 2.75e-07,
+    "cache_write": 3.4375e-06,
+    "input": 2.75e-06,
+    "output": 1.65e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/openai.gpt-oss-120b": {
