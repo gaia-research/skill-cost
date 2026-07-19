@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "fetched_at": "2026-07-18T06:22:06Z",
+    "fetched_at": "2026-07-19T06:44:36Z",
     "model_count": 2506,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
@@ -6099,7 +6099,7 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/glm-5p2": {
-    "cache_read": 2.6e-07,
+    "cache_read": 1.4e-07,
     "cache_write": null,
     "input": 1.4e-06,
     "output": 4.4e-06,
@@ -7429,7 +7429,7 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/glm-5p2": {
-    "cache_read": 2.6e-07,
+    "cache_read": 1.4e-07,
     "cache_write": null,
     "input": 1.4e-06,
     "output": 4.4e-06,
