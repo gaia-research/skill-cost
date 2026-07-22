@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-07-21T06:43:25Z",
-    "model_count": 2506,
+    "fetched_at": "2026-07-22T06:44:22Z",
+    "model_count": 2512,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -7862,6 +7862,20 @@
     "output": 9e-06,
     "provider": "vertex_ai-language-models"
   },
+  "gemini-3.5-flash-lite": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 2.5e-06,
+    "provider": "vertex_ai-language-models"
+  },
+  "gemini-3.6-flash": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
+    "provider": "vertex_ai-language-models"
+  },
   "gemini-embedding-001": {
     "cache_read": null,
     "cache_write": null,
@@ -8161,6 +8175,20 @@
     "cache_write": null,
     "input": 1.5e-06,
     "output": 9e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.5-flash-lite": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 2.5e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.6-flash": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
     "provider": "gemini"
   },
   "gemini/gemini-embedding-001": {
@@ -16372,6 +16400,20 @@
     "cache_write": null,
     "input": 1.5e-06,
     "output": 9e-06,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/gemini-3.5-flash-lite": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 2.5e-06,
+    "provider": "vertex_ai-language-models"
+  },
+  "vertex_ai/gemini-3.6-flash": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
     "provider": "vertex_ai"
   },
   "vertex_ai/gemini-embedding-2": {
