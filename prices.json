@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-07-24T06:41:39Z",
-    "model_count": 2512,
+    "fetched_at": "2026-07-25T06:31:27Z",
+    "model_count": 2522,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -302,6 +302,13 @@
     "output": 2.5e-05,
     "provider": "bedrock_converse"
   },
+  "anthropic.claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "bedrock_converse"
+  },
   "anthropic.claude-sonnet-4-20250514-v1:0": {
     "cache_read": 3e-07,
     "cache_write": 3.75e-06,
@@ -527,6 +534,13 @@
     "provider": "bedrock_converse"
   },
   "au.anthropic.claude-opus-4-8": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 2.75e-05,
+    "provider": "bedrock_converse"
+  },
+  "au.anthropic.claude-opus-5": {
     "cache_read": 5.5e-07,
     "cache_write": 6.875e-06,
     "input": 5.5e-06,
@@ -2150,6 +2164,13 @@
     "output": 2.5e-05,
     "provider": "azure_ai"
   },
+  "azure_ai/claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "azure_ai"
+  },
   "azure_ai/claude-sonnet-4-5": {
     "cache_read": 3e-07,
     "cache_write": 3.75e-06,
@@ -3767,6 +3788,13 @@
     "output": 2.5e-05,
     "provider": "anthropic"
   },
+  "claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "anthropic"
+  },
   "claude-sonnet-4-20250514": {
     "cache_read": 3e-07,
     "cache_write": 3.75e-06,
@@ -5364,6 +5392,13 @@
     "provider": "bedrock_converse"
   },
   "eu.anthropic.claude-opus-4-8": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 2.75e-05,
+    "provider": "bedrock_converse"
+  },
+  "eu.anthropic.claude-opus-5": {
     "cache_read": 5.5e-07,
     "cache_write": 6.875e-06,
     "input": 5.5e-06,
@@ -8422,6 +8457,13 @@
     "output": 2.5e-05,
     "provider": "bedrock_converse"
   },
+  "global.anthropic.claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "bedrock_converse"
+  },
   "global.anthropic.claude-sonnet-4-20250514-v1:0": {
     "cache_read": 3e-07,
     "cache_write": 3.75e-06,
@@ -9746,6 +9788,13 @@
     "provider": "bedrock_converse"
   },
   "jp.anthropic.claude-opus-4-8": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 2.75e-05,
+    "provider": "bedrock_converse"
+  },
+  "jp.anthropic.claude-opus-5": {
     "cache_read": 5.5e-07,
     "cache_write": 6.875e-06,
     "input": 5.5e-06,
@@ -15128,6 +15177,13 @@
     "output": 2.75e-05,
     "provider": "bedrock_converse"
   },
+  "us.anthropic.claude-opus-5": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 2.75e-05,
+    "provider": "bedrock_converse"
+  },
   "us.anthropic.claude-sonnet-4-20250514-v1:0": {
     "cache_read": 3e-07,
     "cache_write": 3.75e-06,
@@ -16190,6 +16246,20 @@
     "cache_write": 1.875e-05,
     "input": 1.5e-05,
     "output": 7.5e-05,
+    "provider": "vertex_ai-anthropic_models"
+  },
+  "vertex_ai/claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "vertex_ai-anthropic_models"
+  },
+  "vertex_ai/claude-opus-5@default": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
     "provider": "vertex_ai-anthropic_models"
   },
   "vertex_ai/claude-sonnet-4": {
