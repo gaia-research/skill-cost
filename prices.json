@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-06T06:48:28Z",
+    "fetched_at": "2026-08-07T05:52:21Z",
     "model_count": 2525,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
@@ -14036,6 +14036,13 @@
     "output": 7.2e-07,
     "provider": "replicate"
   },
+  "replicate/openai/gpt-oss-20b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 9e-08,
+    "output": 3.6e-07,
+    "provider": "replicate"
+  },
   "replicate/openai/o1": {
     "cache_read": null,
     "cache_write": null,
@@ -14069,13 +14076,6 @@
     "cache_write": null,
     "input": 7.2e-06,
     "output": 3.6e-05,
-    "provider": "replicate"
-  },
-  "replicateopenai/gpt-oss-20b": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 9e-08,
-    "output": 3.6e-07,
     "provider": "replicate"
   },
   "rerank-english-v2.0": {
