@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-11T05:30:22Z",
-    "model_count": 2525,
+    "fetched_at": "2026-08-12T05:48:02Z",
+    "model_count": 2534,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3716,6 +3716,20 @@
     "cache_write": 1.25e-06,
     "input": 1e-06,
     "output": 5e-06,
+    "provider": "anthropic"
+  },
+  "claude-mythos-5": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "anthropic"
+  },
+  "claude-mythos-preview": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
     "provider": "anthropic"
   },
   "claude-opus-4-1": {
@@ -8338,6 +8352,13 @@
     "output": 1e-05,
     "provider": "gemini"
   },
+  "gemini/gemini-robotics-er-2-streaming-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gemini"
+  },
   "gemini/gemma-3-27b-it": {
     "cache_read": null,
     "cache_write": null,
@@ -10578,6 +10599,13 @@
     "output": 3e-07,
     "provider": "mistral"
   },
+  "mistral/labs-leanstral-1-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "mistral"
+  },
   "mistral/magistral-medium-1-2-2509": {
     "cache_read": null,
     "cache_write": null,
@@ -10767,11 +10795,25 @@
     "output": 7.5e-06,
     "provider": "mistral"
   },
+  "mistral/mistral-moderation-2603": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "mistral"
+  },
   "mistral/mistral-small": {
     "cache_read": null,
     "cache_write": null,
     "input": 1e-07,
     "output": 3e-07,
+    "provider": "mistral"
+  },
+  "mistral/mistral-small-2603": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "mistral"
   },
   "mistral/mistral-small-3-2-2506": {
@@ -17480,32 +17522,46 @@
     "output": 1.5e-05,
     "provider": "xai"
   },
+  "xai/grok-4.20-0309-non-reasoning": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
+    "provider": "xai"
+  },
   "xai/grok-4.20-0309-reasoning": {
     "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 6e-06,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "xai"
   },
   "xai/grok-4.20-beta-0309-non-reasoning": {
     "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 6e-06,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "xai"
   },
   "xai/grok-4.20-beta-0309-reasoning": {
     "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 6e-06,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
+    "provider": "xai"
+  },
+  "xai/grok-4.20-multi-agent-0309": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "xai"
   },
   "xai/grok-4.20-multi-agent-beta-0309": {
     "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 6e-06,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "xai"
   },
   "xai/grok-4.3": {
@@ -17523,14 +17579,14 @@
     "provider": "xai"
   },
   "xai/grok-4.5": {
-    "cache_read": 5e-07,
+    "cache_read": 3e-07,
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
     "provider": "xai"
   },
   "xai/grok-4.5-latest": {
-    "cache_read": 5e-07,
+    "cache_read": 3e-07,
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
@@ -17543,25 +17599,32 @@
     "output": 1.5e-05,
     "provider": "xai"
   },
-  "xai/grok-code-fast": {
-    "cache_read": 2e-08,
+  "xai/grok-build-0.1": {
+    "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-07,
-    "output": 1.5e-06,
+    "input": 1e-06,
+    "output": 2e-06,
+    "provider": "xai"
+  },
+  "xai/grok-code-fast": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 2e-06,
     "provider": "xai"
   },
   "xai/grok-code-fast-1": {
-    "cache_read": 2e-08,
+    "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-07,
-    "output": 1.5e-06,
+    "input": 1e-06,
+    "output": 2e-06,
     "provider": "xai"
   },
   "xai/grok-code-fast-1-0825": {
-    "cache_read": 2e-08,
+    "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-07,
-    "output": 1.5e-06,
+    "input": 1e-06,
+    "output": 2e-06,
     "provider": "xai"
   },
   "xai/grok-vision-beta": {
