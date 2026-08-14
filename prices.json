@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-13T05:50:31Z",
-    "model_count": 2534,
+    "fetched_at": "2026-08-14T05:48:20Z",
+    "model_count": 2549,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -4278,6 +4278,48 @@
     "output": 7e-08,
     "provider": "darkbloom"
   },
+  "dashscope/deepseek-v4-flash": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 4e-07,
+    "provider": "dashscope"
+  },
+  "dashscope/deepseek-v4-flash-0731": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 4e-07,
+    "provider": "dashscope"
+  },
+  "dashscope/deepseek-v4-pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2.4e-06,
+    "output": 4.8e-06,
+    "provider": "dashscope"
+  },
+  "dashscope/glm-5.1": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "dashscope"
+  },
+  "dashscope/glm-5.2": {
+    "cache_read": 2.8e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "dashscope"
+  },
+  "dashscope/kimi-k2.7-code": {
+    "cache_read": 1.9e-07,
+    "cache_write": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "dashscope"
+  },
   "dashscope/qwen-coder": {
     "cache_read": null,
     "cache_write": null,
@@ -4395,6 +4437,13 @@
     "cache_write": null,
     "input": 2.5e-06,
     "output": 7.5e-06,
+    "provider": "dashscope"
+  },
+  "dashscope/qwen3.8-max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
     "provider": "dashscope"
   },
   "dashscope/qwq-plus": {
@@ -5053,6 +5102,13 @@
     "cache_write": null,
     "input": 1e-07,
     "output": 4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/nvidia/NVIDIA-Nemotron-3.5-Lightning": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 2e-07,
     "provider": "deepinfra"
   },
   "deepinfra/nvidia/NVIDIA-Nemotron-Nano-9B-v2": {
@@ -7932,6 +7988,13 @@
     "output": 7.5e-06,
     "provider": "vertex_ai-language-models"
   },
+  "gemini-3.7-flash": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "vertex_ai-language-models"
+  },
   "gemini-embedding-001": {
     "cache_read": null,
     "cache_write": null,
@@ -8245,6 +8308,13 @@
     "cache_write": null,
     "input": 1.5e-06,
     "output": 7.5e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.7-flash": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
     "provider": "gemini"
   },
   "gemini/gemini-embedding-001": {
@@ -9570,6 +9640,20 @@
     "output": 2e-07,
     "provider": "groq"
   },
+  "groq/meta-llama/llama-prompt-guard-2-22m": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-08,
+    "output": 3e-08,
+    "provider": "groq"
+  },
+  "groq/meta-llama/llama-prompt-guard-2-86m": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4e-08,
+    "output": 4e-08,
+    "provider": "groq"
+  },
   "groq/moonshotai/kimi-k2-instruct-0905": {
     "cache_read": 5e-07,
     "cache_write": null,
@@ -9603,6 +9687,13 @@
     "cache_write": null,
     "input": 2.9e-07,
     "output": 5.9e-07,
+    "provider": "groq"
+  },
+  "groq/qwen/qwen3.6-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 3e-06,
     "provider": "groq"
   },
   "hyperbolic/NousResearch/Hermes-3-Llama-3.1-70B": {
@@ -13026,6 +13117,13 @@
     "cache_write": null,
     "input": 6e-07,
     "output": 3e-06,
+    "provider": "openrouter"
+  },
+  "openrouter/nvidia/nemotron-3.5-lightning": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 2e-07,
     "provider": "openrouter"
   },
   "openrouter/openai/gpt-3.5-turbo": {
@@ -16547,6 +16645,13 @@
     "cache_write": null,
     "input": 1.5e-06,
     "output": 7.5e-06,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/gemini-3.7-flash": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
     "provider": "vertex_ai"
   },
   "vertex_ai/gemini-embedding-2": {
