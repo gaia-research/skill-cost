@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-15T04:49:21Z",
-    "model_count": 2549,
+    "fetched_at": "2026-08-16T04:51:36Z",
+    "model_count": 2568,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -1926,6 +1926,104 @@
     "output": 0.0,
     "provider": "azure_ai"
   },
+  "azure_ai/FW-DeepSeek-V3.2": {
+    "cache_read": 3.1e-07,
+    "cache_write": null,
+    "input": 6.2e-07,
+    "output": 1.85e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-DeepSeek-V4-Pro": {
+    "cache_read": 1.65e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 3.828e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-GLM-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": null,
+    "input": 1.1e-06,
+    "output": 3.52e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-GLM-5.1": {
+    "cache_read": 2.86e-07,
+    "cache_write": null,
+    "input": 1.54e-06,
+    "output": 4.84e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-GLM-5.2": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 1.54e-06,
+    "output": 4.84e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-GLM-5.2-Fast": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-Inkling": {
+    "cache_read": 1.7e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 4.05e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-Kimi-K2.5": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 6.6e-07,
+    "output": 3.3e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-Kimi-K2.6": {
+    "cache_read": 1.76e-07,
+    "cache_write": null,
+    "input": 1.045e-06,
+    "output": 4.4e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-Kimi-K2.7-Code": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 1.05e-06,
+    "output": 4.4e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-Kimi-K3": {
+    "cache_read": 3.3e-07,
+    "cache_write": null,
+    "input": 3.3e-06,
+    "output": 1.65e-05,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-MiniMax-M2.5": {
+    "cache_read": 3.3e-08,
+    "cache_write": null,
+    "input": 3.3e-07,
+    "output": 1.32e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-MiniMax-M3": {
+    "cache_read": 6.6e-08,
+    "cache_write": null,
+    "input": 3.3e-07,
+    "output": 1.32e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/FW-Nemotron-3-Ultra-NVFP4": {
+    "cache_read": 1.19e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "azure_ai"
+  },
   "azure_ai/Llama-3.2-11B-Vision-Instruct": {
     "cache_read": null,
     "cache_write": null,
@@ -2428,6 +2526,13 @@
     "cache_write": null,
     "input": 2e-07,
     "output": 5e-07,
+    "provider": "azure_ai"
+  },
+  "azure_ai/grok-4.3": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "azure_ai"
   },
   "azure_ai/grok-code-fast-1": {
@@ -8275,6 +8380,13 @@
     "output": 4.5e-06,
     "provider": "gemini"
   },
+  "gemini/gemini-3.1-flash-tts-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 2e-05,
+    "provider": "gemini"
+  },
   "gemini/gemini-3.1-pro-preview": {
     "cache_read": 2e-07,
     "cache_write": null,
@@ -10436,6 +10548,20 @@
     "cache_write": null,
     "input": 1.25e-06,
     "output": 4.25e-06,
+    "provider": "meta"
+  },
+  "meta/muse-spark-1.2": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 4.25e-06,
+    "provider": "meta"
+  },
+  "meta/muse-spark-1.2-contributor": {
+    "cache_read": 2e-09,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 2e-07,
     "provider": "meta"
   },
   "minimax.minimax-m2": {
@@ -17692,6 +17818,13 @@
   },
   "xai/grok-4.5-latest": {
     "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "xai"
+  },
+  "xai/grok-4.6": {
+    "cache_read": 5e-07,
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
