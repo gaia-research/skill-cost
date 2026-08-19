@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-18T04:54:23Z",
-    "model_count": 2568,
+    "fetched_at": "2026-08-19T04:54:11Z",
+    "model_count": 2582,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -4600,6 +4600,13 @@
     "output": 2.5000010000000002e-05,
     "provider": "databricks"
   },
+  "databricks/databricks-claude-opus-4-6": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.00003e-06,
+    "output": 2.5000010000000002e-05,
+    "provider": "databricks"
+  },
   "databricks/databricks-claude-sonnet-4": {
     "cache_read": null,
     "cache_write": null,
@@ -4621,6 +4628,13 @@
     "output": 1.5000020000000002e-05,
     "provider": "databricks"
   },
+  "databricks/databricks-claude-sonnet-4-6": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.9999900000000002e-06,
+    "output": 1.5000020000000002e-05,
+    "provider": "databricks"
+  },
   "databricks/databricks-gemini-2-5-flash": {
     "cache_read": null,
     "cache_write": null,
@@ -4633,6 +4647,34 @@
     "cache_write": null,
     "input": 1.24999e-06,
     "output": 9.999990000000002e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-1-flash-lite": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.1248e-07,
+    "output": 1.87502e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-1-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.49998e-06,
+    "output": 1.5000020000000002e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6.2503e-07,
+    "output": 3.74997e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.49998e-06,
+    "output": 1.5000020000000002e-05,
     "provider": "databricks"
   },
   "databricks/databricks-gemma-3-12b": {
@@ -4654,6 +4696,62 @@
     "cache_write": null,
     "input": 1.24999e-06,
     "output": 9.999990000000002e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-1-codex-max": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.24999e-06,
+    "output": 9.999990000000002e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-1-codex-mini": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.4997e-07,
+    "output": 1.99997e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.75e-06,
+    "output": 1.4e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-2-codex": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.75e-06,
+    "output": 1.4e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-3-codex": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.75e-06,
+    "output": 1.4e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-4": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.49998e-06,
+    "output": 1.5000020000000002e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-4-mini": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.4998e-07,
+    "output": 4.50002e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-5-4-nano": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.9999e-07,
+    "output": 1.24999e-06,
     "provider": "databricks"
   },
   "databricks/databricks-gpt-5-mini": {
@@ -8087,10 +8185,10 @@
     "provider": "vertex_ai-language-models"
   },
   "gemini-3.6-flash": {
-    "cache_read": 1.5e-07,
+    "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 1.5e-06,
-    "output": 7.5e-06,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
     "provider": "vertex_ai-language-models"
   },
   "gemini-3.7-flash": {
@@ -8416,10 +8514,10 @@
     "provider": "gemini"
   },
   "gemini/gemini-3.6-flash": {
-    "cache_read": 1.5e-07,
+    "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 1.5e-06,
-    "output": 7.5e-06,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
     "provider": "gemini"
   },
   "gemini/gemini-3.7-flash": {
@@ -16767,10 +16865,10 @@
     "provider": "vertex_ai-language-models"
   },
   "vertex_ai/gemini-3.6-flash": {
-    "cache_read": 1.5e-07,
+    "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 1.5e-06,
-    "output": 7.5e-06,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
     "provider": "vertex_ai"
   },
   "vertex_ai/gemini-3.7-flash": {
