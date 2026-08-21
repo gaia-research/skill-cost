@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-20T04:55:59Z",
-    "model_count": 2582,
+    "fetched_at": "2026-08-21T04:56:28Z",
+    "model_count": 2633,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3697,6 +3697,13 @@
     "output": 2.5e-06,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/xai.grok-4.6": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 2.2e-06,
+    "output": 6.6e-06,
+    "provider": "bedrock_mantle"
+  },
   "cerebras/gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -3745,6 +3752,13 @@
     "input": 2.25e-06,
     "output": 2.75e-06,
     "provider": "cerebras"
+  },
+  "chat-latest": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "openai"
   },
   "chatdolphin": {
     "cache_read": null,
@@ -4186,6 +4200,20 @@
     "input": 1.5e-06,
     "output": 6e-06,
     "provider": "openai"
+  },
+  "cognition/swe-1.6": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 2.5e-06,
+    "provider": "cognition"
+  },
+  "cognition/swe-1.7": {
+    "cache_read": 1e-06,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1.25e-05,
+    "provider": "cognition"
   },
   "cohere.command-light-text-v14": {
     "cache_read": null,
@@ -4859,6 +4887,20 @@
     "output": 2e-06,
     "provider": "text-completion-openai"
   },
+  "daybreak-blue-latest": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "openai"
+  },
+  "daybreak-red-latest": {
+    "cache_read": 1.25e-06,
+    "cache_write": 1.5625e-05,
+    "input": 1.25e-05,
+    "output": 7.5e-05,
+    "provider": "openai"
+  },
   "deep-research-pro-preview-12-2025": {
     "cache_read": null,
     "cache_write": null,
@@ -5364,17 +5406,17 @@
     "provider": "volcengine"
   },
   "deepseek-v4-flash": {
-    "cache_read": 2.8e-09,
+    "cache_read": 1.4e-08,
     "cache_write": 0.0,
-    "input": 1.4e-07,
-    "output": 2.8e-07,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
     "provider": "deepseek"
   },
   "deepseek-v4-pro": {
-    "cache_read": 3.625e-09,
+    "cache_read": 4.4e-08,
     "cache_write": 0.0,
-    "input": 4.35e-07,
-    "output": 8.7e-07,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
     "provider": "deepseek"
   },
   "deepseek.v3-v1:0": {
@@ -5434,17 +5476,17 @@
     "provider": "deepseek"
   },
   "deepseek/deepseek-v4-flash": {
-    "cache_read": 2.8e-09,
+    "cache_read": 1.4e-08,
     "cache_write": 0.0,
-    "input": 1.4e-07,
-    "output": 2.8e-07,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
     "provider": "deepseek"
   },
   "deepseek/deepseek-v4-pro": {
-    "cache_read": 3.625e-09,
+    "cache_read": 4.4e-08,
     "cache_write": 0.0,
-    "input": 4.35e-07,
-    "output": 8.7e-07,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
     "provider": "deepseek"
   },
   "dolphin": {
@@ -6182,6 +6224,13 @@
     "output": 2.8e-07,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/models/deepseek-v4-flash-0731": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/models/deepseek-v4-pro": {
     "cache_read": 1.45e-07,
     "cache_write": null,
@@ -6544,6 +6593,13 @@
     "cache_write": null,
     "input": 9.5e-07,
     "output": 4e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/llama-guard-2-8b": {
@@ -6917,10 +6973,31 @@
     "output": 5e-07,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/models/muse-glimmer-30b": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 3.5e-07,
+    "output": 1.5e-06,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/models/mythomax-l2-13b": {
     "cache_read": null,
     "cache_write": null,
     "input": 2e-07,
+    "output": 2e-07,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/nemotron-3-ultra-nvfp4": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "input": 5e-08,
     "output": 2e-07,
     "provider": "fireworks_ai"
   },
@@ -7568,6 +7645,13 @@
     "output": 1.6e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/models/qwen3p8-max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/models/qwq-32b": {
     "cache_read": null,
     "cache_write": null,
@@ -7694,6 +7778,20 @@
     "output": 8.8e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/glm-5p2-fast": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/glm-5p2-fast-us": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/routers/kimi-k2p6-fast": {
     "cache_read": 3e-07,
     "cache_write": null,
@@ -7708,7 +7806,28 @@
     "output": 8e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/kimi-k3-fast": {
+    "cache_read": 4.5e-07,
+    "cache_write": null,
+    "input": 4.5e-06,
+    "output": 2.25e-05,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/kimi-k3-us": {
+    "cache_read": 3.3e-07,
+    "cache_write": null,
+    "input": 3.3e-06,
+    "output": 1.65e-05,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/deepseek-v4-flash": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/deepseek-v4-flash-0731": {
     "cache_read": 2.8e-08,
     "cache_write": null,
     "input": 1.4e-07,
@@ -7748,6 +7867,20 @@
     "cache_write": null,
     "input": 1.4e-06,
     "output": 4.4e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/glm-5p2-fast": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/glm-5p2-fast-us": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/gpt-oss-120b": {
@@ -7799,6 +7932,27 @@
     "output": 8e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/kimi-k3-fast": {
+    "cache_read": 4.5e-07,
+    "cache_write": null,
+    "input": 4.5e-06,
+    "output": 2.25e-05,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/kimi-k3-us": {
+    "cache_read": 3.3e-07,
+    "cache_write": null,
+    "input": 3.3e-06,
+    "output": 1.65e-05,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/minimax-m2p1": {
     "cache_read": 3e-08,
     "cache_write": null,
@@ -7820,6 +7974,27 @@
     "output": 1.2e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/muse-glimmer-30b": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 3.5e-07,
+    "output": 1.5e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/nemotron-3-ultra-nvfp4": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/nemotron-lightning-3p5-30b-a3b": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 2e-07,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/nomic-ai/nomic-embed-text-v1": {
     "cache_read": null,
     "cache_write": null,
@@ -7839,6 +8014,13 @@
     "cache_write": null,
     "input": 4e-07,
     "output": 1.6e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/qwen3p8-max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/thenlper/gte-base": {
@@ -8137,6 +8319,13 @@
   },
   "gemini-3.1-flash-lite": {
     "cache_read": 2.5e-08,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
+    "provider": "vertex_ai-language-models"
+  },
+  "gemini-3.1-flash-lite-image": {
+    "cache_read": null,
     "cache_write": null,
     "input": 2.5e-07,
     "output": 1.5e-06,
@@ -8446,19 +8635,26 @@
   "gemini/gemini-3.1-flash-image": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.5e-07,
-    "output": 1.5e-06,
+    "input": 5e-07,
+    "output": 3e-06,
     "provider": "gemini"
   },
   "gemini/gemini-3.1-flash-image-preview": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.5e-07,
-    "output": 1.5e-06,
+    "input": 5e-07,
+    "output": 3e-06,
     "provider": "gemini"
   },
   "gemini/gemini-3.1-flash-lite": {
     "cache_read": 2.5e-08,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.1-flash-lite-image": {
+    "cache_read": null,
     "cache_write": null,
     "input": 2.5e-07,
     "output": 1.5e-06,
@@ -8511,6 +8707,13 @@
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.5-live-translate-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.5e-06,
+    "output": 2.1e-05,
     "provider": "gemini"
   },
   "gemini/gemini-3.6-flash": {
@@ -8812,6 +9015,13 @@
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "bedrock_converse"
+  },
+  "global.xai.grok-4.6": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
     "provider": "bedrock_converse"
   },
   "gmi/MiniMaxAI/MiniMax-M2.1": {
@@ -9568,6 +9778,13 @@
     "cache_write": 6.25e-06,
     "input": 5e-06,
     "output": 3e-05,
+    "provider": "openai"
+  },
+  "gpt-5.6-cyber": {
+    "cache_read": 1.25e-06,
+    "cache_write": 1.5625e-05,
+    "input": 1.25e-05,
+    "output": 7.5e-05,
     "provider": "openai"
   },
   "gpt-5.6-luna": {
@@ -10847,8 +11064,8 @@
   "mistral/codestral-latest": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-06,
-    "output": 3e-06,
+    "input": 3e-07,
+    "output": 9e-07,
     "provider": "mistral"
   },
   "mistral/codestral-mamba-latest": {
@@ -10905,6 +11122,13 @@
     "cache_write": null,
     "input": 1e-07,
     "output": 3e-07,
+    "provider": "mistral"
+  },
+  "mistral/glm-5-2": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
     "provider": "mistral"
   },
   "mistral/labs-devstral-small-2512": {
@@ -11141,8 +11365,8 @@
   "mistral/mistral-small-latest": {
     "cache_read": null,
     "cache_write": null,
-    "input": 6e-08,
-    "output": 1.8e-07,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "mistral"
   },
   "mistral/mistral-tiny": {
@@ -11215,6 +11439,13 @@
     "output": 6e-06,
     "provider": "mistral"
   },
+  "mistral/zai-glm-5-2": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "mistral"
+  },
   "moonshot.kimi-k2-thinking": {
     "cache_read": null,
     "cache_write": null,
@@ -11269,6 +11500,13 @@
     "cache_write": null,
     "input": 9.5e-07,
     "output": 4e-06,
+    "provider": "moonshot"
+  },
+  "moonshot/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "moonshot"
   },
   "moonshot/kimi-latest": {
@@ -13091,6 +13329,13 @@
     "output": 2.5e-05,
     "provider": "openrouter"
   },
+  "openrouter/anthropic/claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "openrouter"
+  },
   "openrouter/anthropic/claude-sonnet-4": {
     "cache_read": 3e-07,
     "cache_write": 3.75e-06,
@@ -13166,6 +13411,20 @@
     "cache_write": null,
     "input": 2e-07,
     "output": 4e-07,
+    "provider": "openrouter"
+  },
+  "openrouter/deepseek/deepseek-v4-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
+    "provider": "openrouter"
+  },
+  "openrouter/deepseek/deepseek-v4-pro-0813": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
     "provider": "openrouter"
   },
   "openrouter/google/gemini-2.0-flash-001": {
@@ -13903,6 +14162,34 @@
     "output": 2.8e-07,
     "provider": "perplexity"
   },
+  "perplexity/perplexity/deepseek-v4-flash-0731": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 1.3e-07,
+    "output": 2.6e-07,
+    "provider": "perplexity"
+  },
+  "perplexity/perplexity/glm-5.2": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "perplexity"
+  },
+  "perplexity/perplexity/kimi-k2.7-code": {
+    "cache_read": 1.9e-07,
+    "cache_write": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "perplexity"
+  },
+  "perplexity/perplexity/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "perplexity"
+  },
   "perplexity/pplx-70b-chat": {
     "cache_read": null,
     "cache_write": null,
@@ -13929,6 +14216,20 @@
     "cache_write": null,
     "input": 0.0,
     "output": 2.8e-07,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-embed-context-v1-0.6b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8e-09,
+    "output": 0.0,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-embed-context-v1-4b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 0.0,
     "provider": "perplexity"
   },
   "perplexity/pplx-embed-v1-0.6b": {
@@ -15716,6 +16017,13 @@
     "output": 6e-06,
     "provider": "bedrock_converse"
   },
+  "us.xai.grok-4.6": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 2.2e-06,
+    "output": 6.6e-06,
+    "provider": "bedrock_converse"
+  },
   "v0/v0-1.0-md": {
     "cache_read": null,
     "cache_write": null,
@@ -16762,8 +17070,8 @@
   "vertex_ai/deepseek-ai/deepseek-v3.1-maas": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.35e-06,
-    "output": 5.4e-06,
+    "input": 6e-07,
+    "output": 1.7e-06,
     "provider": "vertex_ai-deepseek_models"
   },
   "vertex_ai/deepseek-ai/deepseek-v3.2-maas": {
@@ -16824,6 +17132,13 @@
   },
   "vertex_ai/gemini-3.1-flash-lite": {
     "cache_read": 2.5e-08,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
+    "provider": "vertex_ai-language-models"
+  },
+  "vertex_ai/gemini-3.1-flash-lite-image": {
+    "cache_read": null,
     "cache_write": null,
     "input": 2.5e-07,
     "output": 1.5e-06,
@@ -17126,8 +17441,8 @@
   "vertex_ai/openai/gpt-oss-120b-maas": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.5e-07,
-    "output": 6e-07,
+    "input": 9e-08,
+    "output": 3.6e-07,
     "provider": "vertex_ai-openai_models"
   },
   "vertex_ai/openai/gpt-oss-20b-maas": {
@@ -17140,15 +17455,15 @@
   "vertex_ai/qwen/qwen3-235b-a22b-instruct-2507-maas": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.5e-07,
-    "output": 1e-06,
+    "input": 2.2e-07,
+    "output": 8.8e-07,
     "provider": "vertex_ai-qwen_models"
   },
   "vertex_ai/qwen/qwen3-coder-480b-a35b-instruct-maas": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-06,
-    "output": 4e-06,
+    "input": 2.2e-07,
+    "output": 1.8e-06,
     "provider": "vertex_ai-qwen_models"
   },
   "vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas": {
@@ -17277,6 +17592,27 @@
     "output": 0.0,
     "provider": "voyage"
   },
+  "voyage/voyage-4": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 0.0,
+    "provider": "voyage"
+  },
+  "voyage/voyage-4-large": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
+    "output": 0.0,
+    "provider": "voyage"
+  },
+  "voyage/voyage-4-lite": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-08,
+    "output": 0.0,
+    "provider": "voyage"
+  },
   "voyage/voyage-code-2": {
     "cache_read": null,
     "cache_write": null,
@@ -17291,10 +17627,24 @@
     "output": 0.0,
     "provider": "voyage"
   },
+  "voyage/voyage-code-4": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
+    "output": 0.0,
+    "provider": "voyage"
+  },
   "voyage/voyage-context-3": {
     "cache_read": null,
     "cache_write": null,
     "input": 1.8e-07,
+    "output": 0.0,
+    "provider": "voyage"
+  },
+  "voyage/voyage-context-4": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
     "output": 0.0,
     "provider": "voyage"
   },
@@ -17334,6 +17684,13 @@
     "provider": "voyage"
   },
   "voyage/voyage-multimodal-3": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
+    "output": 0.0,
+    "provider": "voyage"
+  },
+  "voyage/voyage-multimodal-3.5": {
     "cache_read": null,
     "cache_write": null,
     "input": 1.2e-07,
