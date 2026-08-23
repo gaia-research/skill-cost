@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-22T04:52:10Z",
-    "model_count": 2633,
+    "fetched_at": "2026-08-23T04:53:57Z",
+    "model_count": 2644,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -1443,6 +1443,13 @@
     "output": 1e-05,
     "provider": "azure"
   },
+  "azure/gpt-audio-mini": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "azure"
+  },
   "azure/gpt-audio-mini-2025-10-06": {
     "cache_read": null,
     "cache_write": null,
@@ -1504,6 +1511,13 @@
     "cache_write": null,
     "input": 4e-06,
     "output": 1.6e-05,
+    "provider": "azure"
+  },
+  "azure/gpt-realtime-mini": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
     "provider": "azure"
   },
   "azure/gpt-realtime-mini-2025-10-06": {
@@ -4209,6 +4223,13 @@
     "provider": "cognition"
   },
   "cognition/swe-1.7": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 2.5e-06,
+    "provider": "cognition"
+  },
+  "cognition/swe-1.7-lightning": {
     "cache_read": 1e-06,
     "cache_write": null,
     "input": 2.5e-06,
@@ -4888,10 +4909,10 @@
     "provider": "text-completion-openai"
   },
   "daybreak-blue-latest": {
-    "cache_read": 5e-07,
-    "cache_write": 6.25e-06,
-    "input": 5e-06,
-    "output": 3e-05,
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "openai"
   },
   "daybreak-red-latest": {
@@ -8325,7 +8346,7 @@
     "provider": "vertex_ai-language-models"
   },
   "gemini-3.1-flash-lite-image": {
-    "cache_read": null,
+    "cache_read": 2.5e-08,
     "cache_write": null,
     "input": 2.5e-07,
     "output": 1.5e-06,
@@ -9015,6 +9036,27 @@
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "bedrock_converse"
+  },
+  "global.openai.gpt-5.6-luna": {
+    "cache_read": 2e-08,
+    "cache_write": 2.5e-07,
+    "input": 2e-07,
+    "output": 1.2e-06,
+    "provider": "bedrock_converse"
+  },
+  "global.openai.gpt-5.6-sol": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "bedrock_converse"
+  },
+  "global.openai.gpt-5.6-terra": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1.2e-05,
     "provider": "bedrock_converse"
   },
   "global.xai.grok-4.6": {
@@ -9774,10 +9816,10 @@
     "provider": "openai"
   },
   "gpt-5.6": {
-    "cache_read": 5e-07,
-    "cache_write": 6.25e-06,
-    "input": 5e-06,
-    "output": 3e-05,
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "openai"
   },
   "gpt-5.6-cyber": {
@@ -9795,10 +9837,10 @@
     "provider": "openai"
   },
   "gpt-5.6-sol": {
-    "cache_read": 5e-07,
-    "cache_write": 6.25e-06,
-    "input": 5e-06,
-    "output": 3e-05,
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "openai"
   },
   "gpt-5.6-terra": {
@@ -15086,6 +15128,20 @@
     "output": 1.5e-06,
     "provider": "scaleway"
   },
+  "scx-ai/GLM-5.2": {
+    "cache_read": 2.2e-07,
+    "cache_write": null,
+    "input": 6.1e-07,
+    "output": 1.98e-06,
+    "provider": "scx-ai"
+  },
+  "scx-ai/Qwen3.8-Max": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "input": 1.65e-06,
+    "output": 4.99e-06,
+    "provider": "scx-ai"
+  },
   "snowflake/claude-3-5-sonnet": {
     "cache_read": 3e-07,
     "cache_write": null,
@@ -15987,6 +16043,27 @@
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
+    "provider": "bedrock_converse"
+  },
+  "us.openai.gpt-5.6-luna": {
+    "cache_read": 2.2e-08,
+    "cache_write": 2.75e-07,
+    "input": 2.2e-07,
+    "output": 1.32e-06,
+    "provider": "bedrock_converse"
+  },
+  "us.openai.gpt-5.6-sol": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "bedrock_converse"
+  },
+  "us.openai.gpt-5.6-terra": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.32e-05,
     "provider": "bedrock_converse"
   },
   "us.twelvelabs.marengo-embed-2-7-v1:0": {
@@ -17138,7 +17215,7 @@
     "provider": "vertex_ai-language-models"
   },
   "vertex_ai/gemini-3.1-flash-lite-image": {
-    "cache_read": null,
+    "cache_read": 2.5e-08,
     "cache_write": null,
     "input": 2.5e-07,
     "output": 1.5e-06,
