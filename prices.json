@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-24T05:04:12Z",
+    "fetched_at": "2026-08-25T04:56:41Z",
     "model_count": 2644,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
