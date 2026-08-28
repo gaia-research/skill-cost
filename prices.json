@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-08-27T15:18:09Z",
-    "model_count": 2672,
+    "fetched_at": "2026-08-28T16:41:42Z",
+    "model_count": 2820,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -717,28 +717,28 @@
   },
   "azure/eu/gpt-5.6": {
     "cache_read": 5.5e-07,
-    "cache_write": null,
+    "cache_write": 6.875e-06,
     "input": 5.5e-06,
     "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.6-luna": {
     "cache_read": 2.2e-08,
-    "cache_write": null,
+    "cache_write": 2.75e-07,
     "input": 2.2e-07,
     "output": 1.32e-06,
     "provider": "azure"
   },
   "azure/eu/gpt-5.6-sol": {
     "cache_read": 5.5e-07,
-    "cache_write": null,
+    "cache_write": 6.875e-06,
     "input": 5.5e-06,
     "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.6-terra": {
     "cache_read": 2.2e-07,
-    "cache_write": null,
+    "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.32e-05,
     "provider": "azure"
@@ -1403,28 +1403,28 @@
   },
   "azure/gpt-5.6": {
     "cache_read": 5e-07,
-    "cache_write": null,
+    "cache_write": 6.25e-06,
     "input": 5e-06,
     "output": 3e-05,
     "provider": "azure"
   },
   "azure/gpt-5.6-luna": {
     "cache_read": 2e-08,
-    "cache_write": null,
+    "cache_write": 2.5e-07,
     "input": 2e-07,
     "output": 1.2e-06,
     "provider": "azure"
   },
   "azure/gpt-5.6-sol": {
     "cache_read": 5e-07,
-    "cache_write": null,
+    "cache_write": 6.25e-06,
     "input": 5e-06,
     "output": 3e-05,
     "provider": "azure"
   },
   "azure/gpt-5.6-terra": {
     "cache_read": 2e-07,
-    "cache_write": null,
+    "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1.2e-05,
     "provider": "azure"
@@ -1858,28 +1858,28 @@
   },
   "azure/us/gpt-5.6": {
     "cache_read": 5.5e-07,
-    "cache_write": null,
+    "cache_write": 6.875e-06,
     "input": 5.5e-06,
     "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.6-luna": {
     "cache_read": 2.2e-08,
-    "cache_write": null,
+    "cache_write": 2.75e-07,
     "input": 2.2e-07,
     "output": 1.32e-06,
     "provider": "azure"
   },
   "azure/us/gpt-5.6-sol": {
     "cache_read": 5.5e-07,
-    "cache_write": null,
+    "cache_write": 6.875e-06,
     "input": 5.5e-06,
     "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.6-terra": {
     "cache_read": 2.2e-07,
-    "cache_write": null,
+    "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.32e-05,
     "provider": "azure"
@@ -3655,6 +3655,13 @@
     "output": 3.3e-05,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/openai.gpt-5.6-cyber": {
+    "cache_read": 1.375e-06,
+    "cache_write": 1.71875e-05,
+    "input": 1.375e-05,
+    "output": 8.25e-05,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/openai.gpt-5.6-luna": {
     "cache_read": 2.2e-08,
     "cache_write": 2.75e-07,
@@ -3663,10 +3670,10 @@
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/openai.gpt-5.6-sol": {
-    "cache_read": 5.5e-07,
-    "cache_write": 6.875e-06,
-    "input": 5.5e-06,
-    "output": 3.3e-05,
+    "cache_read": 4.4e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/openai.gpt-5.6-terra": {
@@ -4768,6 +4775,13 @@
     "output": 5.0001e-07,
     "provider": "databricks"
   },
+  "databricks/databricks-glm-5-2": {
+    "cache_read": 2.5998e-07,
+    "cache_write": 1.4e-06,
+    "input": 1.4e-06,
+    "output": 4.39999e-06,
+    "provider": "databricks"
+  },
   "databricks/databricks-gpt-5": {
     "cache_read": 1.2502e-07,
     "cache_write": 1.24999e-06,
@@ -4873,6 +4887,13 @@
     "output": 0.0,
     "provider": "databricks"
   },
+  "databricks/databricks-kimi-k3": {
+    "cache_read": 3.0002e-07,
+    "cache_write": 2.99999e-06,
+    "input": 2.99999e-06,
+    "output": 1.500002e-05,
+    "provider": "databricks"
+  },
   "databricks/databricks-llama-2-70b-chat": {
     "cache_read": 5.0001e-07,
     "cache_write": 5.0001e-07,
@@ -4964,11 +4985,60 @@
     "output": 1.2e-05,
     "provider": "vertex_ai-language-models"
   },
+  "deepinfra/ByteDance/Seed-1.8": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 2e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/ByteDance/Seed-2.0-code": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/ByteDance/Seed-2.0-mini": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/ByteDance/Seed-2.0-pro": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "deepinfra"
+  },
   "deepinfra/Gryphe/MythoMax-L2-13b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 8e-08,
-    "output": 9e-08,
+    "input": 4e-07,
+    "output": 4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/MiniMaxAI/MiniMax-M2.7": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/MiniMaxAI/MiniMax-M2.7-Turbo": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 3.8e-07,
+    "output": 1.7e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/MiniMaxAI/MiniMax-M3": {
+    "cache_read": 5.6e-08,
+    "cache_write": null,
+    "input": 2.8e-07,
+    "output": 1.1e-06,
     "provider": "deepinfra"
   },
   "deepinfra/NousResearch/Hermes-3-Llama-3.1-405B": {
@@ -4981,8 +5051,8 @@
   "deepinfra/NousResearch/Hermes-3-Llama-3.1-70B": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 3e-07,
+    "input": 7e-07,
+    "output": 7e-07,
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/QwQ-32B": {
@@ -4995,8 +5065,8 @@
   "deepinfra/Qwen/Qwen2.5-72B-Instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.2e-07,
-    "output": 3.9e-07,
+    "input": 3.6e-07,
+    "output": 4e-07,
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/Qwen2.5-7B-Instruct": {
@@ -5016,7 +5086,7 @@
   "deepinfra/Qwen/Qwen3-14B": {
     "cache_read": null,
     "cache_write": null,
-    "input": 6e-08,
+    "input": 1.2e-07,
     "output": 2.4e-07,
     "provider": "deepinfra"
   },
@@ -5031,7 +5101,7 @@
     "cache_read": null,
     "cache_write": null,
     "input": 9e-08,
-    "output": 6e-07,
+    "output": 5.5e-07,
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/Qwen3-235B-A22B-Thinking-2507": {
@@ -5044,14 +5114,14 @@
   "deepinfra/Qwen/Qwen3-30B-A3B": {
     "cache_read": null,
     "cache_write": null,
-    "input": 8e-08,
-    "output": 2.9e-07,
+    "input": 1.2e-07,
+    "output": 5e-07,
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/Qwen3-32B": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-07,
+    "input": 8e-08,
     "output": 2.8e-07,
     "provider": "deepinfra"
   },
@@ -5063,17 +5133,31 @@
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo": {
-    "cache_read": null,
+    "cache_read": 1e-07,
     "cache_write": null,
-    "input": 2.9e-07,
-    "output": 1.2e-06,
+    "input": 3e-07,
+    "output": 1e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3-Max": {
+    "cache_read": 2.4e-07,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 6e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3-Max-Thinking": {
+    "cache_read": 2.4e-07,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 6e-06,
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/Qwen3-Next-80B-A3B-Instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.4e-07,
-    "output": 1.4e-06,
+    "input": 9e-08,
+    "output": 1.1e-06,
     "provider": "deepinfra"
   },
   "deepinfra/Qwen/Qwen3-Next-80B-A3B-Thinking": {
@@ -5081,6 +5165,97 @@
     "cache_write": null,
     "input": 1.4e-07,
     "output": 1.4e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3-VL-235B-A22B-Instruct": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 8.8e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3-VL-30B-A3B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.5-122B-A10B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.9e-07,
+    "output": 2.4e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.5-27B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.6e-07,
+    "output": 2.6e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.5-35B-A3B": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 1e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.5-397B-A17B": {
+    "cache_read": 2.2e-07,
+    "cache_write": null,
+    "input": 4.5e-07,
+    "output": 3e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.5-9B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 1.5e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.6-27B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.2e-07,
+    "output": 3.2e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.6-35B-A3B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 9.5e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.7-Max": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 7.5e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.8-2.4T-A95B": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.8-27B": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 4e-07,
+    "output": 3e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/Qwen/Qwen3.8-Max": {
+    "cache_read": 2.06e-07,
+    "cache_write": null,
+    "input": 1.65e-06,
+    "output": 4.951e-06,
     "provider": "deepinfra"
   },
   "deepinfra/Sao10K/L3-8B-Lunaris-v1-Turbo": {
@@ -5093,8 +5268,8 @@
   "deepinfra/Sao10K/L3.1-70B-Euryale-v2.2": {
     "cache_read": null,
     "cache_write": null,
-    "input": 6.5e-07,
-    "output": 7.5e-07,
+    "input": 8.5e-07,
+    "output": 8.5e-07,
     "provider": "deepinfra"
   },
   "deepinfra/Sao10K/L3.3-70B-Euryale-v2.3": {
@@ -5102,6 +5277,20 @@
     "cache_write": null,
     "input": 6.5e-07,
     "output": 7.5e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/XiaomiMiMo/MiMo-V2.5": {
+    "cache_read": 8e-08,
+    "cache_write": null,
+    "input": 4e-07,
+    "output": 2e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/XiaomiMiMo/MiMo-V2.5-Pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 3e-06,
     "provider": "deepinfra"
   },
   "deepinfra/allenai/olmOCR-7B-0725-FP8": {
@@ -5130,6 +5319,55 @@
     "cache_write": null,
     "input": 3.3e-06,
     "output": 1.65e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-fable-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-haiku-4-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 5e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-opus-4-7": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-opus-4-8": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-opus-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-sonnet-4-6": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/anthropic/claude-sonnet-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1e-05,
     "provider": "deepinfra"
   },
   "deepinfra/deepseek-ai/DeepSeek-R1": {
@@ -5177,22 +5415,22 @@
   "deepinfra/deepseek-ai/DeepSeek-V3": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3.8e-07,
+    "input": 3.2e-07,
     "output": 8.9e-07,
     "provider": "deepinfra"
   },
   "deepinfra/deepseek-ai/DeepSeek-V3-0324": {
-    "cache_read": null,
+    "cache_read": 1.35e-07,
     "cache_write": null,
-    "input": 2.5e-07,
-    "output": 8.8e-07,
+    "input": 2.4e-07,
+    "output": 9e-07,
     "provider": "deepinfra"
   },
   "deepinfra/deepseek-ai/DeepSeek-V3.1": {
     "cache_read": 2.16e-07,
     "cache_write": null,
-    "input": 2.7e-07,
-    "output": 1e-06,
+    "input": 2.5e-07,
+    "output": 9.5e-07,
     "provider": "deepinfra"
   },
   "deepinfra/deepseek-ai/DeepSeek-V3.1-Terminus": {
@@ -5200,6 +5438,41 @@
     "cache_write": null,
     "input": 2.7e-07,
     "output": 1e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/deepseek-ai/DeepSeek-V3.2": {
+    "cache_read": 1.3e-07,
+    "cache_write": null,
+    "input": 2.6e-07,
+    "output": 3.8e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/deepseek-ai/DeepSeek-V4-Flash": {
+    "cache_read": 1.8e-08,
+    "cache_write": null,
+    "input": 9e-08,
+    "output": 1.8e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/deepseek-ai/DeepSeek-V4-Flash-0731": {
+    "cache_read": 1.6e-08,
+    "cache_write": null,
+    "input": 8e-08,
+    "output": 1.8e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/deepseek-ai/DeepSeek-V4-Pro": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 1.3e-06,
+    "output": 2.6e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/deepseek-ai/DeepSeek-V4-Pro-0813": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 1.3e-06,
+    "output": 2.6e-06,
     "provider": "deepinfra"
   },
   "deepinfra/google/gemini-2.0-flash-001": {
@@ -5223,25 +5496,95 @@
     "output": 1e-05,
     "provider": "deepinfra"
   },
+  "deepinfra/google/gemini-3.1-flash-lite": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemini-3.1-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemini-3.5-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 9e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemini-3.7-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "deepinfra"
+  },
   "deepinfra/google/gemma-3-12b-it": {
     "cache_read": null,
     "cache_write": null,
     "input": 5e-08,
-    "output": 1e-07,
+    "output": 1.5e-07,
     "provider": "deepinfra"
   },
   "deepinfra/google/gemma-3-27b-it": {
     "cache_read": null,
     "cache_write": null,
-    "input": 9e-08,
+    "input": 8e-08,
     "output": 1.6e-07,
     "provider": "deepinfra"
   },
   "deepinfra/google/gemma-3-4b-it": {
     "cache_read": null,
     "cache_write": null,
-    "input": 4e-08,
-    "output": 8e-08,
+    "input": 5e-08,
+    "output": 1e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemma-4-26B-A4B-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7e-08,
+    "output": 3.4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemma-4-31B-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.3e-07,
+    "output": 3.8e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemma-4-31B-it-Ultra": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.7e-07,
+    "output": 7.6e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemma-4-31B-it-turbo": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 9e-08,
+    "output": 3.4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/google/gemma-4-E4B-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-08,
+    "output": 1e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/inclusionAI/Ling-3.0-flash": {
+    "cache_read": 1.2e-08,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 1.8e-07,
     "provider": "deepinfra"
   },
   "deepinfra/meta-llama/Llama-3.2-11B-Vision-Instruct": {
@@ -5268,21 +5611,21 @@
   "deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.3e-07,
-    "output": 3.9e-07,
+    "input": 1e-07,
+    "output": 3.2e-07,
     "provider": "deepinfra"
   },
   "deepinfra/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.5e-07,
-    "output": 6e-07,
+    "input": 2e-07,
+    "output": 8e-07,
     "provider": "deepinfra"
   },
   "deepinfra/meta-llama/Llama-4-Scout-17B-16E-Instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 8e-08,
+    "input": 1e-07,
     "output": 3e-07,
     "provider": "deepinfra"
   },
@@ -5317,8 +5660,8 @@
   "deepinfra/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-07,
-    "output": 2.8e-07,
+    "input": 4e-07,
+    "output": 4e-07,
     "provider": "deepinfra"
   },
   "deepinfra/meta-llama/Meta-Llama-3.1-8B-Instruct": {
@@ -5332,7 +5675,14 @@
     "cache_read": null,
     "cache_write": null,
     "input": 2e-08,
-    "output": 3e-08,
+    "output": 4e-08,
+    "provider": "deepinfra"
+  },
+  "deepinfra/meta-models/Muse-Glimmer-30B": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "deepinfra"
   },
   "deepinfra/microsoft/WizardLM-2-8x22B": {
@@ -5352,8 +5702,8 @@
   "deepinfra/mistralai/Mistral-Nemo-Instruct-2407": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2e-08,
-    "output": 4e-08,
+    "input": 1.9e-08,
+    "output": 3e-08,
     "provider": "deepinfra"
   },
   "deepinfra/mistralai/Mistral-Small-24B-Instruct-2501": {
@@ -5391,6 +5741,34 @@
     "output": 2e-06,
     "provider": "deepinfra"
   },
+  "deepinfra/moonshotai/Kimi-K2.5": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 4.5e-07,
+    "output": 2.25e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/moonshotai/Kimi-K2.6": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.5e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/moonshotai/Kimi-K2.7-Code": {
+    "cache_read": 1.36e-07,
+    "cache_write": null,
+    "input": 6.8e-07,
+    "output": 3.4e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/moonshotai/Kimi-K3": {
+    "cache_read": 2.85e-07,
+    "cache_write": null,
+    "input": 2.85e-06,
+    "output": 1.425e-05,
+    "provider": "deepinfra"
+  },
   "deepinfra/nvidia/Llama-3.1-Nemotron-70B-Instruct": {
     "cache_read": null,
     "cache_write": null,
@@ -5405,10 +5783,24 @@
     "output": 4e-07,
     "provider": "deepinfra"
   },
-  "deepinfra/nvidia/NVIDIA-Nemotron-3.5-Lightning": {
+  "deepinfra/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": {
     "cache_read": null,
     "cache_write": null,
-    "input": 5e-08,
+    "input": 8.5e-08,
+    "output": 4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 2.2e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/nvidia/NVIDIA-Nemotron-3.5-Lightning": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 8e-08,
     "output": 2e-07,
     "provider": "deepinfra"
   },
@@ -5419,18 +5811,74 @@
     "output": 1.6e-07,
     "provider": "deepinfra"
   },
+  "deepinfra/nvidia/Nemotron-3-Nano-30B-A3B": {
+    "cache_read": 2.5e-08,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 2e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/nvidia/Nemotron-Content-Safety-3.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "deepinfra"
+  },
   "deepinfra/openai/gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 5e-08,
-    "output": 4.5e-07,
+    "input": 3.7e-08,
+    "output": 1.7e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/openai/gpt-oss-120b-Turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/openai/gpt-oss-120b-Ultra": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 9.5e-07,
     "provider": "deepinfra"
   },
   "deepinfra/openai/gpt-oss-20b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 4e-08,
-    "output": 1.5e-07,
+    "input": 3e-08,
+    "output": 1.4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/stepfun-ai/Step-3.7-Flash": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 1.15e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/tencent/Hy3": {
+    "cache_read": 3.5e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 5.8e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/thinkingmachines/Inkling": {
+    "cache_read": 1.6e-07,
+    "cache_write": null,
+    "input": 9.5e-07,
+    "output": 4.05e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/thinkingmachines/Inkling-Small": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 4.5e-07,
+    "output": 1.2e-06,
     "provider": "deepinfra"
   },
   "deepinfra/zai-org/GLM-4.5": {
@@ -5438,6 +5886,48 @@
     "cache_write": null,
     "input": 4e-07,
     "output": 1.6e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-4.6": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 2e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-4.7": {
+    "cache_read": 8e-08,
+    "cache_write": null,
+    "input": 4e-07,
+    "output": 1.75e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-4.7-Flash": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 4e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-5": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.08e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-5.1": {
+    "cache_read": 2.05e-07,
+    "cache_write": null,
+    "input": 1.05e-06,
+    "output": 3.5e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-5.2": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 2.4e-06,
     "provider": "deepinfra"
   },
   "deepseek-chat": {
@@ -5462,6 +5952,13 @@
     "provider": "volcengine"
   },
   "deepseek-v4-flash": {
+    "cache_read": 1.4e-08,
+    "cache_write": 0.0,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "deepseek"
+  },
+  "deepseek-v4-flash-vision-exp": {
     "cache_read": 1.4e-08,
     "cache_write": 0.0,
     "input": 4.4e-07,
@@ -5532,6 +6029,13 @@
     "provider": "deepseek"
   },
   "deepseek/deepseek-v4-flash": {
+    "cache_read": 1.4e-08,
+    "cache_write": 0.0,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "deepseek"
+  },
+  "deepseek/deepseek-v4-flash-vision-exp": {
     "cache_read": 1.4e-08,
     "cache_write": 0.0,
     "input": 4.4e-07,
@@ -6281,10 +6785,10 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/deepseek-v4-flash-0731": {
-    "cache_read": 2.8e-08,
+    "cache_read": 7e-09,
     "cache_write": null,
-    "input": 1.4e-07,
-    "output": 2.8e-07,
+    "input": 2.2e-07,
+    "output": 6.6e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/deepseek-v4-pro": {
@@ -6292,6 +6796,13 @@
     "cache_write": null,
     "input": 1.74e-06,
     "output": 3.48e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/deepseek-v4-pro-0813": {
+    "cache_read": 4.4e-08,
+    "cache_write": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/devstral-small-2505": {
@@ -8269,7 +8780,7 @@
     "provider": "vertex_ai-language-models"
   },
   "gemini-2.5-flash-lite-preview-06-17": {
-    "cache_read": 2.5e-08,
+    "cache_read": 1e-08,
     "cache_write": null,
     "input": 1e-07,
     "output": 4e-07,
@@ -8285,26 +8796,26 @@
   "gemini-2.5-flash-native-audio-latest": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 2e-06,
     "provider": "gemini"
   },
   "gemini-2.5-flash-native-audio-preview-09-2025": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 2e-06,
     "provider": "gemini"
   },
   "gemini-2.5-flash-native-audio-preview-12-2025": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 2e-06,
     "provider": "gemini"
   },
   "gemini-2.5-flash-preview-09-2025": {
-    "cache_read": 7.5e-08,
+    "cache_read": 3e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
@@ -8313,8 +8824,8 @@
   "gemini-2.5-flash-preview-tts": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 1e-05,
     "provider": "gemini"
   },
   "gemini-2.5-pro": {
@@ -8327,8 +8838,8 @@
   "gemini-2.5-pro-preview-tts": {
     "cache_read": 1.25e-07,
     "cache_write": null,
-    "input": 1.25e-06,
-    "output": 1e-05,
+    "input": 1e-06,
+    "output": 2e-05,
     "provider": "vertex_ai-language-models"
   },
   "gemini-3-flash-preview": {
@@ -8492,10 +9003,17 @@
     "output": 4e-07,
     "provider": "gemini"
   },
+  "gemini-live-2.5-flash-native-audio": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 2e-06,
+    "provider": "vertex_ai-language-models"
+  },
   "gemini-live-2.5-flash-preview-native-audio-09-2025": {
     "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 3e-07,
+    "input": 5e-07,
     "output": 2e-06,
     "provider": "vertex_ai-language-models"
   },
@@ -8598,7 +9116,7 @@
     "provider": "gemini"
   },
   "gemini/gemini-2.5-flash-lite-preview-06-17": {
-    "cache_read": 2.5e-08,
+    "cache_read": 1e-08,
     "cache_write": null,
     "input": 1e-07,
     "output": 4e-07,
@@ -8614,26 +9132,26 @@
   "gemini/gemini-2.5-flash-native-audio-latest": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 2e-06,
     "provider": "gemini"
   },
   "gemini/gemini-2.5-flash-native-audio-preview-09-2025": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 2e-06,
     "provider": "gemini"
   },
   "gemini/gemini-2.5-flash-native-audio-preview-12-2025": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 2e-06,
     "provider": "gemini"
   },
   "gemini/gemini-2.5-flash-preview-09-2025": {
-    "cache_read": 7.5e-08,
+    "cache_read": 3e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
@@ -8642,8 +9160,8 @@
   "gemini/gemini-2.5-flash-preview-tts": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 2.5e-06,
+    "input": 5e-07,
+    "output": 1e-05,
     "provider": "gemini"
   },
   "gemini/gemini-2.5-pro": {
@@ -8656,8 +9174,8 @@
   "gemini/gemini-2.5-pro-preview-tts": {
     "cache_read": 1.25e-07,
     "cache_write": null,
-    "input": 1.25e-06,
-    "output": 1e-05,
+    "input": 1e-06,
+    "output": 2e-05,
     "provider": "gemini"
   },
   "gemini/gemini-3-flash-preview": {
@@ -8772,6 +9290,20 @@
     "output": 2.1e-05,
     "provider": "gemini"
   },
+  "gemini/gemini-3.5-transcribe": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.5-transcribe-live": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.5e-06,
+    "output": 2.1e-05,
+    "provider": "gemini"
+  },
   "gemini/gemini-3.6-flash": {
     "cache_read": 7.5e-08,
     "cache_write": null,
@@ -8822,14 +9354,14 @@
     "provider": "gemini"
   },
   "gemini/gemini-flash-latest": {
-    "cache_read": 7.5e-08,
+    "cache_read": 3e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
     "provider": "gemini"
   },
   "gemini/gemini-flash-lite-latest": {
-    "cache_read": 2.5e-08,
+    "cache_read": 1e-08,
     "cache_write": null,
     "input": 1e-07,
     "output": 4e-07,
@@ -8852,7 +9384,7 @@
   "gemini/gemini-live-2.5-flash-preview-native-audio-09-2025": {
     "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 3e-07,
+    "input": 5e-07,
     "output": 2e-06,
     "provider": "gemini"
   },
@@ -9081,10 +9613,10 @@
     "provider": "bedrock_converse"
   },
   "global.openai.gpt-5.6-sol": {
-    "cache_read": 5e-07,
-    "cache_write": 6.25e-06,
-    "input": 5e-06,
-    "output": 3e-05,
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "bedrock_converse"
   },
   "global.openai.gpt-5.6-terra": {
@@ -11271,6 +11803,20 @@
     "output": 1.5e-06,
     "provider": "mistral"
   },
+  "mistral/ministral-14b-2512": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "mistral"
+  },
+  "mistral/ministral-14b-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "mistral"
+  },
   "mistral/ministral-3-14b-2512": {
     "cache_read": null,
     "cache_write": null,
@@ -11292,6 +11838,20 @@
     "output": 1.5e-07,
     "provider": "mistral"
   },
+  "mistral/ministral-3b-2512": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 1e-07,
+    "provider": "mistral"
+  },
+  "mistral/ministral-3b-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 1e-07,
+    "provider": "mistral"
+  },
   "mistral/ministral-8b-2512": {
     "cache_read": null,
     "cache_write": null,
@@ -11307,6 +11867,13 @@
     "provider": "mistral"
   },
   "mistral/mistral-embed": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": null,
+    "provider": "mistral"
+  },
+  "mistral/mistral-embed-2312": {
     "cache_read": null,
     "cache_write": null,
     "input": 1e-07,
@@ -11384,6 +11951,13 @@
     "provider": "mistral"
   },
   "mistral/mistral-medium-2604": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
+    "provider": "mistral"
+  },
+  "mistral/mistral-medium-3": {
     "cache_read": null,
     "cache_write": null,
     "input": 1.5e-06,
@@ -11514,6 +12088,20 @@
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
+    "provider": "mistral"
+  },
+  "mistral/voxtral-small-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 4e-07,
+    "provider": "mistral"
+  },
+  "mistral/voxtral-small-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 4e-07,
     "provider": "mistral"
   },
   "mistral/zai-glm-5-2": {
@@ -11964,6 +12552,13 @@
     "output": 7e-08,
     "provider": "novita"
   },
+  "novita/baidu/cobuddy": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 2.8e-07,
+    "output": 1.13e-06,
+    "provider": "novita"
+  },
   "novita/baidu/ernie-4.5-21B-a3b": {
     "cache_read": null,
     "cache_write": null,
@@ -12013,11 +12608,25 @@
     "output": 3e-08,
     "provider": "novita"
   },
+  "novita/deepseek/deepseek-ocr-2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-08,
+    "output": 3e-08,
+    "provider": "novita"
+  },
   "novita/deepseek/deepseek-prover-v2-671b": {
     "cache_read": null,
     "cache_write": null,
     "input": 7e-07,
     "output": 2.5e-06,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek-r1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4e-06,
+    "output": 4e-06,
     "provider": "novita"
   },
   "novita/deepseek/deepseek-r1-0528": {
@@ -12062,6 +12671,13 @@
     "output": 2.5e-06,
     "provider": "novita"
   },
+  "novita/deepseek/deepseek-r1/community": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4e-06,
+    "output": 4e-06,
+    "provider": "novita"
+  },
   "novita/deepseek/deepseek-v3-0324": {
     "cache_read": 1.35e-07,
     "cache_write": null,
@@ -12104,6 +12720,55 @@
     "output": 4.1e-07,
     "provider": "novita"
   },
+  "novita/deepseek/deepseek-v3/community": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8.900000000000001e-07,
+    "output": 8.900000000000001e-07,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek-v4-flash": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek-v4-flash-0731": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek-v4-flash-vision-exp": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek-v4-pro": {
+    "cache_read": 1.35e-07,
+    "cache_write": null,
+    "input": 1.6000000000000001e-06,
+    "output": 3.2000000000000003e-06,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek-v4-pro-0813": {
+    "cache_read": 1.3200000000000002e-07,
+    "cache_write": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
+    "provider": "novita"
+  },
+  "novita/deepseek/deepseek_v3": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8.900000000000001e-07,
+    "output": 8.900000000000001e-07,
+    "provider": "novita"
+  },
   "novita/google/gemma-3-12b-it": {
     "cache_read": null,
     "cache_write": null,
@@ -12118,11 +12783,39 @@
     "output": 2e-07,
     "provider": "novita"
   },
+  "novita/google/gemma-4-26b-a4b-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.3e-07,
+    "output": 4.0000000000000003e-07,
+    "provider": "novita"
+  },
+  "novita/google/gemma-4-31b-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 4.0000000000000003e-07,
+    "provider": "novita"
+  },
   "novita/gryphe/mythomax-l2-13b": {
     "cache_read": null,
     "cache_write": null,
     "input": 9e-08,
     "output": 9e-08,
+    "provider": "novita"
+  },
+  "novita/inclusionai/ling-3.0-flash": {
+    "cache_read": 1.2e-08,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 1.8e-07,
+    "provider": "novita"
+  },
+  "novita/inclusionai/ling-3.0-flash-fast": {
+    "cache_read": 1.2e-08,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 1.8e-07,
     "provider": "novita"
   },
   "novita/kwaipilot/kat-coder-pro": {
@@ -12151,6 +12844,13 @@
     "cache_write": null,
     "input": 2e-08,
     "output": 5e-08,
+    "provider": "novita"
+  },
+  "novita/meta-llama/llama-3.2-1b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-08,
+    "output": 2e-08,
     "provider": "novita"
   },
   "novita/meta-llama/llama-3.2-3b-instruct": {
@@ -12188,6 +12888,20 @@
     "output": 6.2e-07,
     "provider": "novita"
   },
+  "novita/mindai/macaron-v1-tall": {
+    "cache_read": 8e-08,
+    "cache_write": null,
+    "input": 4.5000000000000003e-07,
+    "output": 2.6e-06,
+    "provider": "novita"
+  },
+  "novita/mindai/macaron-v1-venti": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 4.5e-06,
+    "provider": "novita"
+  },
   "novita/minimax/minimax-m2": {
     "cache_read": 3e-08,
     "cache_write": null,
@@ -12197,6 +12911,41 @@
   },
   "novita/minimax/minimax-m2.1": {
     "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "novita"
+  },
+  "novita/minimax/minimax-m2.5": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "novita"
+  },
+  "novita/minimax/minimax-m2.5-highspeed": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "novita"
+  },
+  "novita/minimax/minimax-m2.7": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "novita"
+  },
+  "novita/minimax/minimax-m2.7-highspeed": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "novita"
+  },
+  "novita/minimax/minimax-m3": {
+    "cache_read": 6e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 1.2e-06,
@@ -12231,10 +12980,38 @@
     "provider": "novita"
   },
   "novita/moonshotai/kimi-k2-thinking": {
-    "cache_read": null,
+    "cache_read": 1.5e-07,
     "cache_write": null,
     "input": 6e-07,
     "output": 2.5e-06,
+    "provider": "novita"
+  },
+  "novita/moonshotai/kimi-k2.5": {
+    "cache_read": 1.0000000000000001e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 3e-06,
+    "provider": "novita"
+  },
+  "novita/moonshotai/kimi-k2.6": {
+    "cache_read": 1.6e-07,
+    "cache_write": null,
+    "input": 8.000000000000001e-07,
+    "output": 3.4e-06,
+    "provider": "novita"
+  },
+  "novita/moonshotai/kimi-k2.7-code": {
+    "cache_read": 1.9e-07,
+    "cache_write": null,
+    "input": 9.499999999999999e-07,
+    "output": 4e-06,
+    "provider": "novita"
+  },
+  "novita/moonshotai/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "novita"
   },
   "novita/nousresearch/hermes-2-pro-llama-3-8b": {
@@ -12242,6 +13019,13 @@
     "cache_write": null,
     "input": 1.4e-07,
     "output": 1.4e-07,
+    "provider": "novita"
+  },
+  "novita/nvidia/nemotron-3-nano-30b-a3b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.0000000000000004e-08,
+    "output": 2.0000000000000002e-07,
     "provider": "novita"
   },
   "novita/openai/gpt-oss-120b": {
@@ -12352,8 +13136,15 @@
   "novita/qwen/qwen3-coder-480b-a35b-instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 1.3e-06,
+    "input": 3.8e-07,
+    "output": 1.55e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3-coder-next": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.0000000000000002e-07,
+    "output": 1.5e-06,
     "provider": "novita"
   },
   "novita/qwen/qwen3-embedding-0.6b": {
@@ -12447,6 +13238,62 @@
     "output": 5e-07,
     "provider": "novita"
   },
+  "novita/qwen/qwen3.5-122b-a10b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4.0000000000000003e-07,
+    "output": 3.2000000000000003e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.5-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 2.4e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.5-35b-a3b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 2e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.5-397b-a17b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 3.6000000000000003e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.6-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 3.6000000000000003e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.6-35b-a3b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.48e-07,
+    "output": 1.4850000000000002e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.7-max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 3.75e-06,
+    "provider": "novita"
+  },
+  "novita/qwen/qwen3.8-max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "novita"
+  },
   "novita/sao10k/l3-70b-euryale-v2.1": {
     "cache_read": null,
     "cache_write": null,
@@ -12475,11 +13322,46 @@
     "output": 6e-07,
     "provider": "novita"
   },
-  "novita/xiaomimimo/mimo-v2-flash": {
-    "cache_read": 2e-08,
+  "novita/stepfun/step-3.7-flash": {
+    "cache_read": 4e-08,
     "cache_write": null,
-    "input": 1e-07,
-    "output": 3e-07,
+    "input": 2.0000000000000002e-07,
+    "output": 1.15e-06,
+    "provider": "novita"
+  },
+  "novita/tencent/hy3": {
+    "cache_read": 3.5e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 5.8e-07,
+    "provider": "novita"
+  },
+  "novita/thudm/glm-4-32b-0414": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.5e-07,
+    "output": 1.66e-06,
+    "provider": "novita"
+  },
+  "novita/xiaomimimo/mimo-v2-flash": {
+    "cache_read": 2.4e-08,
+    "cache_write": null,
+    "input": 1.1e-07,
+    "output": 3.3e-07,
+    "provider": "novita"
+  },
+  "novita/xiaomimimo/mimo-v2.5": {
+    "cache_read": 3.4e-09,
+    "cache_write": null,
+    "input": 1.6800000000000002e-07,
+    "output": 3.3600000000000004e-07,
+    "provider": "novita"
+  },
+  "novita/xiaomimimo/mimo-v2.5-pro": {
+    "cache_read": 4.3e-09,
+    "cache_write": null,
+    "input": 5.22e-07,
+    "output": 1.044e-06,
     "provider": "novita"
   },
   "novita/zai-org/autoglm-phone-9b-multilingual": {
@@ -12497,7 +13379,7 @@
     "provider": "novita"
   },
   "novita/zai-org/glm-4.5-air": {
-    "cache_read": null,
+    "cache_read": 2.5e-08,
     "cache_write": null,
     "input": 1.3e-07,
     "output": 8.5e-07,
@@ -12529,6 +13411,62 @@
     "cache_write": null,
     "input": 6e-07,
     "output": 2.2e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-4.7-flash": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "input": 7e-08,
+    "output": 4.0000000000000003e-07,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-4.7-h": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.2e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-5": {
+    "cache_read": 2.0000000000000002e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 3.2000000000000003e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-5-turbo": {
+    "cache_read": 2.4e-07,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 4e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-5.1": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.38e-06,
+    "output": 4.4e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-5.2": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-5.3": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "novita"
+  },
+  "novita/zai-org/glm-5v-turbo": {
+    "cache_read": 2.4e-07,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 4e-06,
     "provider": "novita"
   },
   "nscale/Qwen/QwQ-32B": {
@@ -15338,6 +16276,13 @@
     "output": 8.7e-07,
     "provider": "tencent"
   },
+  "tencent/minimax-m3": {
+    "cache_read": 6e-08,
+    "cache_write": 0.0,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "tencent"
+  },
   "tensormesh/MiniMaxAI/MiniMax-M2.5": {
     "cache_read": 0,
     "cache_write": null,
@@ -15591,7 +16536,7 @@
     "provider": "together_ai"
   },
   "together_ai/MiniMaxAI/MiniMax-M3": {
-    "cache_read": null,
+    "cache_read": 6e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 1.2e-06,
@@ -15647,7 +16592,7 @@
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.5-397B-A17B": {
-    "cache_read": null,
+    "cache_read": 3.5e-07,
     "cache_write": null,
     "input": 6e-07,
     "output": 3.6e-06,
@@ -15668,10 +16613,10 @@
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.7-Max": {
-    "cache_read": null,
+    "cache_read": 5e-07,
     "cache_write": null,
-    "input": 1.25e-06,
-    "output": 3.75e-06,
+    "input": 2.5e-06,
+    "output": 7.5e-06,
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.7-Plus": {
@@ -15682,7 +16627,7 @@
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.8-2.4T-A95B": {
-    "cache_read": null,
+    "cache_read": 5e-07,
     "cache_write": null,
     "input": 2.5e-06,
     "output": 6.25e-06,
@@ -15731,21 +16676,21 @@
     "provider": "together_ai"
   },
   "together_ai/deepseek-ai/DeepSeek-V4-Flash-0731": {
-    "cache_read": null,
+    "cache_read": 3e-08,
     "cache_write": null,
     "input": 1.4e-07,
     "output": 2.8e-07,
     "provider": "together_ai"
   },
   "together_ai/deepseek-ai/DeepSeek-V4-Pro": {
-    "cache_read": null,
+    "cache_read": 2e-07,
     "cache_write": null,
     "input": 1.74e-06,
     "output": 3.48e-06,
     "provider": "together_ai"
   },
   "together_ai/deepseek-ai/DeepSeek-V4-Pro-0813": {
-    "cache_read": null,
+    "cache_read": 1.3e-07,
     "cache_write": null,
     "input": 1.32e-06,
     "output": 3.96e-06,
@@ -15829,7 +16774,7 @@
     "provider": "together_ai"
   },
   "together_ai/meta-models/Muse-Glimmer-30B": {
-    "cache_read": null,
+    "cache_read": 4e-08,
     "cache_write": null,
     "input": 3.5e-07,
     "output": 1.5e-06,
@@ -15864,21 +16809,21 @@
     "provider": "together_ai"
   },
   "together_ai/moonshotai/Kimi-K2.7-Code": {
-    "cache_read": null,
+    "cache_read": 1.9e-07,
     "cache_write": null,
     "input": 9.5e-07,
     "output": 4e-06,
     "provider": "together_ai"
   },
   "together_ai/moonshotai/Kimi-K3": {
-    "cache_read": null,
+    "cache_read": 3e-07,
     "cache_write": null,
     "input": 3e-06,
     "output": 1.5e-05,
     "provider": "together_ai"
   },
   "together_ai/nvidia/nemotron-3-ultra-550b-a55b": {
-    "cache_read": null,
+    "cache_read": 2e-07,
     "cache_write": null,
     "input": 6e-07,
     "output": 3.6e-06,
@@ -15906,14 +16851,14 @@
     "provider": "together_ai"
   },
   "together_ai/thinkingmachines/Inkling": {
-    "cache_read": null,
+    "cache_read": 1.7e-07,
     "cache_write": null,
     "input": 1e-06,
     "output": 4.05e-06,
     "provider": "together_ai"
   },
   "together_ai/thinkingmachines/Inkling-Small": {
-    "cache_read": null,
+    "cache_read": 1e-07,
     "cache_write": null,
     "input": 5e-07,
     "output": 1.2e-06,
@@ -15941,10 +16886,17 @@
     "provider": "together_ai"
   },
   "together_ai/zai-org/GLM-5.2": {
-    "cache_read": null,
+    "cache_read": 2.6e-07,
     "cache_write": null,
     "input": 1.4e-06,
     "output": 4.4e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/zai-org/GLM-5.3-Flash": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 5e-07,
     "provider": "together_ai"
   },
   "twelvelabs.marengo-embed-2-7-v1:0": {
@@ -16249,10 +17201,10 @@
     "provider": "bedrock_converse"
   },
   "us.openai.gpt-5.6-sol": {
-    "cache_read": 5.5e-07,
-    "cache_write": 6.875e-06,
-    "input": 5.5e-06,
-    "output": 3.3e-05,
+    "cache_read": 4.4e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "bedrock_converse"
   },
   "us.openai.gpt-5.6-terra": {
@@ -17970,11 +18922,32 @@
     "output": 0.0,
     "provider": "voyage"
   },
+  "wandb/JetBrains/Mellum2-12B-A2.5B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 1e-07,
+    "provider": "wandb"
+  },
   "wandb/MiniMaxAI/MiniMax-M2.5": {
     "cache_read": null,
     "cache_write": null,
     "input": 3e-07,
     "output": 1.2e-06,
+    "provider": "wandb"
+  },
+  "wandb/MiniMaxAI/MiniMax-M3": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 2.3e-07,
+    "output": 9.6e-07,
+    "provider": "wandb"
+  },
+  "wandb/OpenPipe/Qwen3-14B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 2.2e-07,
     "provider": "wandb"
   },
   "wandb/Qwen/Qwen3-235B-A22B-Instruct-2507": {
@@ -17991,11 +18964,46 @@
     "output": 0.01,
     "provider": "wandb"
   },
+  "wandb/Qwen/Qwen3-30B-A3B-Instruct-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 3e-07,
+    "provider": "wandb"
+  },
   "wandb/Qwen/Qwen3-Coder-480B-A35B-Instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 0.1,
-    "output": 0.15,
+    "input": 1e-06,
+    "output": 1.5e-06,
+    "provider": "wandb"
+  },
+  "wandb/Qwen/Qwen3.5-35B-A3B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.25e-06,
+    "provider": "wandb"
+  },
+  "wandb/Qwen/Qwen3.6-27B": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 3.6e-06,
+    "provider": "wandb"
+  },
+  "wandb/Qwen/Qwen3.6-35B-A3B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.25e-06,
+    "provider": "wandb"
+  },
+  "wandb/Qwen/Qwen3.8-27B": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 4e-07,
+    "output": 3e-06,
     "provider": "wandb"
   },
   "wandb/deepseek-ai/DeepSeek-R1-0528": {
@@ -18015,22 +19023,64 @@
   "wandb/deepseek-ai/DeepSeek-V3.1": {
     "cache_read": null,
     "cache_write": null,
-    "input": 0.055,
-    "output": 0.165,
+    "input": 5.5e-07,
+    "output": 1.65e-06,
+    "provider": "wandb"
+  },
+  "wandb/deepseek-ai/DeepSeek-V4-Flash": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "wandb"
+  },
+  "wandb/deepseek-ai/DeepSeek-V4-Flash-0731": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 1.3e-07,
+    "output": 2.8e-07,
+    "provider": "wandb"
+  },
+  "wandb/deepseek-ai/DeepSeek-V4-Pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.15e-06,
+    "output": 2.55e-06,
+    "provider": "wandb"
+  },
+  "wandb/google/gemma-4-31B-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 3.4e-07,
+    "provider": "wandb"
+  },
+  "wandb/ibm-granite/granite-4.1-8b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 1e-07,
+    "provider": "wandb"
+  },
+  "wandb/meta-llama/Llama-3.1-70B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8e-07,
+    "output": 8e-07,
     "provider": "wandb"
   },
   "wandb/meta-llama/Llama-3.1-8B-Instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 0.022,
-    "output": 0.022,
+    "input": 2.2e-07,
+    "output": 2.2e-07,
     "provider": "wandb"
   },
   "wandb/meta-llama/Llama-3.3-70B-Instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 0.071,
-    "output": 0.071,
+    "input": 7.1e-07,
+    "output": 7.1e-07,
     "provider": "wandb"
   },
   "wandb/meta-llama/Llama-4-Scout-17B-16E-Instruct": {
@@ -18061,18 +19111,46 @@
     "output": 3e-06,
     "provider": "wandb"
   },
+  "wandb/moonshotai/Kimi-K2.6": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 6.5e-07,
+    "output": 3.41e-06,
+    "provider": "wandb"
+  },
+  "wandb/moonshotai/Kimi-K2.7-Code": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 7.1e-07,
+    "output": 3.5e-06,
+    "provider": "wandb"
+  },
+  "wandb/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 2.75e-06,
+    "provider": "wandb"
+  },
+  "wandb/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 2.5e-07,
+    "provider": "wandb"
+  },
   "wandb/openai/gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 0.015,
-    "output": 0.06,
+    "input": 3e-08,
+    "output": 1.7e-07,
     "provider": "wandb"
   },
   "wandb/openai/gpt-oss-20b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 0.005,
-    "output": 0.02,
+    "input": 3e-08,
+    "output": 1.3e-07,
     "provider": "wandb"
   },
   "wandb/zai-org/GLM-4.5": {
@@ -18080,6 +19158,13 @@
     "cache_write": null,
     "input": 0.055,
     "output": 0.2,
+    "provider": "wandb"
+  },
+  "wandb/zai-org/GLM-5.2": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 7.6e-07,
+    "output": 2.42e-06,
     "provider": "wandb"
   },
   "watsonx/bigscience/mt0-xxl-13b": {
@@ -18291,48 +19376,6 @@
     "input": 6e-07,
     "output": 6e-06,
     "provider": "bedrock_converse"
-  },
-  "xai/grok-2": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
-    "provider": "xai"
-  },
-  "xai/grok-2-1212": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
-    "provider": "xai"
-  },
-  "xai/grok-2-latest": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
-    "provider": "xai"
-  },
-  "xai/grok-2-vision": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
-    "provider": "xai"
-  },
-  "xai/grok-2-vision-1212": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
-    "provider": "xai"
-  },
-  "xai/grok-2-vision-latest": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
-    "provider": "xai"
   },
   "xai/grok-3": {
     "cache_read": 7.5e-07,
@@ -18558,13 +19601,6 @@
     "output": 6e-06,
     "provider": "xai"
   },
-  "xai/grok-beta": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 5e-06,
-    "output": 1.5e-05,
-    "provider": "xai"
-  },
   "xai/grok-build-0.1": {
     "cache_read": 2e-07,
     "cache_write": null,
@@ -18591,13 +19627,6 @@
     "cache_write": null,
     "input": 1e-06,
     "output": 2e-06,
-    "provider": "xai"
-  },
-  "xai/grok-vision-beta": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 5e-06,
-    "output": 1.5e-05,
     "provider": "xai"
   },
   "zai.glm-4.7": {
@@ -18706,6 +19735,13 @@
     "provider": "zai"
   },
   "zai/glm-5.1": {
+    "cache_read": 2.6e-07,
+    "cache_write": 0,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "zai"
+  },
+  "zai/glm-5.3": {
     "cache_read": 2.6e-07,
     "cache_write": 0,
     "input": 1.4e-06,
