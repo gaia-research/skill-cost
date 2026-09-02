@@ -235,3 +235,75 @@ class HermesHarnessTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+MODEL = "test-opus-x"
+
+
+class CacheReportingTests(unittest.TestCase):
+    """A long agent session is almost entirely cache reads, billed at a fraction of the
+    input rate. Without that shown, a large total reads as a pricing bug rather than as
+    volume -- these cover the numbers that make it checkable."""
+
+    PRICES = {
+        "test-opus-x": {
+            "input": 5e-6,
+            "output": 25e-6,
+            "cache_read": 0.5e-6,
+            "cache_write": 6.25e-6,
+        }
+    }
+
+    def _bucket(self) -> cost.Bucket:
+        return cost.Bucket(input=1_000, output=2_000,
+                           cache_read=1_000_000, cache_write=100_000)
+
+    def test_cost_parts_split_by_billing_component(self) -> None:
+        parts = self._bucket().cost_parts(MODEL, self.PRICES)
+        self.assertAlmostEqual(parts["input"], 1_000 * 5e-6)
+        self.assertAlmostEqual(parts["output"], 2_000 * 25e-6)
+        self.assertAlmostEqual(parts["cache_read"], 1_000_000 * 0.5e-6)
+        self.assertAlmostEqual(parts["cache_write"], 100_000 * 6.25e-6)
+
+    def test_parts_sum_to_the_reported_cost(self) -> None:
+        b = self._bucket()
+        parts = b.cost_parts(MODEL, self.PRICES)
+        self.assertAlmostEqual(
+            parts["input"] + parts["output"] + parts["cache_read"] + parts["cache_write"],
+            b.cost(MODEL, self.PRICES),
+        )
+
+    def test_hit_rate_counts_every_prompt_token_exactly_once(self) -> None:
+        b = self._bucket()
+        self.assertEqual(b.prompt_tokens(), 1_000 + 1_000_000 + 100_000)
+        self.assertAlmostEqual(b.cache_hit_rate(), 1_000_000 / 1_101_000)
+        self.assertNotIn(b.output, (b.prompt_tokens(),), "output is not a prompt token")
+
+    def test_hit_rate_is_none_when_there_was_no_prompt(self) -> None:
+        self.assertIsNone(cost.Bucket(output=5).cache_hit_rate())
+
+    def test_savings_is_the_counterfactual_against_full_input_price(self) -> None:
+        agg = cost.SessionAgg(harness="h", path="p")
+        agg.by_model[MODEL] = self._bucket()
+        # 1M cached tokens: $0.50 as cache reads, $5.00 as fresh input.
+        self.assertAlmostEqual(agg.cache_savings(self.PRICES), 5.0 - 0.5)
+
+    def test_unpriced_model_contributes_nothing_rather_than_crashing(self) -> None:
+        # price_for falls back to longest-substring matching, so an "unknown" name must
+        # share no substring with a catalog key to actually be unknown.
+        unknown = "qqq"
+        agg = cost.SessionAgg(harness="h", path="p")
+        agg.by_model[unknown] = self._bucket()
+        self.assertIsNone(self._bucket().cost_parts(unknown, self.PRICES))
+        self.assertEqual(agg.cache_savings(self.PRICES), 0.0)
+        self.assertEqual(agg.cost_parts(self.PRICES)["cache_read"], 0.0)
+
+    def test_savings_sums_across_models_at_their_own_rates(self) -> None:
+        prices = dict(self.PRICES)
+        prices["test-cheap-x"] = {"input": 1e-6, "output": 2e-6,
+                           "cache_read": 0.1e-6, "cache_write": 1.25e-6}
+        agg = cost.SessionAgg(harness="h", path="p")
+        agg.by_model[MODEL] = cost.Bucket(cache_read=1_000_000)
+        agg.by_model["test-cheap-x"] = cost.Bucket(cache_read=1_000_000)
+        # $4.50 saved on the dear model, $0.90 on the cheap one.
+        self.assertAlmostEqual(agg.cache_savings(prices), 4.5 + 0.9)

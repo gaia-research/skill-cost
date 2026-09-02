@@ -207,6 +207,15 @@ class Bucket:
         return self.input + self.output + self.cache_read + self.cache_write
 
     def cost(self, model: str, prices: dict) -> float | None:
+        parts = self.cost_parts(model, prices)
+        if parts is None:
+            return None
+        return parts["input"] + parts["output"] + parts["cache_read"] + parts["cache_write"]
+
+    def cost_parts(self, model: str, prices: dict) -> dict | None:
+        """Cost split by billing component, plus what the cache reads would have cost
+        at full input price. A total that looks surprising is nearly always volume
+        rather than rate, and the only way to see that is to break it apart."""
         p = price_for(model, prices)
         if not p or p.get("input") is None:
             return None
@@ -214,10 +223,23 @@ class Bucket:
         out = float(p.get("output") or 0)
         cr  = float(p.get("cache_read")  or inp * 0.10)
         cw  = float(p.get("cache_write") or inp * 1.25)
-        return (self.input * inp
-              + self.output * out
-              + self.cache_read * cr
-              + self.cache_write * cw)
+        return {
+            "input":       self.input       * inp,
+            "output":      self.output      * out,
+            "cache_read":  self.cache_read  * cr,
+            "cache_write": self.cache_write * cw,
+            # Counterfactual: the same cached prompt tokens billed as ordinary input.
+            "uncached_equivalent": self.cache_read * inp,
+        }
+
+    def prompt_tokens(self) -> int:
+        """Every prompt token is billed as exactly one of uncached input, a cache read,
+        or a cache write -- so these three are the denominator for a hit rate."""
+        return self.input + self.cache_read + self.cache_write
+
+    def cache_hit_rate(self) -> float | None:
+        prompt = self.prompt_tokens()
+        return (self.cache_read / prompt) if prompt else None
 
 
 @dataclass
@@ -246,6 +268,24 @@ class SessionAgg:
     def unpriced(self, prices: dict) -> list[str]:
         return [m for m, b in self.by_model.items()
                 if price_for(m, prices) is None and b.total_tokens() > 0]
+
+    def cost_parts(self, prices: dict) -> dict:
+        """Per-component spend summed across models, each at its own rate."""
+        agg = {"input": 0.0, "output": 0.0, "cache_read": 0.0,
+               "cache_write": 0.0, "uncached_equivalent": 0.0}
+        for model, bucket in self.by_model.items():
+            parts = bucket.cost_parts(model, prices)
+            if parts is None:
+                continue
+            for key in agg:
+                agg[key] += parts[key]
+        return agg
+
+    def cache_savings(self, prices: dict) -> float:
+        """What the cache reads would have cost as ordinary input, minus what they did
+        cost. Positive means caching reduced this bill."""
+        parts = self.cost_parts(prices)
+        return parts["uncached_equivalent"] - parts["cache_read"]
 
 
 # =============================================================================
@@ -700,6 +740,19 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
         tb = [x["tokens_before"] for x in a.compactions if x["tokens_before"]]
         detail = f" (tokens_before: {', '.join(toks(t) for t in tb)})" if tb else ""
         print(f"   compact: {len(a.compactions)} event(s){detail}")
+    # Cache reads are the bulk of a long agent session and are billed at a fraction of
+    # the input rate, so a total that looks alarming is usually volume, not rate. Show
+    # the hit rate and the counterfactual so that is checkable rather than asserted.
+    hit = c.cache_hit_rate()
+    if hit is not None and c.cache_read:
+        saved = a.cache_savings(prices)
+        print(f"   cache:  {hit * 100:.1f}% of {toks(c.prompt_tokens())} prompt tokens "
+              f"served from cache · saved {money(saved)} vs the same tokens as fresh input")
+    parts = a.cost_parts(prices)
+    if any(parts[k] for k in ("input", "output", "cache_read", "cache_write")):
+        print(f"   spend:  in {money(parts['input'])} · out {money(parts['output'])} "
+              f"· cache read {money(parts['cache_read'])} "
+              f"· cache write {money(parts['cache_write'])}")
     unpriced = a.unpriced(prices)
     line = f"   cost:   {money(a.total_cost(prices))}"
     if unpriced:
@@ -730,8 +783,13 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
             "cache_read": c.cache_read,
             "cache_write": c.cache_write,
             "total":      c.total_tokens(),
+            "prompt_tokens":  c.prompt_tokens(),
+            "cache_hit_rate": (round(c.cache_hit_rate(), 6)
+                               if c.cache_hit_rate() is not None else None),
             "cost_usd":   round(a.total_cost(prices), 6),
         },
+        "spend_usd": {k: round(v, 6) for k, v in a.cost_parts(prices).items()},
+        "cache_savings_usd": round(a.cache_savings(prices), 6),
         "compactions": a.compactions,
         "by_model": {
             m: {
@@ -892,6 +950,16 @@ def main(argv: list[str]) -> int:
     if tot_cmp:
         line += f"   compactions={tot_cmp}"
     print(line)
+
+    # The single most useful number for "why is this so much?": across everything shown,
+    # how much of the prompt was cached, and what that saved against fresh input pricing.
+    tot_prompt = sum(s.combined().prompt_tokens() for s in sessions)
+    tot_cached = sum(s.combined().cache_read for s in sessions)
+    tot_saved  = sum(s.cache_savings(prices) for s in sessions)
+    if tot_cached:
+        pct = tot_cached / tot_prompt * 100 if tot_prompt else 0.0
+        print(f"cache: {pct:.1f}% of {toks(tot_prompt)} prompt tokens were cache hits   "
+              f"saved={money(tot_saved)} vs uncached")
 
     all_unpriced = {m for s in sessions for m in s.unpriced(prices)}
     if all_unpriced:
