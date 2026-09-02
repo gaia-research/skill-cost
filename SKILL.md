@@ -83,6 +83,34 @@ input_tokens       * input_price
 Rates come from LiteLLM's catalog per token; fallbacks match Anthropic's
 public rate card for ephemeral-5m cache.
 
+### Cache hits
+
+A long agent session is overwhelmingly cache reads, and a cache read is billed at a
+fraction of the input rate (a tenth, on Anthropic's card). A six-figure token count next
+to a three-figure total therefore looks wrong until you can see that split, so every
+session prints it:
+
+```
+   cache:  98.8% of 46,703,358 prompt tokens served from cache · saved $207.74 vs the same tokens as fresh input
+   spend:  in $0.00 · out $1.91 · cache read $23.08 · cache write $3.36
+```
+
+- **hit rate** — `cache_read / (input + cache_read + cache_write)`. Every prompt token is
+  billed as exactly one of those three, so they are the honest denominator. Output tokens
+  are not prompt tokens and are excluded.
+- **saved** — the counterfactual: what those cached tokens *would* have cost as ordinary
+  input, minus what they did cost. It is a saving against not caching, not a discount off
+  the invoice.
+- **spend** — the same total, split by billing component, so a surprising number can be
+  attributed to a component rather than guessed at.
+
+The run-level footer carries the same two figures across every session shown. Both are
+in `--json` as `totals.cache_hit_rate`, `spend_usd`, and `cache_savings_usd`.
+
+Sessions mixing several models sum each component at that model's own rate. A model the
+catalog cannot price contributes nothing rather than being guessed at, and is still named
+in the `unpriced` note.
+
 ## Presenting results to the user
 
 When invoked via `/cost`:
