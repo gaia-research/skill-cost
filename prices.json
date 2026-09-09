@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-08T08:54:15Z",
-    "model_count": 3216,
+    "fetched_at": "2026-09-09T08:59:40Z",
+    "model_count": 3250,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -2605,6 +2605,13 @@
     "output": 3e-05,
     "provider": "azure_ai"
   },
+  "azure_ai/gpt-6-astra": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "azure_ai"
+  },
   "azure_ai/gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -3515,6 +3522,13 @@
     "output": 1.5e-06,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-east-1/anthropic.claude-fable-5-1": {
+    "cache_read": 3e-07,
+    "cache_write": 1.5e-05,
+    "input": 1.2e-05,
+    "output": 6e-05,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-east-1/anthropic.claude-haiku-4-5-20251001-v1:0": {
     "cache_read": 1.2e-07,
     "cache_write": 1.5e-06,
@@ -3523,6 +3537,13 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-east-1/anthropic.claude-opus-4-8": {
+    "cache_read": 6e-07,
+    "cache_write": 7.5e-06,
+    "input": 6e-06,
+    "output": 3e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-east-1/anthropic.claude-opus-5": {
     "cache_read": 6e-07,
     "cache_write": 7.5e-06,
     "input": 6e-06,
@@ -3578,6 +3599,13 @@
     "output": 2.88e-07,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-east-1/nvidia.nemotron-nano-9b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.2e-08,
+    "output": 2.76e-07,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-east-1/nvidia.nemotron-super-3-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -3597,6 +3625,27 @@
     "cache_write": null,
     "input": 8.4e-08,
     "output": 3.6e-07,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/amazon.nova-2-multimodal-embeddings-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.62e-07,
+    "output": 0.0,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/amazon.nova-lite-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.2e-08,
+    "output": 2.88e-07,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/amazon.nova-micro-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4.2e-08,
+    "output": 1.68e-07,
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/amazon.nova-pro-v1:0": {
@@ -3662,6 +3711,13 @@
     "output": 1.5e-06,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-west-1/anthropic.claude-fable-5-1": {
+    "cache_read": 3e-07,
+    "cache_write": 1.5e-05,
+    "input": 1.2e-05,
+    "output": 6e-05,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-west-1/anthropic.claude-haiku-4-5-20251001-v1:0": {
     "cache_read": 1.2e-07,
     "cache_write": 1.5e-06,
@@ -3670,6 +3726,13 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/anthropic.claude-opus-4-8": {
+    "cache_read": 6e-07,
+    "cache_write": 7.5e-06,
+    "input": 6e-06,
+    "output": 3e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/anthropic.claude-opus-5": {
     "cache_read": 6e-07,
     "cache_write": 7.5e-06,
     "input": 6e-06,
@@ -3723,6 +3786,13 @@
     "cache_write": null,
     "input": 7.2e-08,
     "output": 2.88e-07,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/nvidia.nemotron-nano-9b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.2e-08,
+    "output": 2.76e-07,
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/nvidia.nemotron-super-3-120b": {
@@ -3956,6 +4026,48 @@
     "output": 1.98e-05,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/us-gov-east-1/openai.gpt-oss-120b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.8e-07,
+    "output": 7.2e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-east-1/openai.gpt-oss-20b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8.4e-08,
+    "output": 3.6e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-east-1/xai.grok-4.6": {
+    "cache_read": 6.6e-07,
+    "cache_write": null,
+    "input": 2.64e-06,
+    "output": 7.92e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/google.gemma-4-26b-a4b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.56e-07,
+    "output": 4.8e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/google.gemma-4-31b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.68e-07,
+    "output": 4.8e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/google.gemma-4-e2b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4.8e-08,
+    "output": 9.6e-08,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/us-gov-west-1/openai.gpt-5.4": {
     "cache_read": 3.3e-07,
     "cache_write": null,
@@ -3977,11 +4089,32 @@
     "output": 1.584e-05,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/us-gov-west-1/openai.gpt-oss-120b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.8e-07,
+    "output": 7.2e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/openai.gpt-oss-20b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8.4e-08,
+    "output": 3.6e-07,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/us-gov-west-1/xai.grok-4.3": {
     "cache_read": 2.4e-07,
     "cache_write": null,
     "input": 1.5e-06,
     "output": 3e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/xai.grok-4.6": {
+    "cache_read": 6.6e-07,
+    "cache_write": null,
+    "input": 2.64e-06,
+    "output": 7.92e-06,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/xai.grok-4.3": {
@@ -6773,7 +6906,14 @@
   "eu.twelvelabs.marengo-embed-2-7-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7e-05,
+    "input": null,
+    "output": 0.0,
+    "provider": "bedrock"
+  },
+  "eu.twelvelabs.marengo-embed-3-0-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": null,
     "output": 0.0,
     "provider": "bedrock"
   },
@@ -19520,7 +19660,14 @@
   "twelvelabs.marengo-embed-2-7-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7e-05,
+    "input": null,
+    "output": 0.0,
+    "provider": "bedrock"
+  },
+  "twelvelabs.marengo-embed-3-0-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": null,
     "output": 0.0,
     "provider": "bedrock"
   },
@@ -19531,7 +19678,28 @@
     "output": 7.5e-06,
     "provider": "bedrock"
   },
+  "us-gov.anthropic.claude-3-haiku-20240307-v1:0": {
+    "cache_read": 3e-08,
+    "cache_write": 3.75e-07,
+    "input": 3e-07,
+    "output": 1.5e-06,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.anthropic.claude-fable-5-1": {
+    "cache_read": 3e-07,
+    "cache_write": 1.5e-05,
+    "input": 1.2e-05,
+    "output": 6e-05,
+    "provider": "bedrock_converse"
+  },
   "us-gov.anthropic.claude-opus-4-8": {
+    "cache_read": 6e-07,
+    "cache_write": 7.5e-06,
+    "input": 6e-06,
+    "output": 3e-05,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.anthropic.claude-opus-5": {
     "cache_read": 6e-07,
     "cache_write": 7.5e-06,
     "input": 6e-06,
@@ -19550,6 +19718,55 @@
     "cache_write": 3e-06,
     "input": 2.4e-06,
     "output": 1.2e-05,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.nvidia.nemotron-nano-12b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.4e-07,
+    "output": 7.2e-07,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.nvidia.nemotron-nano-3-30b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.2e-08,
+    "output": 2.88e-07,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.nvidia.nemotron-nano-9b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.2e-08,
+    "output": 2.76e-07,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.nvidia.nemotron-super-3-120b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.8e-07,
+    "output": 7.8e-07,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.openai.gpt-oss-120b-1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.8e-07,
+    "output": 7.2e-07,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.openai.gpt-oss-20b-1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8.4e-08,
+    "output": 3.6e-07,
+    "provider": "bedrock_converse"
+  },
+  "us-gov.xai.grok-4.6": {
+    "cache_read": 6.6e-07,
+    "cache_write": null,
+    "input": 2.64e-06,
+    "output": 7.92e-06,
     "provider": "bedrock_converse"
   },
   "us.amazon.nova-2-lite-v1:0": {
@@ -19856,7 +20073,14 @@
   "us.twelvelabs.marengo-embed-2-7-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7e-05,
+    "input": null,
+    "output": 0.0,
+    "provider": "bedrock"
+  },
+  "us.twelvelabs.marengo-embed-3-0-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": null,
     "output": 0.0,
     "provider": "bedrock"
   },
@@ -21147,6 +21371,20 @@
     "input": 2e-07,
     "output": 4e-07,
     "provider": "vertex_ai-ai21_models"
+  },
+  "vertex_ai/lyria-3-clip-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0,
+    "output": 0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/lyria-3-pro-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0,
+    "output": 0,
+    "provider": "vertex_ai"
   },
   "vertex_ai/meta/llama-3.1-405b-instruct-maas": {
     "cache_read": null,
