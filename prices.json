@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-09T08:59:40Z",
-    "model_count": 3250,
+    "fetched_at": "2026-09-10T08:58:49Z",
+    "model_count": 3274,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -2423,6 +2423,20 @@
     "output": 1e-05,
     "provider": "azure_ai"
   },
+  "azure_ai/codex-mini": {
+    "cache_read": 3.75e-07,
+    "cache_write": null,
+    "input": 1.5e-06,
+    "output": 6e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/cohere-command-a": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1e-05,
+    "provider": "azure_ai"
+  },
   "azure_ai/cohere-rerank-v3-english": {
     "cache_read": null,
     "cache_write": null,
@@ -2612,6 +2626,13 @@
     "output": 5e-05,
     "provider": "azure_ai"
   },
+  "azure_ai/gpt-chat-latest": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "azure_ai"
+  },
   "azure_ai/gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -2652,6 +2673,20 @@
     "cache_write": null,
     "input": 2e-07,
     "output": 5e-07,
+    "provider": "azure_ai"
+  },
+  "azure_ai/grok-4-20-non-reasoning": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/grok-4-20-reasoning": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "azure_ai"
   },
   "azure_ai/grok-4-fast-non-reasoning": {
@@ -2785,6 +2820,13 @@
     "cache_write": null,
     "input": 1e-07,
     "output": 3e-07,
+    "provider": "azure_ai"
+  },
+  "azure_ai/model-router": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 0,
     "provider": "azure_ai"
   },
   "azure_ai/model_router": {
@@ -3991,6 +4033,20 @@
     "output": 1.32e-05,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/openai.gpt-6-astra": {
+    "cache_read": 1.1e-06,
+    "cache_write": 1.375e-05,
+    "input": 1.1e-05,
+    "output": 5.5e-05,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/openai.gpt-daybreak-blue-5.6-sol": {
+    "cache_read": 5.5e-07,
+    "cache_write": 6.875e-06,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/openai.gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -4001,7 +4057,7 @@
   "bedrock_mantle/openai.gpt-oss-20b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7.5e-08,
+    "input": 7e-08,
     "output": 3e-07,
     "provider": "bedrock_mantle"
   },
@@ -4015,8 +4071,8 @@
   "bedrock_mantle/openai.gpt-oss-safeguard-20b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7.5e-08,
-    "output": 3e-07,
+    "input": 7e-08,
+    "output": 2e-07,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-east-1/openai.gpt-5.4": {
@@ -6729,10 +6785,10 @@
     "provider": "bedrock_converse"
   },
   "eu.anthropic.claude-3-5-haiku-20241022-v1:0": {
-    "cache_read": 2.5e-08,
-    "cache_write": 3.125e-07,
-    "input": 2.5e-07,
-    "output": 1.25e-06,
+    "cache_read": 8e-08,
+    "cache_write": 1e-06,
+    "input": 8e-07,
+    "output": 4e-06,
     "provider": "bedrock"
   },
   "eu.anthropic.claude-3-5-sonnet-20240620-v1:0": {
@@ -10116,6 +10172,13 @@
     "output": 0,
     "provider": "gemini"
   },
+  "gemini/lyria-3.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0,
+    "output": 0,
+    "provider": "gemini"
+  },
   "gemini/lyria-3.5-clip-preview": {
     "cache_read": null,
     "cache_write": null,
@@ -10298,6 +10361,13 @@
     "output": 1e-05,
     "provider": "bedrock_converse"
   },
+  "global.cohere.embed-v4:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
+    "output": 0.0,
+    "provider": "bedrock"
+  },
   "global.openai.gpt-5.6-luna": {
     "cache_read": 2e-08,
     "cache_write": 2.5e-07,
@@ -10318,6 +10388,20 @@
     "input": 2e-06,
     "output": 1.2e-05,
     "provider": "bedrock_converse"
+  },
+  "global.openai.gpt-6-astra": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "bedrock_converse"
+  },
+  "global.twelvelabs.pegasus-1-2-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": null,
+    "output": 7.5e-06,
+    "provider": "bedrock"
   },
   "global.xai.grok-4.6": {
     "cache_read": 5e-07,
@@ -11209,6 +11293,34 @@
     "provider": "openai"
   },
   "gpt-image-2-2026-04-21": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openai"
+  },
+  "gpt-image-2.5-flare": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openai"
+  },
+  "gpt-image-2.5-flare-2026-09-08": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openai"
+  },
+  "gpt-image-2.5-sunburst": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openai"
+  },
+  "gpt-image-2.5-sunburst-2026-09-08": {
     "cache_read": 1.25e-06,
     "cache_write": null,
     "input": 5e-06,
@@ -18523,6 +18635,20 @@
     "output": 0.0,
     "provider": "cohere"
   },
+  "rerank-v4.0-fast": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "cohere"
+  },
+  "rerank-v4.0-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "cohere"
+  },
   "sagemaker/meta-textgeneration-llama-2-13b": {
     "cache_read": null,
     "cache_write": null,
@@ -19958,6 +20084,13 @@
     "output": 1.1e-05,
     "provider": "bedrock_converse"
   },
+  "us.cohere.embed-v4:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
+    "output": 0.0,
+    "provider": "bedrock"
+  },
   "us.deepseek.r1-v1:0": {
     "cache_read": null,
     "cache_write": null,
@@ -20068,6 +20201,13 @@
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.32e-05,
+    "provider": "bedrock_converse"
+  },
+  "us.openai.gpt-6-astra": {
+    "cache_read": 1.1e-06,
+    "cache_write": 1.375e-05,
+    "input": 1.1e-05,
+    "output": 5.5e-05,
     "provider": "bedrock_converse"
   },
   "us.twelvelabs.marengo-embed-2-7-v1:0": {
@@ -21281,6 +21421,13 @@
     "output": 2.5e-06,
     "provider": "vertex_ai-language-models"
   },
+  "vertex_ai/gemini-3.5-live-translate-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.5e-06,
+    "output": 2.1e-05,
+    "provider": "vertex_ai"
+  },
   "vertex_ai/gemini-3.5-transcribe-live-preview": {
     "cache_read": null,
     "cache_write": null,
@@ -21291,7 +21438,7 @@
   "vertex_ai/gemini-3.5-transcribe-preview": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.5e-06,
+    "input": 2e-06,
     "output": 1.2e-05,
     "provider": "vertex_ai"
   },
@@ -21634,12 +21781,26 @@
   "vertex_ai/xai/grok-4.20-non-reasoning": {
     "cache_read": 2e-07,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 6e-06,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
     "provider": "vertex_ai"
   },
   "vertex_ai/xai/grok-4.20-reasoning": {
     "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/xai/grok-4.3": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.25e-06,
+    "output": 2.5e-06,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/xai/grok-4.6": {
+    "cache_read": 5e-07,
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
@@ -21831,6 +21992,13 @@
     "cache_read": null,
     "cache_write": null,
     "input": 1e-07,
+    "output": 0.0,
+    "provider": "voyage"
+  },
+  "voyage/voyage-multilingual-2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
     "output": 0.0,
     "provider": "voyage"
   },
