@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-12T08:40:06Z",
-    "model_count": 3277,
+    "fetched_at": "2026-09-13T09:35:25Z",
+    "model_count": 3313,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -4229,6 +4229,13 @@
     "output": 8e-07,
     "provider": "cerebras"
   },
+  "cerebras/qwen-3.8-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 9.9e-07,
+    "output": 1.49e-06,
+    "provider": "cerebras"
+  },
   "cerebras/zai-glm-4.6": {
     "cache_read": null,
     "cache_write": null,
@@ -4857,7 +4864,7 @@
     "cache_write": null,
     "input": 3e-06,
     "output": 1.2e-05,
-    "provider": "azure"
+    "provider": "openai"
   },
   "crusoe/Qwen/Qwen3-235B-A22B-Instruct-2507": {
     "cache_read": null,
@@ -6546,6 +6553,13 @@
     "output": 4.2e-07,
     "provider": "deepseek"
   },
+  "deepseek-flash": {
+    "cache_read": 6e-09,
+    "cache_write": 0.0,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "deepseek"
+  },
   "deepseek-reasoner": {
     "cache_read": 2.8e-08,
     "cache_write": null,
@@ -6561,17 +6575,17 @@
     "provider": "volcengine"
   },
   "deepseek-v4-flash": {
-    "cache_read": 1.4e-08,
+    "cache_read": 6e-09,
     "cache_write": 0.0,
-    "input": 4.4e-07,
-    "output": 1.32e-06,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "deepseek"
   },
   "deepseek-v4-flash-vision-exp": {
-    "cache_read": 1.4e-08,
+    "cache_read": 6e-09,
     "cache_write": 0.0,
-    "input": 4.4e-07,
-    "output": 1.32e-06,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "deepseek"
   },
   "deepseek-v4-pro": {
@@ -6609,6 +6623,13 @@
     "output": 2.8e-07,
     "provider": "deepseek"
   },
+  "deepseek/deepseek-flash": {
+    "cache_read": 6e-09,
+    "cache_write": 0.0,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "deepseek"
+  },
   "deepseek/deepseek-r1": {
     "cache_read": null,
     "cache_write": null,
@@ -6638,17 +6659,17 @@
     "provider": "deepseek"
   },
   "deepseek/deepseek-v4-flash": {
-    "cache_read": 1.4e-08,
+    "cache_read": 6e-09,
     "cache_write": 0.0,
-    "input": 4.4e-07,
-    "output": 1.32e-06,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "deepseek"
   },
   "deepseek/deepseek-v4-flash-vision-exp": {
-    "cache_read": 1.4e-08,
+    "cache_read": 6e-09,
     "cache_write": 0.0,
-    "input": 4.4e-07,
-    "output": 1.32e-06,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "deepseek"
   },
   "deepseek/deepseek-v4-pro": {
@@ -7433,6 +7454,13 @@
     "cache_write": null,
     "input": 1.32e-06,
     "output": 3.96e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/deepseek-v4p1-flash": {
+    "cache_read": 7e-09,
+    "cache_write": null,
+    "input": 2.2e-07,
+    "output": 6.6e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/devstral-small-2505": {
@@ -9073,6 +9101,13 @@
     "output": 3.48e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/deepseek-v4p1-flash": {
+    "cache_read": 7e-09,
+    "cache_write": null,
+    "input": 2.2e-07,
+    "output": 6.6e-07,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/glm-4p7": {
     "cache_read": 3e-07,
     "cache_write": null,
@@ -9269,6 +9304,34 @@
     "output": 0.0,
     "provider": "fireworks_ai-embedding-models"
   },
+  "friendliai/LGAI-EXAONE/K-EXAONE-2.0-750B-A37B": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "friendliai"
+  },
+  "friendliai/MiniMaxAI/MiniMax-M2.5": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "friendliai"
+  },
+  "friendliai/deepseek-ai/DeepSeek-V3.2": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 1.5e-06,
+    "provider": "friendliai"
+  },
+  "friendliai/google/gemma-4-31B-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 4e-07,
+    "provider": "friendliai"
+  },
   "friendliai/meta-llama-3.1-70b-instruct": {
     "cache_read": null,
     "cache_write": null,
@@ -9281,6 +9344,20 @@
     "cache_write": null,
     "input": 1e-07,
     "output": 1e-07,
+    "provider": "friendliai"
+  },
+  "friendliai/zai-org/GLM-5.1": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "friendliai"
+  },
+  "friendliai/zai-org/GLM-5.2": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
     "provider": "friendliai"
   },
   "friendliai/zai-org/GLM-5.3": {
@@ -11118,14 +11195,14 @@
     "provider": "openai"
   },
   "gpt-5.4-pro": {
-    "cache_read": 3e-06,
+    "cache_read": null,
     "cache_write": null,
     "input": 3e-05,
     "output": 0.00018,
     "provider": "openai"
   },
   "gpt-5.4-pro-2026-03-05": {
-    "cache_read": 3e-06,
+    "cache_read": null,
     "cache_write": null,
     "input": 3e-05,
     "output": 0.00018,
@@ -11146,14 +11223,14 @@
     "provider": "openai"
   },
   "gpt-5.5-pro": {
-    "cache_read": 3e-06,
+    "cache_read": null,
     "cache_write": null,
     "input": 3e-05,
     "output": 0.00018,
     "provider": "openai"
   },
   "gpt-5.5-pro-2026-04-23": {
-    "cache_read": 3e-06,
+    "cache_read": null,
     "cache_write": null,
     "input": 3e-05,
     "output": 0.00018,
@@ -11681,6 +11758,13 @@
     "cache_read": 2.5e-08,
     "cache_write": null,
     "input": 2.5e-07,
+    "output": 7.5e-07,
+    "provider": "inception"
+  },
+  "inception/mercury-2.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
     "output": 7.5e-07,
     "provider": "inception"
   },
@@ -15521,10 +15605,10 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-chat-v3.1": {
-    "cache_read": null,
+    "cache_read": 1.3e-07,
     "cache_write": null,
-    "input": 2e-07,
-    "output": 8e-07,
+    "input": 2.5e-07,
+    "output": 9.5e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-r1": {
@@ -15570,10 +15654,10 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash": {
-    "cache_read": 1.7556e-08,
+    "cache_read": 1.708e-08,
     "cache_write": null,
-    "input": 8.778e-08,
-    "output": 1.7556e-07,
+    "input": 8.54e-08,
+    "output": 1.708e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash-0731": {
@@ -15591,17 +15675,24 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro": {
-    "cache_read": null,
+    "cache_read": 7.1659e-08,
     "cache_write": null,
-    "input": 1.32e-06,
-    "output": 3.96e-06,
+    "input": 8.59908e-07,
+    "output": 1.719816e-06,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro-0813": {
-    "cache_read": null,
+    "cache_read": 1.9316e-08,
     "cache_write": null,
-    "input": 1.32e-06,
-    "output": 3.96e-06,
+    "input": 5.7948e-07,
+    "output": 1.73844e-06,
+    "provider": "openrouter"
+  },
+  "openrouter/deepseek/deepseek-v4.1-flash": {
+    "cache_read": 3e-09,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "openrouter"
   },
   "openrouter/google/gemini-2.0-flash-001": {
@@ -15796,8 +15887,8 @@
   "openrouter/google/gemma-4-26b-a4b-it": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7e-08,
-    "output": 3.4e-07,
+    "input": 4.2e-08,
+    "output": 2.2e-07,
     "provider": "openrouter"
   },
   "openrouter/google/gemma-4-26b-a4b-it:free": {
@@ -16144,17 +16235,17 @@
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k2.7-code": {
-    "cache_read": 1.8e-07,
+    "cache_read": 1.5e-07,
     "cache_write": null,
-    "input": 6.6e-07,
-    "output": 3.4e-06,
+    "input": 7.1e-07,
+    "output": 3.5e-06,
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k3": {
-    "cache_read": 3e-07,
+    "cache_read": 2.35e-07,
     "cache_write": null,
-    "input": 3e-06,
-    "output": 1.5e-05,
+    "input": 2.1e-06,
+    "output": 1.053e-05,
     "provider": "openrouter"
   },
   "openrouter/nvidia/nemotron-3-nano-30b-a3b": {
@@ -16486,7 +16577,21 @@
     "output": 1.2e-06,
     "provider": "openrouter"
   },
+  "openrouter/openai/gpt-5.6-luna-pro": {
+    "cache_read": 2e-08,
+    "cache_write": 2.5e-07,
+    "input": 2e-07,
+    "output": 1.2e-06,
+    "provider": "openrouter"
+  },
   "openrouter/openai/gpt-5.6-sol": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "openrouter"
+  },
+  "openrouter/openai/gpt-5.6-sol-pro": {
     "cache_read": 2e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
@@ -16500,7 +16605,21 @@
     "output": 1.2e-05,
     "provider": "openrouter"
   },
+  "openrouter/openai/gpt-5.6-terra-pro": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "openrouter"
+  },
   "openrouter/openai/gpt-6-astra": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "openrouter"
+  },
+  "openrouter/openai/gpt-6-astra-pro": {
     "cache_read": 1e-06,
     "cache_write": 1.25e-05,
     "input": 1e-05,
@@ -16519,6 +16638,13 @@
     "cache_write": null,
     "input": 6e-07,
     "output": 2.4e-06,
+    "provider": "openrouter"
+  },
+  "openrouter/openai/gpt-chat-latest": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
     "provider": "openrouter"
   },
   "openrouter/openai/gpt-oss-120b": {
@@ -16699,8 +16825,8 @@
   "openrouter/qwen/qwen3-14b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.2e-07,
-    "output": 2.4e-07,
+    "input": 2.275e-07,
+    "output": 9.1e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-235b-a22b": {
@@ -16713,8 +16839,8 @@
   "openrouter/qwen/qwen3-235b-a22b-2507": {
     "cache_read": null,
     "cache_write": null,
-    "input": 8.75e-08,
-    "output": 3.5e-07,
+    "input": 2.2e-07,
+    "output": 8.8e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-235b-a22b-thinking-2507": {
@@ -16734,8 +16860,8 @@
   "openrouter/qwen/qwen3-30b-a3b-instruct-2507": {
     "cache_read": null,
     "cache_write": null,
-    "input": 4.815e-08,
-    "output": 1.9305e-07,
+    "input": 9e-08,
+    "output": 3e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-30b-a3b-thinking-2507": {
@@ -16811,7 +16937,7 @@
   "openrouter/qwen/qwen3-next-80b-a3b-instruct": {
     "cache_read": 7e-08,
     "cache_write": null,
-    "input": 1e-07,
+    "input": 9e-08,
     "output": 1.1e-06,
     "provider": "openrouter"
   },
@@ -16874,8 +17000,8 @@
   "openrouter/qwen/qwen3.5-122b-a10b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.9e-07,
-    "output": 2.4e-06,
+    "input": 2.6e-07,
+    "output": 2.08e-06,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3.5-27b": {
@@ -16886,9 +17012,9 @@
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3.5-35b-a3b": {
-    "cache_read": null,
+    "cache_read": 1.5625e-07,
     "cache_write": null,
-    "input": 2.5e-07,
+    "input": 3.125e-07,
     "output": 1.25e-06,
     "provider": "openrouter"
   },
@@ -17011,6 +17137,13 @@
     "output": 6e-06,
     "provider": "openrouter"
   },
+  "openrouter/qwen/qwen3.8-max-0902": {
+    "cache_read": 2.5e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "openrouter"
+  },
   "openrouter/switchpoint/router": {
     "cache_read": null,
     "cache_write": null,
@@ -17117,10 +17250,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-4.6": {
-    "cache_read": null,
+    "cache_read": 8e-08,
     "cache_write": null,
-    "input": 5.5e-07,
-    "output": 2.2e-06,
+    "input": 4.3e-07,
+    "output": 1.75e-06,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-4.6:exacto": {
@@ -17173,10 +17306,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.2": {
-    "cache_read": 1.932e-07,
+    "cache_read": 1.5e-07,
     "cache_write": null,
-    "input": 9.66e-07,
-    "output": 3.036e-06,
+    "input": 6e-07,
+    "output": 2e-06,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.2:free": {
@@ -17194,10 +17327,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3-flash": {
-    "cache_read": 1.5e-08,
+    "cache_read": 3e-08,
     "cache_write": null,
-    "input": 7.5e-08,
-    "output": 2.5e-07,
+    "input": 1.5e-07,
+    "output": 5e-07,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5v-turbo": {
@@ -19412,6 +19545,13 @@
     "output": 0.0,
     "provider": "together_ai"
   },
+  "together_ai/MiniMaxAI/MiniMax-M2.7": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "together_ai"
+  },
   "together_ai/MiniMaxAI/MiniMax-M3": {
     "cache_read": 6e-08,
     "cache_write": null,
@@ -19424,6 +19564,27 @@
     "cache_write": null,
     "input": 0.0,
     "output": 0.0,
+    "provider": "together_ai"
+  },
+  "together_ai/Qwen/QwQ-32B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 1.2e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/Qwen/Qwen2.5-72B-Instruct-Turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 1.2e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/Qwen/Qwen2.5-7B-Instruct-Turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 3e-07,
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3-235B-A22B-Instruct-2507-tput": {
@@ -19454,6 +19615,13 @@
     "output": 2e-06,
     "provider": "together_ai"
   },
+  "together_ai/Qwen/Qwen3-Coder-Next-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 1.2e-06,
+    "provider": "together_ai"
+  },
   "together_ai/Qwen/Qwen3-Next-80B-A3B-Instruct": {
     "cache_read": null,
     "cache_write": null,
@@ -19466,6 +19634,20 @@
     "cache_write": null,
     "input": 1.5e-07,
     "output": 1.5e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/Qwen/Qwen3-VL-32B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 1.5e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/Qwen/Qwen3-VL-8B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.8e-07,
+    "output": 6.8e-07,
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.5-397B-A17B": {
@@ -19532,6 +19714,13 @@
     "provider": "together_ai"
   },
   "together_ai/deepseek-ai/DeepSeek-R1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 7e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/deepseek-ai/DeepSeek-R1-0528": {
     "cache_read": null,
     "cache_write": null,
     "input": 3e-06,
@@ -19664,6 +19853,34 @@
     "output": 1.5e-06,
     "provider": "together_ai"
   },
+  "together_ai/mistralai/Ministral-3-14B-Instruct-2512": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "together_ai"
+  },
+  "together_ai/mistralai/Mistral-7B-Instruct-v0.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "together_ai"
+  },
+  "together_ai/mistralai/Mistral-7B-Instruct-v0.3": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "together_ai"
+  },
+  "together_ai/mistralai/Mistral-Small-24B-Instruct-2501": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 3e-07,
+    "provider": "together_ai"
+  },
   "together_ai/mistralai/Mixtral-8x7B-Instruct-v0.1": {
     "cache_read": null,
     "cache_write": null,
@@ -19692,6 +19909,20 @@
     "output": 2.8e-06,
     "provider": "together_ai"
   },
+  "together_ai/moonshotai/Kimi-K2.5-fp4": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 2.8e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/moonshotai/Kimi-K2.6": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1.2e-06,
+    "output": 4.5e-06,
+    "provider": "together_ai"
+  },
   "together_ai/moonshotai/Kimi-K2.7-Code": {
     "cache_read": 1.9e-07,
     "cache_write": null,
@@ -19704,6 +19935,13 @@
     "cache_write": null,
     "input": 3e-06,
     "output": 1.5e-05,
+    "provider": "together_ai"
+  },
+  "together_ai/nvidia/NVIDIA-Nemotron-Nano-9B-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 2.5e-07,
     "provider": "together_ai"
   },
   "together_ai/nvidia/nemotron-3-ultra-550b-a55b": {
@@ -19767,6 +20005,20 @@
     "cache_write": null,
     "input": 4.5e-07,
     "output": 2e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/zai-org/GLM-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 3.2e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/zai-org/GLM-5.1": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
     "provider": "together_ai"
   },
   "together_ai/zai-org/GLM-5.2": {
@@ -21683,15 +21935,15 @@
   "vertex_ai/mistral-small-2503": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-06,
-    "output": 3e-06,
+    "input": 1e-07,
+    "output": 3e-07,
     "provider": "vertex_ai-mistral_models"
   },
   "vertex_ai/mistral-small-2503@001": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-06,
-    "output": 3e-06,
+    "input": 1e-07,
+    "output": 3e-07,
     "provider": "vertex_ai-mistral_models"
   },
   "vertex_ai/mistralai/codestral-2": {
@@ -21737,10 +21989,10 @@
     "provider": "vertex_ai-openai_models"
   },
   "vertex_ai/openai/gpt-oss-20b-maas": {
-    "cache_read": null,
+    "cache_read": 7e-09,
     "cache_write": null,
-    "input": 7.5e-08,
-    "output": 3e-07,
+    "input": 7e-08,
+    "output": 2.5e-07,
     "provider": "vertex_ai-openai_models"
   },
   "vertex_ai/qwen/qwen3-235b-a22b-instruct-2507-maas": {
