@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-15T09:29:03Z",
-    "model_count": 3348,
+    "fetched_at": "2026-09-16T09:20:10Z",
+    "model_count": 3420,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -42,6 +42,510 @@
     "input": 5e-07,
     "output": 7e-07,
     "provider": "bedrock"
+  },
+  "aihubmix/agnes-2.5-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-08,
+    "output": 1.5e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/agnes-2.5-pro": {
+    "cache_read": 3.78e-09,
+    "cache_write": null,
+    "input": 4.5e-07,
+    "output": 9e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/cc-glm-5.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 2.2e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/claude-fable-5": {
+    "cache_read": 1.1e-06,
+    "cache_write": 1.375e-05,
+    "input": 1.1e-05,
+    "output": 5.5e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/claude-haiku-4-5": {
+    "cache_read": 1.1e-07,
+    "cache_write": 1.375e-06,
+    "input": 1.1e-06,
+    "output": 5.5e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/claude-opus-4-8-think": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/claude-opus-5": {
+    "cache_read": 5e-07,
+    "cache_write": 6.25e-06,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/claude-sonnet-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/coding-glm-5.3": {
+    "cache_read": 1.5e-08,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 2.2e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/coding-kimi-k3": {
+    "cache_read": 6.6e-08,
+    "cache_write": null,
+    "input": 4.4e-07,
+    "output": 1.61333e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/coding-xiaomi-mimo-v2-omni": {
+    "cache_read": 1.6e-08,
+    "cache_write": null,
+    "input": 8e-08,
+    "output": 4e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/coding-xiaomi-mimo-v2.5": {
+    "cache_read": 1.6e-09,
+    "cache_write": null,
+    "input": 8e-08,
+    "output": 1.6e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/coding-xiaomi-mimo-v2.5-pro": {
+    "cache_read": 1.6e-09,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 4e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/command-a-plus-05-2026": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/deepseek-v4-flash": {
+    "cache_read": 2.84e-08,
+    "cache_write": null,
+    "input": 1.42e-07,
+    "output": 2.84e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/deepseek-v4-pro": {
+    "cache_read": 1.4027e-07,
+    "cache_write": null,
+    "input": 1.69e-06,
+    "output": 3.38e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/doubao-seed-2-0-code-preview": {
+    "cache_read": 9.644e-08,
+    "cache_write": null,
+    "input": 4.822e-07,
+    "output": 2.411e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/doubao-seed-2-0-lite-260428": {
+    "cache_read": 1.8082e-08,
+    "cache_write": null,
+    "input": 9.041e-08,
+    "output": 5.4246e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/doubao-seed-2-0-mini": {
+    "cache_read": 6.027e-09,
+    "cache_write": null,
+    "input": 3.0136e-08,
+    "output": 3.0136e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/doubao-seed-2-0-pro": {
+    "cache_read": 9.644e-08,
+    "cache_write": null,
+    "input": 4.822e-07,
+    "output": 2.411e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/doubao-seed-2-1-turbo": {
+    "cache_read": 9.295e-08,
+    "cache_write": null,
+    "input": 4.6475e-07,
+    "output": 2.32375e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/ernie-5.1": {
+    "cache_read": 5.634e-07,
+    "cache_write": null,
+    "input": 5.634e-07,
+    "output": 2.5353e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemini-3-flash-preview": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemini-3-flash-preview-search": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemini-3.1-pro-preview": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemini-3.1-pro-preview-customtools": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemini-3.5-flash-lite": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 2.499999e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemini-3.7-flash": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemma-4-26b-a4b-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 3.9998e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gemma-4-31b-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 3.9998e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/glm-5.2-fast-preview": {
+    "cache_read": 5.635e-07,
+    "cache_write": null,
+    "input": 2.254e-06,
+    "output": 7.889e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/glm-5.3": {
+    "cache_read": 2.817e-07,
+    "cache_write": null,
+    "input": 1.1268e-06,
+    "output": 3.9438e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/glm-5.3-flash": {
+    "cache_read": 2.817e-08,
+    "cache_write": null,
+    "input": 1.1268e-07,
+    "output": 3.9438e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/glm-5v-turbo": {
+    "cache_read": 1.69008e-07,
+    "cache_write": null,
+    "input": 7.042e-07,
+    "output": 3.09848e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.3-codex": {
+    "cache_read": 1.75e-07,
+    "cache_write": null,
+    "input": 1.75e-06,
+    "output": 1.4e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.4-high": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.4-low": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.4-mini": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 4.5e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.4-nano": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 1.25e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.5": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.5-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-05,
+    "output": 0.00018,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.6-luna": {
+    "cache_read": 2e-08,
+    "cache_write": 2.5e-07,
+    "input": 2e-07,
+    "output": 1.2e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.6-sol-disc": {
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-5.6-terra": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/gpt-chat-latest": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/grok-4-20-non-reasoning": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/grok-4-20-reasoning": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/grok-4.6": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/grok-build-0.1": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 2e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/hy3": {
+    "cache_read": 3.905e-08,
+    "cache_write": null,
+    "input": 1.562e-07,
+    "output": 6.248e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/hy4-preview": {
+    "cache_read": 4.225e-08,
+    "cache_write": null,
+    "input": 8.45e-07,
+    "output": 2.535e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/kimi-k2.6": {
+    "cache_read": 1.60835e-07,
+    "cache_write": null,
+    "input": 9.5e-07,
+    "output": 3.9995e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/kimi-k2.7-code-highspeed": {
+    "cache_read": 3.2167e-07,
+    "cache_write": null,
+    "input": 1.9e-06,
+    "output": 7.999e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "aihubmix"
+  },
+  "aihubmix/longcat-2.0": {
+    "cache_read": 1.5492e-08,
+    "cache_write": null,
+    "input": 7.746e-07,
+    "output": 3.0984e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/mai-thinking-1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 8e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/mimo-v2-omni": {
+    "cache_read": 8.8e-08,
+    "cache_write": null,
+    "input": 4.4e-07,
+    "output": 2.2e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/mimo-v2-pro": {
+    "cache_read": 2.2e-07,
+    "cache_write": null,
+    "input": 1.1e-06,
+    "output": 3.3e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/minimax-m2.7": {
+    "cache_read": 5.916e-08,
+    "cache_write": null,
+    "input": 2.958e-07,
+    "output": 1.1832e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/minimax-m3": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.88e-07,
+    "output": 1.152e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/muse-spark-1.2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.375e-06,
+    "output": 4.675e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3-coder-next": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.37e-07,
+    "output": 5.48e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.5-122b-a10b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.126e-07,
+    "output": 9.008e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.5-397b-a17b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.644e-07,
+    "output": 9.864e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.6-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4.22e-07,
+    "output": 2.532e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.6-35b-a3b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.54e-07,
+    "output": 1.524e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.6-max-preview": {
+    "cache_read": 1.268e-07,
+    "cache_write": 1.585e-06,
+    "input": 1.268e-06,
+    "output": 7.608e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.7-plus": {
+    "cache_read": 5.64e-08,
+    "cache_write": 3.525e-07,
+    "input": 2.82e-07,
+    "output": 1.128e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.8-2.4t-a95b": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.8-flash": {
+    "cache_read": 1.4075e-08,
+    "cache_write": 1.75937e-07,
+    "input": 1.126e-07,
+    "output": 3.80025e-07,
+    "provider": "aihubmix"
+  },
+  "aihubmix/qwen3.8-max": {
+    "cache_read": 1.69e-07,
+    "cache_write": 2.1125e-06,
+    "input": 1.69e-06,
+    "output": 5.07e-06,
+    "provider": "aihubmix"
+  },
+  "aihubmix/step-3.7-flash": {
+    "cache_read": 4.4e-08,
+    "cache_write": null,
+    "input": 2.2e-07,
+    "output": 1.32e-06,
+    "provider": "aihubmix"
   },
   "amazon-nova/nova-lite-v1": {
     "cache_read": null,
