@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-16T09:20:10Z",
-    "model_count": 3420,
+    "fetched_at": "2026-09-17T09:29:11Z",
+    "model_count": 3502,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -604,21 +604,21 @@
     "provider": "bedrock"
   },
   "amazon.nova-lite-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.5e-08,
     "cache_write": null,
     "input": 6e-08,
     "output": 2.4e-07,
     "provider": "bedrock_converse"
   },
   "amazon.nova-micro-v1:0": {
-    "cache_read": null,
+    "cache_read": 8.75e-09,
     "cache_write": null,
     "input": 3.5e-08,
     "output": 1.4e-07,
     "provider": "bedrock_converse"
   },
   "amazon.nova-pro-v1:0": {
-    "cache_read": null,
+    "cache_read": 2e-07,
     "cache_write": null,
     "input": 8e-07,
     "output": 3.2e-06,
@@ -975,21 +975,21 @@
     "provider": "bedrock_converse"
   },
   "apac.amazon.nova-lite-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.575e-08,
     "cache_write": null,
     "input": 6.3e-08,
     "output": 2.52e-07,
     "provider": "bedrock_converse"
   },
   "apac.amazon.nova-micro-v1:0": {
-    "cache_read": null,
+    "cache_read": 9.25e-09,
     "cache_write": null,
     "input": 3.7e-08,
     "output": 1.48e-07,
     "provider": "bedrock_converse"
   },
   "apac.amazon.nova-pro-v1:0": {
-    "cache_read": null,
+    "cache_read": 2.1e-07,
     "cache_write": null,
     "input": 8.4e-07,
     "output": 3.36e-06,
@@ -1128,6 +1128,48 @@
     "output": 1.2e-05,
     "provider": "azure"
   },
+  "azure/eu/codex-mini": {
+    "cache_read": 4.13e-07,
+    "cache_write": null,
+    "input": 1.65e-06,
+    "output": 6.6e-06,
+    "provider": "azure"
+  },
+  "azure/eu/computer-use-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.3e-06,
+    "output": 1.32e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-4.1": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 2.2e-06,
+    "output": 8.8e-06,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-4.1-mini": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 4.4e-07,
+    "output": 1.76e-06,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-4.1-nano": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 1.1e-07,
+    "output": 4.4e-07,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-4o-2024-05-13": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 1.65e-05,
+    "provider": "azure"
+  },
   "azure/eu/gpt-4o-2024-08-06": {
     "cache_read": 1.375e-06,
     "cache_write": null,
@@ -1136,7 +1178,7 @@
     "provider": "azure"
   },
   "azure/eu/gpt-4o-2024-11-20": {
-    "cache_read": null,
+    "cache_read": 1.375e-06,
     "cache_write": 1.38e-06,
     "input": 2.75e-06,
     "output": 1.1e-05,
@@ -1170,11 +1212,32 @@
     "output": 2.2e-05,
     "provider": "azure"
   },
+  "azure/eu/gpt-5": {
+    "cache_read": 1.375e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
+    "output": 1.1e-05,
+    "provider": "azure"
+  },
   "azure/eu/gpt-5-2025-08-07": {
     "cache_read": 1.375e-07,
     "cache_write": null,
     "input": 1.375e-06,
     "output": 1.1e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5-codex": {
+    "cache_read": 1.38e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
+    "output": 1.1e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5-mini": {
+    "cache_read": 2.75e-08,
+    "cache_write": null,
+    "input": 2.75e-07,
+    "output": 2.2e-06,
     "provider": "azure"
   },
   "azure/eu/gpt-5-mini-2025-08-07": {
@@ -1184,6 +1247,13 @@
     "output": 2.2e-06,
     "provider": "azure"
   },
+  "azure/eu/gpt-5-nano": {
+    "cache_read": 5.5e-09,
+    "cache_write": null,
+    "input": 5.5e-08,
+    "output": 4.4e-07,
+    "provider": "azure"
+  },
   "azure/eu/gpt-5-nano-2025-08-07": {
     "cache_read": 5.5e-09,
     "cache_write": null,
@@ -1191,46 +1261,123 @@
     "output": 4.4e-07,
     "provider": "azure"
   },
-  "azure/eu/gpt-5.1": {
-    "cache_read": 1.4e-07,
+  "azure/eu/gpt-5-pro": {
+    "cache_read": null,
     "cache_write": null,
-    "input": 1.38e-06,
+    "input": 1.65e-05,
+    "output": 0.000132,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.1": {
+    "cache_read": 1.375e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
     "output": 1.1e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.1-chat": {
-    "cache_read": 1.4e-07,
+    "cache_read": 1.375e-07,
     "cache_write": null,
-    "input": 1.38e-06,
+    "input": 1.375e-06,
     "output": 1.1e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.1-codex": {
-    "cache_read": 1.4e-07,
+    "cache_read": 1.375e-07,
     "cache_write": null,
-    "input": 1.38e-06,
+    "input": 1.375e-06,
+    "output": 1.1e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.1-codex-max": {
+    "cache_read": 1.375e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
     "output": 1.1e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.1-codex-mini": {
-    "cache_read": 2.8e-08,
+    "cache_read": 2.75e-08,
     "cache_write": null,
     "input": 2.75e-07,
     "output": 2.2e-06,
     "provider": "azure"
   },
+  "azure/eu/gpt-5.2": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.2-chat": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.2-codex": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.2-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.31e-05,
+    "output": 0.0001848,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.3-chat": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.3-codex": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
   "azure/eu/gpt-5.4": {
-    "cache_read": 2.8e-07,
+    "cache_read": 2.75e-07,
     "cache_write": null,
     "input": 2.75e-06,
     "output": 1.65e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.4-2026-03-05": {
-    "cache_read": 2.8e-07,
+    "cache_read": 2.75e-07,
     "cache_write": null,
     "input": 2.75e-06,
     "output": 1.65e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.4-mini": {
+    "cache_read": 8.25e-08,
+    "cache_write": null,
+    "input": 8.25e-07,
+    "output": 4.95e-06,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.4-nano": {
+    "cache_read": 2.2e-08,
+    "cache_write": null,
+    "input": 2.2e-07,
+    "output": 1.375e-06,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.4-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.3e-05,
+    "output": 0.000198,
     "provider": "azure"
   },
   "azure/eu/gpt-5.5": {
@@ -1241,6 +1388,13 @@
     "provider": "azure"
   },
   "azure/eu/gpt-5.5-2026-04-23": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-5.5-2026-04-24": {
     "cache_read": 5.5e-07,
     "cache_write": null,
     "input": 5.5e-06,
@@ -1262,10 +1416,10 @@
     "provider": "azure"
   },
   "azure/eu/gpt-5.6-sol": {
-    "cache_read": 5.5e-07,
-    "cache_write": 6.875e-06,
-    "input": 5.5e-06,
-    "output": 3.3e-05,
+    "cache_read": 4.4e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.6-terra": {
@@ -1275,11 +1429,25 @@
     "output": 1.32e-05,
     "provider": "azure"
   },
+  "azure/eu/gpt-6-astra": {
+    "cache_read": 1.1e-06,
+    "cache_write": 1.375e-05,
+    "input": 1.1e-05,
+    "output": 5.5e-05,
+    "provider": "azure"
+  },
   "azure/eu/o1-2024-12-17": {
     "cache_read": 8.25e-06,
     "cache_write": null,
     "input": 1.65e-05,
     "output": 6.6e-05,
+    "provider": "azure"
+  },
+  "azure/eu/o1-mini": {
+    "cache_read": 6.05e-07,
+    "cache_write": null,
+    "input": 1.21e-06,
+    "output": 4.84e-06,
     "provider": "azure"
   },
   "azure/eu/o1-mini-2024-09-12": {
@@ -1289,6 +1457,13 @@
     "output": 4.84e-06,
     "provider": "azure"
   },
+  "azure/eu/o1-preview": {
+    "cache_read": 8.25e-06,
+    "cache_write": null,
+    "input": 1.65e-05,
+    "output": 6.6e-05,
+    "provider": "azure"
+  },
   "azure/eu/o1-preview-2024-09-12": {
     "cache_read": 8.25e-06,
     "cache_write": null,
@@ -1296,11 +1471,53 @@
     "output": 6.6e-05,
     "provider": "azure"
   },
+  "azure/eu/o3-2025-04-16": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 2.2e-06,
+    "output": 8.8e-06,
+    "provider": "azure"
+  },
+  "azure/eu/o3-deep-research": {
+    "cache_read": 2.75e-06,
+    "cache_write": null,
+    "input": 1.1e-05,
+    "output": 4.4e-05,
+    "provider": "azure"
+  },
   "azure/eu/o3-mini-2025-01-31": {
     "cache_read": 6.05e-07,
     "cache_write": null,
     "input": 1.21e-06,
     "output": 4.84e-06,
+    "provider": "azure"
+  },
+  "azure/eu/o4-mini-2025-04-16": {
+    "cache_read": 3.03e-07,
+    "cache_write": null,
+    "input": 1.21e-06,
+    "output": 4.84e-06,
+    "provider": "azure"
+  },
+  "azure/eu/text-embedding-3-large": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.43e-07,
+    "output": null,
+    "provider": "azure"
+  },
+  "azure/eu/text-embedding-3-small": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.2e-08,
+    "output": null,
+    "provider": "azure"
+  },
+  "azure/eu/text-embedding-ada-002": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.1e-07,
+    "output": null,
     "provider": "azure"
   },
   "azure/global-standard/gpt-4o-2024-08-06": {
@@ -1572,8 +1789,8 @@
   "azure/gpt-4o-2024-11-20": {
     "cache_read": 1.25e-06,
     "cache_write": null,
-    "input": 2.75e-06,
-    "output": 1.1e-05,
+    "input": 2.5e-06,
+    "output": 1e-05,
     "provider": "azure"
   },
   "azure/gpt-4o-audio-preview-2024-12-17": {
@@ -1593,8 +1810,8 @@
   "azure/gpt-4o-mini-2024-07-18": {
     "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 1.65e-07,
-    "output": 6.6e-07,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "azure"
   },
   "azure/gpt-4o-mini-audio-preview-2024-12-17": {
@@ -1919,6 +2136,13 @@
     "output": 3e-05,
     "provider": "azure"
   },
+  "azure/gpt-5.5-2026-04-24": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "azure"
+  },
   "azure/gpt-5.5-pro": {
     "cache_read": 3e-06,
     "cache_write": null,
@@ -1947,11 +2171,25 @@
     "output": 1.2e-06,
     "provider": "azure"
   },
+  "azure/gpt-5.6-luna-2026-07-09": {
+    "cache_read": 2e-08,
+    "cache_write": 2.5e-07,
+    "input": 2e-07,
+    "output": 1.2e-06,
+    "provider": "azure"
+  },
   "azure/gpt-5.6-sol": {
-    "cache_read": 5e-07,
-    "cache_write": 6.25e-06,
-    "input": 5e-06,
-    "output": 3e-05,
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
+    "provider": "azure"
+  },
+  "azure/gpt-5.6-sol-2026-07-09": {
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "azure"
   },
   "azure/gpt-5.6-terra": {
@@ -1961,7 +2199,21 @@
     "output": 1.2e-05,
     "provider": "azure"
   },
+  "azure/gpt-5.6-terra-2026-07-09": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "azure"
+  },
   "azure/gpt-6-astra": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "azure"
+  },
+  "azure/gpt-6-astra-2026-09-03": {
     "cache_read": 1e-06,
     "cache_write": 1.25e-05,
     "input": 1e-05,
@@ -2039,6 +2291,20 @@
     "provider": "azure"
   },
   "azure/gpt-image-2-2026-04-21": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "azure"
+  },
+  "azure/gpt-image-2.5-flare": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "azure"
+  },
+  "azure/gpt-image-2.5-sunburst": {
     "cache_read": 1.25e-06,
     "cache_write": null,
     "input": 5e-06,
@@ -2144,10 +2410,10 @@
     "provider": "azure"
   },
   "azure/o1-mini": {
-    "cache_read": 6.05e-07,
+    "cache_read": 5.5e-07,
     "cache_write": null,
-    "input": 1.21e-06,
-    "output": 4.84e-06,
+    "input": 1.1e-06,
+    "output": 4.4e-06,
     "provider": "azure"
   },
   "azure/o1-mini-2024-09-12": {
@@ -2311,11 +2577,39 @@
     "output": 0.0,
     "provider": "azure"
   },
+  "azure/us/codex-mini": {
+    "cache_read": 4.13e-07,
+    "cache_write": null,
+    "input": 1.65e-06,
+    "output": 6.6e-06,
+    "provider": "azure"
+  },
+  "azure/us/computer-use-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.3e-06,
+    "output": 1.32e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-4.1": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 2.2e-06,
+    "output": 8.8e-06,
+    "provider": "azure"
+  },
   "azure/us/gpt-4.1-2025-04-14": {
     "cache_read": 5.5e-07,
     "cache_write": null,
     "input": 2.2e-06,
     "output": 8.8e-06,
+    "provider": "azure"
+  },
+  "azure/us/gpt-4.1-mini": {
+    "cache_read": 1.1e-07,
+    "cache_write": null,
+    "input": 4.4e-07,
+    "output": 1.76e-06,
     "provider": "azure"
   },
   "azure/us/gpt-4.1-mini-2025-04-14": {
@@ -2325,11 +2619,25 @@
     "output": 1.76e-06,
     "provider": "azure"
   },
-  "azure/us/gpt-4.1-nano-2025-04-14": {
-    "cache_read": 2.5e-08,
+  "azure/us/gpt-4.1-nano": {
+    "cache_read": 2.8e-08,
     "cache_write": null,
     "input": 1.1e-07,
     "output": 4.4e-07,
+    "provider": "azure"
+  },
+  "azure/us/gpt-4.1-nano-2025-04-14": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "input": 1.1e-07,
+    "output": 4.4e-07,
+    "provider": "azure"
+  },
+  "azure/us/gpt-4o-2024-05-13": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 1.65e-05,
     "provider": "azure"
   },
   "azure/us/gpt-4o-2024-08-06": {
@@ -2340,7 +2648,7 @@
     "provider": "azure"
   },
   "azure/us/gpt-4o-2024-11-20": {
-    "cache_read": null,
+    "cache_read": 1.375e-06,
     "cache_write": 1.38e-06,
     "input": 2.75e-06,
     "output": 1.1e-05,
@@ -2374,11 +2682,32 @@
     "output": 2.2e-05,
     "provider": "azure"
   },
+  "azure/us/gpt-5": {
+    "cache_read": 1.375e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
+    "output": 1.1e-05,
+    "provider": "azure"
+  },
   "azure/us/gpt-5-2025-08-07": {
     "cache_read": 1.375e-07,
     "cache_write": null,
     "input": 1.375e-06,
     "output": 1.1e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5-codex": {
+    "cache_read": 1.38e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
+    "output": 1.1e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5-mini": {
+    "cache_read": 2.75e-08,
+    "cache_write": null,
+    "input": 2.75e-07,
+    "output": 2.2e-06,
     "provider": "azure"
   },
   "azure/us/gpt-5-mini-2025-08-07": {
@@ -2388,6 +2717,13 @@
     "output": 2.2e-06,
     "provider": "azure"
   },
+  "azure/us/gpt-5-nano": {
+    "cache_read": 5.5e-09,
+    "cache_write": null,
+    "input": 5.5e-08,
+    "output": 4.4e-07,
+    "provider": "azure"
+  },
   "azure/us/gpt-5-nano-2025-08-07": {
     "cache_read": 5.5e-09,
     "cache_write": null,
@@ -2395,46 +2731,123 @@
     "output": 4.4e-07,
     "provider": "azure"
   },
-  "azure/us/gpt-5.1": {
-    "cache_read": 1.4e-07,
+  "azure/us/gpt-5-pro": {
+    "cache_read": null,
     "cache_write": null,
-    "input": 1.38e-06,
+    "input": 1.65e-05,
+    "output": 0.000132,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.1": {
+    "cache_read": 1.375e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
     "output": 1.1e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.1-chat": {
-    "cache_read": 1.4e-07,
+    "cache_read": 1.375e-07,
     "cache_write": null,
-    "input": 1.38e-06,
+    "input": 1.375e-06,
     "output": 1.1e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.1-codex": {
-    "cache_read": 1.4e-07,
+    "cache_read": 1.375e-07,
     "cache_write": null,
-    "input": 1.38e-06,
+    "input": 1.375e-06,
+    "output": 1.1e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.1-codex-max": {
+    "cache_read": 1.375e-07,
+    "cache_write": null,
+    "input": 1.375e-06,
     "output": 1.1e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.1-codex-mini": {
-    "cache_read": 2.8e-08,
+    "cache_read": 2.75e-08,
     "cache_write": null,
     "input": 2.75e-07,
     "output": 2.2e-06,
     "provider": "azure"
   },
+  "azure/us/gpt-5.2": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.2-chat": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.2-codex": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.2-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.31e-05,
+    "output": 0.0001848,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.3-chat": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.3-codex": {
+    "cache_read": 1.925e-07,
+    "cache_write": null,
+    "input": 1.925e-06,
+    "output": 1.54e-05,
+    "provider": "azure"
+  },
   "azure/us/gpt-5.4": {
-    "cache_read": 2.8e-07,
+    "cache_read": 2.75e-07,
     "cache_write": null,
     "input": 2.75e-06,
     "output": 1.65e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.4-2026-03-05": {
-    "cache_read": 2.8e-07,
+    "cache_read": 2.75e-07,
     "cache_write": null,
     "input": 2.75e-06,
     "output": 1.65e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.4-mini": {
+    "cache_read": 8.25e-08,
+    "cache_write": null,
+    "input": 8.25e-07,
+    "output": 4.95e-06,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.4-nano": {
+    "cache_read": 2.2e-08,
+    "cache_write": null,
+    "input": 2.2e-07,
+    "output": 1.375e-06,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.4-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.3e-05,
+    "output": 0.000198,
     "provider": "azure"
   },
   "azure/us/gpt-5.5": {
@@ -2445,6 +2858,13 @@
     "provider": "azure"
   },
   "azure/us/gpt-5.5-2026-04-23": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 5.5e-06,
+    "output": 3.3e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-5.5-2026-04-24": {
     "cache_read": 5.5e-07,
     "cache_write": null,
     "input": 5.5e-06,
@@ -2466,10 +2886,10 @@
     "provider": "azure"
   },
   "azure/us/gpt-5.6-sol": {
-    "cache_read": 5.5e-07,
-    "cache_write": 6.875e-06,
-    "input": 5.5e-06,
-    "output": 3.3e-05,
+    "cache_read": 4.4e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.6-terra": {
@@ -2500,11 +2920,25 @@
     "output": 6.6e-05,
     "provider": "azure"
   },
+  "azure/us/o1-mini": {
+    "cache_read": 6.05e-07,
+    "cache_write": null,
+    "input": 1.21e-06,
+    "output": 4.84e-06,
+    "provider": "azure"
+  },
   "azure/us/o1-mini-2024-09-12": {
     "cache_read": 6.05e-07,
     "cache_write": null,
     "input": 1.21e-06,
     "output": 4.84e-06,
+    "provider": "azure"
+  },
+  "azure/us/o1-preview": {
+    "cache_read": 8.25e-06,
+    "cache_write": null,
+    "input": 1.65e-05,
+    "output": 6.6e-05,
     "provider": "azure"
   },
   "azure/us/o1-preview-2024-09-12": {
@@ -2521,6 +2955,13 @@
     "output": 8.8e-06,
     "provider": "azure"
   },
+  "azure/us/o3-deep-research": {
+    "cache_read": 2.75e-06,
+    "cache_write": null,
+    "input": 1.1e-05,
+    "output": 4.4e-05,
+    "provider": "azure"
+  },
   "azure/us/o3-mini-2025-01-31": {
     "cache_read": 6.05e-07,
     "cache_write": null,
@@ -2529,10 +2970,31 @@
     "provider": "azure"
   },
   "azure/us/o4-mini-2025-04-16": {
-    "cache_read": 3.1e-07,
+    "cache_read": 3.03e-07,
     "cache_write": null,
     "input": 1.21e-06,
     "output": 4.84e-06,
+    "provider": "azure"
+  },
+  "azure/us/text-embedding-3-large": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.43e-07,
+    "output": null,
+    "provider": "azure"
+  },
+  "azure/us/text-embedding-3-small": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.2e-08,
+    "output": null,
+    "provider": "azure"
+  },
+  "azure/us/text-embedding-ada-002": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.1e-07,
+    "output": null,
     "provider": "azure"
   },
   "azure_ai/Codestral-2501": {
@@ -2599,17 +3061,17 @@
     "provider": "azure_ai"
   },
   "azure_ai/FW-GLM-5.2-Fast": {
-    "cache_read": 2.1e-07,
+    "cache_read": 2.31e-07,
     "cache_write": null,
-    "input": 2.1e-06,
-    "output": 6.6e-06,
+    "input": 2.31e-06,
+    "output": 7.26e-06,
     "provider": "azure_ai"
   },
   "azure_ai/FW-Inkling": {
-    "cache_read": 1.7e-07,
+    "cache_read": 1.9e-07,
     "cache_write": null,
-    "input": 1e-06,
-    "output": 4.05e-06,
+    "input": 1.1e-06,
+    "output": 4.46e-06,
     "provider": "azure_ai"
   },
   "azure_ai/FW-Kimi-K2.5": {
@@ -2655,10 +3117,10 @@
     "provider": "azure_ai"
   },
   "azure_ai/FW-Nemotron-3-Ultra-NVFP4": {
-    "cache_read": 1.19e-07,
+    "cache_read": 1.3e-07,
     "cache_write": null,
-    "input": 6e-07,
-    "output": 2.4e-06,
+    "input": 6.6e-07,
+    "output": 2.64e-06,
     "provider": "azure_ai"
   },
   "azure_ai/FW-Nemotron-Lightning-3.5-30B-A3B": {
@@ -2692,8 +3154,8 @@
   "azure_ai/Llama-4-Maverick-17B-128E-Instruct-FP8": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.41e-06,
-    "output": 3.5e-07,
+    "input": 2.5e-07,
+    "output": 1e-06,
     "provider": "azure_ai"
   },
   "azure_ai/Llama-4-Scout-17B-16E-Instruct": {
@@ -2846,8 +3308,8 @@
   "azure_ai/Phi-4-mini-reasoning": {
     "cache_read": null,
     "cache_write": null,
-    "input": 8e-08,
-    "output": 3.2e-07,
+    "input": 7.5e-08,
+    "output": 3e-07,
     "provider": "azure_ai"
   },
   "azure_ai/Phi-4-multimodal-instruct": {
@@ -3138,6 +3600,13 @@
     "provider": "azure_ai"
   },
   "azure_ai/gpt-5.5-2026-04-23": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "azure_ai"
+  },
+  "azure_ai/gpt-5.5-2026-04-24": {
     "cache_read": 5e-07,
     "cache_write": null,
     "input": 5e-06,
@@ -4034,7 +4503,7 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-east-1/amazon.nova-pro-v1:0": {
-    "cache_read": null,
+    "cache_read": 2.4e-07,
     "cache_write": null,
     "input": 9.6e-07,
     "output": 3.84e-06,
@@ -4202,21 +4671,21 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/amazon.nova-lite-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.8e-08,
     "cache_write": null,
     "input": 7.2e-08,
     "output": 2.88e-07,
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/amazon.nova-micro-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.05e-08,
     "cache_write": null,
     "input": 4.2e-08,
     "output": 1.68e-07,
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/amazon.nova-pro-v1:0": {
-    "cache_read": null,
+    "cache_read": 2.4e-07,
     "cache_write": null,
     "input": 9.6e-07,
     "output": 3.84e-06,
@@ -5333,6 +5802,13 @@
     "cache_write": null,
     "input": 2.5e-06,
     "output": 1e-05,
+    "provider": "cohere_chat"
+  },
+  "command-a-plus-05-2026": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
     "provider": "cohere_chat"
   },
   "command-light": {
@@ -7310,21 +7786,21 @@
     "provider": "bedrock_converse"
   },
   "eu.amazon.nova-lite-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.95e-08,
     "cache_write": null,
     "input": 7.8e-08,
     "output": 3.12e-07,
     "provider": "bedrock_converse"
   },
   "eu.amazon.nova-micro-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.15e-08,
     "cache_write": null,
     "input": 4.6e-08,
     "output": 1.84e-07,
     "provider": "bedrock_converse"
   },
   "eu.amazon.nova-pro-v1:0": {
-    "cache_read": null,
+    "cache_read": 2.625e-07,
     "cache_write": null,
     "input": 1.05e-06,
     "output": 4.2e-06,
@@ -9682,6 +10158,13 @@
     "output": 6.6e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/glm-5p3-fast": {
+    "cache_read": 3.9e-07,
+    "cache_write": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/gpt-oss-120b": {
     "cache_read": 1.5e-08,
     "cache_write": null,
@@ -10235,6 +10718,20 @@
     "output": 3.75e-06,
     "provider": "vertex_ai-language-models"
   },
+  "gemini-3.8-live": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 4.5e-06,
+    "provider": "gemini"
+  },
+  "gemini-3.8-live-extended-thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 4.5e-06,
+    "provider": "gemini"
+  },
   "gemini-embedding-001": {
     "cache_read": null,
     "cache_write": null,
@@ -10271,17 +10768,17 @@
     "provider": "vertex_ai-language-models"
   },
   "gemini-flash-latest": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "gemini"
+  },
+  "gemini-flash-lite-latest": {
     "cache_read": 3e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
-    "provider": "gemini"
-  },
-  "gemini-flash-lite-latest": {
-    "cache_read": 1e-08,
-    "cache_write": null,
-    "input": 1e-07,
-    "output": 4e-07,
     "provider": "gemini"
   },
   "gemini-live-2.5-flash-native-audio": {
@@ -10306,10 +10803,10 @@
     "provider": "vertex_ai-language-models"
   },
   "gemini-pro-latest": {
-    "cache_read": 1.25e-07,
+    "cache_read": 2e-07,
     "cache_write": null,
-    "input": 1.25e-06,
-    "output": 1e-05,
+    "input": 2e-06,
+    "output": 1.2e-05,
     "provider": "gemini"
   },
   "gemini-robotics-er-1.5-preview": {
@@ -10606,6 +11103,20 @@
     "output": 3.75e-06,
     "provider": "gemini"
   },
+  "gemini/gemini-3.8-live": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 4.5e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-3.8-live-extended-thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 4.5e-06,
+    "provider": "gemini"
+  },
   "gemini/gemini-embedding-001": {
     "cache_read": null,
     "cache_write": null,
@@ -10642,17 +11153,17 @@
     "provider": "gemini"
   },
   "gemini/gemini-flash-latest": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "gemini"
+  },
+  "gemini/gemini-flash-lite-latest": {
     "cache_read": 3e-08,
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
-    "provider": "gemini"
-  },
-  "gemini/gemini-flash-lite-latest": {
-    "cache_read": 1e-08,
-    "cache_write": null,
-    "input": 1e-07,
-    "output": 4e-07,
     "provider": "gemini"
   },
   "gemini/gemini-gemma-2-27b-it": {
@@ -10691,10 +11202,10 @@
     "provider": "gemini"
   },
   "gemini/gemini-pro-latest": {
-    "cache_read": 1.25e-07,
+    "cache_read": 2e-07,
     "cache_write": null,
-    "input": 1.25e-06,
-    "output": 1e-05,
+    "input": 2e-06,
+    "output": 1.2e-05,
     "provider": "gemini"
   },
   "gemini/gemini-robotics-er-1.5-preview": {
@@ -10712,10 +11223,10 @@
     "provider": "gemini"
   },
   "gemini/gemini-robotics-er-2-preview": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 1e-05,
+    "input": 1e-06,
+    "output": 5e-06,
     "provider": "gemini"
   },
   "gemini/gemini-robotics-er-2-streaming-preview": {
@@ -12294,7 +12805,7 @@
     "provider": "inception"
   },
   "inception/mercury-2.5": {
-    "cache_read": null,
+    "cache_read": 2e-08,
     "cache_write": null,
     "input": 2e-07,
     "output": 7.5e-07,
@@ -13623,7 +14134,28 @@
     "output": 4e-07,
     "provider": "mistral"
   },
+  "mistral/zai-glm-5": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "mistral"
+  },
   "mistral/zai-glm-5-2": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "mistral"
+  },
+  "mistral/zai-glm-5-3": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "mistral"
+  },
+  "mistral/zai-glm-latest": {
     "cache_read": 1.4e-07,
     "cache_write": null,
     "input": 1.4e-06,
@@ -14064,6 +14596,13 @@
     "output": 3.5e-06,
     "provider": "nebius"
   },
+  "nebius/deepseek-ai/DeepSeek-V4-Pro-0813": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
+    "provider": "nebius"
+  },
   "nebius/google/gemma-3-27b-it": {
     "cache_read": null,
     "cache_write": null,
@@ -14226,6 +14765,13 @@
     "provider": "nebius"
   },
   "nebius/zai-org/GLM-5.2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "nebius"
+  },
+  "nebius/zai-org/GLM-5.3": {
     "cache_read": null,
     "cache_write": null,
     "input": 1.4e-06,
@@ -16125,8 +16671,8 @@
   "openrouter/deepseek/deepseek-chat": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3.2e-07,
-    "output": 8.9e-07,
+    "input": 2.574e-07,
+    "output": 1.0287e-06,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-chat-v3-0324": {
@@ -16193,10 +16739,10 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash-0731": {
-    "cache_read": 1.6e-08,
+    "cache_read": 1.2e-08,
     "cache_write": null,
-    "input": 6.5e-08,
-    "output": 1.8e-07,
+    "input": 6e-08,
+    "output": 1.2e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash-vision-exp": {
@@ -16207,10 +16753,10 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro": {
-    "cache_read": 7.1659e-08,
+    "cache_read": 1.35e-07,
     "cache_write": null,
-    "input": 8.59908e-07,
-    "output": 1.719816e-06,
+    "input": 1.6e-06,
+    "output": 3.2e-06,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro-0813": {
@@ -16419,8 +16965,8 @@
   "openrouter/google/gemma-4-26b-a4b-it": {
     "cache_read": null,
     "cache_write": null,
-    "input": 4.2e-08,
-    "output": 2.2e-07,
+    "input": 9e-08,
+    "output": 3e-07,
     "provider": "openrouter"
   },
   "openrouter/google/gemma-4-26b-a4b-it:free": {
@@ -16447,8 +16993,8 @@
   "openrouter/gryphe/mythomax-l2-13b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 6e-08,
-    "output": 6e-08,
+    "input": 8e-08,
+    "output": 1.1e-07,
     "provider": "openrouter"
   },
   "openrouter/mancer/weaver": {
@@ -16503,8 +17049,8 @@
   "openrouter/meta-llama/llama-4-maverick": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2e-07,
-    "output": 6.96e-07,
+    "input": 1.875e-07,
+    "output": 6.525e-07,
     "provider": "openrouter"
   },
   "openrouter/meta-llama/llama-4-scout": {
@@ -16531,7 +17077,7 @@
   "openrouter/minimax/minimax-m1": {
     "cache_read": null,
     "cache_write": null,
-    "input": 5.5e-07,
+    "input": 4e-07,
     "output": 2.2e-06,
     "provider": "openrouter"
   },
@@ -16713,8 +17259,8 @@
   "openrouter/mistralai/mistral-small-3.2-24b-instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 7.5e-08,
-    "output": 2e-07,
+    "input": 9.375e-08,
+    "output": 2.5e-07,
     "provider": "openrouter"
   },
   "openrouter/mistralai/mixtral-8x22b-instruct": {
@@ -16767,17 +17313,17 @@
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k2.7-code": {
-    "cache_read": 1.5e-07,
+    "cache_read": 1.8e-07,
     "cache_write": null,
-    "input": 7.1e-07,
-    "output": 3.5e-06,
+    "input": 7.062e-07,
+    "output": 3.21e-06,
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k3": {
-    "cache_read": 2.35e-07,
+    "cache_read": 3e-07,
     "cache_write": null,
-    "input": 2.1e-06,
-    "output": 1.053e-05,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "openrouter"
   },
   "openrouter/nvidia/nemotron-3-nano-30b-a3b": {
@@ -17357,8 +17903,8 @@
   "openrouter/qwen/qwen3-14b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.275e-07,
-    "output": 9.1e-07,
+    "input": 1.2e-07,
+    "output": 2.4e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-235b-a22b": {
@@ -17371,8 +17917,8 @@
   "openrouter/qwen/qwen3-235b-a22b-2507": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.2e-07,
-    "output": 8.8e-07,
+    "input": 8.75e-08,
+    "output": 3.5e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-235b-a22b-thinking-2507": {
@@ -17392,8 +17938,8 @@
   "openrouter/qwen/qwen3-30b-a3b-instruct-2507": {
     "cache_read": null,
     "cache_write": null,
-    "input": 9e-08,
-    "output": 3e-07,
+    "input": 4.815e-08,
+    "output": 1.9305e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-30b-a3b-thinking-2507": {
@@ -17497,8 +18043,8 @@
   "openrouter/qwen/qwen3-vl-30b-a3b-instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.5e-07,
-    "output": 6e-07,
+    "input": 1.3e-07,
+    "output": 5.2e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-vl-30b-a3b-thinking": {
@@ -17546,8 +18092,8 @@
   "openrouter/qwen/qwen3.5-35b-a3b": {
     "cache_read": 1.5625e-07,
     "cache_write": null,
-    "input": 3.125e-07,
-    "output": 1.25e-06,
+    "input": 1.625e-07,
+    "output": 1.3e-06,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3.5-397b-a17b": {
@@ -17649,10 +18195,10 @@
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3.8-27b": {
-    "cache_read": 8.5e-08,
+    "cache_read": 1.5e-07,
     "cache_write": null,
-    "input": 4.2e-07,
-    "output": 3e-06,
+    "input": 2.14e-07,
+    "output": 2.55e-06,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3.8-flash": {
@@ -17674,6 +18220,13 @@
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 6e-06,
+    "provider": "openrouter"
+  },
+  "openrouter/stealth/union-alpha": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0,
+    "output": 0,
     "provider": "openrouter"
   },
   "openrouter/switchpoint/router": {
@@ -17838,10 +18391,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.2": {
-    "cache_read": 1.5e-07,
+    "cache_read": 1.4e-07,
     "cache_write": null,
-    "input": 6e-07,
-    "output": 2e-06,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.2:free": {
@@ -17859,10 +18412,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3-flash": {
-    "cache_read": 3e-08,
+    "cache_read": 1.8e-08,
     "cache_write": null,
-    "input": 1.5e-07,
-    "output": 5e-07,
+    "input": 9e-08,
+    "output": 3e-07,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5v-turbo": {
@@ -20855,28 +21408,28 @@
     "provider": "bedrock_converse"
   },
   "us.amazon.nova-lite-v1:0": {
-    "cache_read": null,
+    "cache_read": 1.5e-08,
     "cache_write": null,
     "input": 6e-08,
     "output": 2.4e-07,
     "provider": "bedrock_converse"
   },
   "us.amazon.nova-micro-v1:0": {
-    "cache_read": null,
+    "cache_read": 8.75e-09,
     "cache_write": null,
     "input": 3.5e-08,
     "output": 1.4e-07,
     "provider": "bedrock_converse"
   },
   "us.amazon.nova-premier-v1:0": {
-    "cache_read": null,
+    "cache_read": 6.25e-07,
     "cache_write": null,
     "input": 2.5e-06,
     "output": 1.25e-05,
     "provider": "bedrock_converse"
   },
   "us.amazon.nova-pro-v1:0": {
-    "cache_read": null,
+    "cache_read": 2e-07,
     "cache_write": null,
     "input": 8e-07,
     "output": 3.2e-06,
@@ -22828,6 +23381,20 @@
     "output": 3.2e-06,
     "provider": "vertex_ai-zai_models"
   },
+  "volcengine/doubao-seed-2-1-pro-260628": {
+    "cache_read": 1.725e-07,
+    "cache_write": null,
+    "input": 8.625e-07,
+    "output": 4.3125e-06,
+    "provider": "volcengine"
+  },
+  "volcengine/doubao-seed-2-1-turbo-260628": {
+    "cache_read": 8.625e-08,
+    "cache_write": null,
+    "input": 4.3125e-07,
+    "output": 2.15625e-06,
+    "provider": "volcengine"
+  },
   "voyage/rerank-2": {
     "cache_read": null,
     "cache_write": null,
@@ -23492,6 +24059,13 @@
     "input": 1.8e-06,
     "output": 1.8e-06,
     "provider": "watsonx"
+  },
+  "writer.palmyra-vision-7b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "bedrock_converse"
   },
   "writer.palmyra-x4-v1:0": {
     "cache_read": null,
