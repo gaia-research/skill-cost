@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-25T09:38:58Z",
-    "model_count": 3623,
+    "fetched_at": "2026-09-26T09:23:26Z",
+    "model_count": 3642,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -765,10 +765,10 @@
     "provider": "bedrock_converse"
   },
   "anthropic.claude-mythos-preview": {
-    "cache_read": null,
-    "cache_write": null,
-    "input": 0,
-    "output": 0,
+    "cache_read": 2.75e-06,
+    "cache_write": 3.4375e-05,
+    "input": 2.75e-05,
+    "output": 0.0001375,
     "provider": "bedrock"
   },
   "anthropic.claude-opus-4-1-20250805-v1:0": {
@@ -1444,10 +1444,10 @@
     "provider": "azure"
   },
   "azure/eu/gpt-5.6": {
-    "cache_read": 5.5e-07,
-    "cache_write": 6.875e-06,
-    "input": 5.5e-06,
-    "output": 3.3e-05,
+    "cache_read": 4.4e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "azure"
   },
   "azure/eu/gpt-5.6-luna": {
@@ -2158,10 +2158,10 @@
     "provider": "azure"
   },
   "azure/gpt-5.6": {
-    "cache_read": 5e-07,
-    "cache_write": 6.25e-06,
-    "input": 5e-06,
-    "output": 3e-05,
+    "cache_read": 4e-07,
+    "cache_write": 5e-06,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "azure"
   },
   "azure/gpt-5.6-luna": {
@@ -2914,10 +2914,10 @@
     "provider": "azure"
   },
   "azure/us/gpt-5.6": {
-    "cache_read": 5.5e-07,
-    "cache_write": 6.875e-06,
-    "input": 5.5e-06,
-    "output": 3.3e-05,
+    "cache_read": 4.4e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "azure"
   },
   "azure/us/gpt-5.6-luna": {
@@ -3529,11 +3529,32 @@
     "output": 0.0,
     "provider": "azure_ai"
   },
+  "azure_ai/deepseek-r1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.35e-06,
+    "output": 5.4e-06,
+    "provider": "azure_ai"
+  },
   "azure_ai/deepseek-v3": {
     "cache_read": null,
     "cache_write": null,
     "input": 1.14e-06,
     "output": 4.56e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/deepseek-v3-0324": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.14e-06,
+    "output": 4.56e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/deepseek-v3.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.23e-06,
+    "output": 4.94e-06,
     "provider": "azure_ai"
   },
   "azure_ai/deepseek-v3.2": {
@@ -3697,6 +3718,20 @@
     "output": 6e-07,
     "provider": "azure_ai"
   },
+  "azure_ai/grok-3": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "azure_ai"
+  },
+  "azure_ai/grok-3-mini": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.5e-07,
+    "output": 1.27e-06,
+    "provider": "azure_ai"
+  },
   "azure_ai/grok-4": {
     "cache_read": null,
     "cache_write": null,
@@ -3730,6 +3765,20 @@
     "cache_write": null,
     "input": 1.25e-06,
     "output": 2.5e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/grok-4-fast-non-reasoning": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 5e-07,
+    "provider": "azure_ai"
+  },
+  "azure_ai/grok-4-fast-reasoning": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 5e-07,
     "provider": "azure_ai"
   },
   "azure_ai/grok-4.3": {
@@ -5146,6 +5195,13 @@
     "output": 5e-06,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/deepseek.v3.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.8e-07,
+    "output": 1.68e-06,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/google.gemma-4-26b-a4b": {
     "cache_read": null,
     "cache_write": null,
@@ -5165,6 +5221,13 @@
     "cache_write": null,
     "input": 4e-08,
     "output": 8e-08,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/moonshotai.kimi-k2-thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.5e-06,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/openai.gpt-5.4": {
@@ -5263,6 +5326,48 @@
     "cache_write": null,
     "input": 7e-08,
     "output": 2e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/qwen.qwen3-235b-a22b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.2e-07,
+    "output": 8.8e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/qwen.qwen3-32b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/qwen.qwen3-coder-30b-a3b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/qwen.qwen3-coder-480b-a35b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4.5e-07,
+    "output": 1.8e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/qwen.qwen3-next-80b-a3b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 1.2e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/qwen.qwen3-vl-235b-a22b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5.3e-07,
+    "output": 2.66e-06,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-east-1/openai.gpt-5.4": {
@@ -5376,6 +5481,13 @@
     "input": 2.2e-06,
     "output": 6.6e-06,
     "provider": "bedrock_mantle"
+  },
+  "c4ai-aya-expanse-32b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-07,
+    "output": 1.5e-06,
+    "provider": "cohere_chat"
   },
   "cerebras/gemma-4-31b": {
     "cache_read": null,
@@ -8451,10 +8563,10 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/deepseek-v4p1-flash": {
-    "cache_read": 7e-09,
+    "cache_read": 6e-09,
     "cache_write": null,
-    "input": 2.2e-07,
-    "output": 6.6e-07,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/devstral-small-2505": {
@@ -10124,10 +10236,10 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/deepseek-v4p1-flash": {
-    "cache_read": 7e-09,
+    "cache_read": 6e-09,
     "cache_write": null,
-    "input": 2.2e-07,
-    "output": 6.6e-07,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/deepseek-v4p1-flash-us": {
@@ -14211,6 +14323,13 @@
     "output": 3.96e-06,
     "provider": "nebius"
   },
+  "nebius/deepseek-ai/DeepSeek-V4.1-Flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "nebius"
+  },
   "nebius/google/gemma-3-27b-it": {
     "cache_read": null,
     "cache_write": null,
@@ -16620,16 +16739,16 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash": {
-    "cache_read": 9.8e-09,
+    "cache_read": 9.408e-09,
     "cache_write": null,
-    "input": 4.9e-08,
-    "output": 9.8e-08,
+    "input": 4.704e-08,
+    "output": 9.408e-08,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash-0731": {
     "cache_read": 1.6e-08,
     "cache_write": null,
-    "input": 3e-08,
+    "input": 2.2e-08,
     "output": 3.2e-07,
     "provider": "openrouter"
   },
@@ -16641,24 +16760,24 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro": {
-    "cache_read": 7.0412e-08,
+    "cache_read": 3.828e-08,
     "cache_write": null,
-    "input": 8.44944e-07,
-    "output": 1.689888e-06,
+    "input": 4.5936e-07,
+    "output": 9.1872e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro-0813": {
-    "cache_read": 1.54e-08,
+    "cache_read": 8.8e-09,
     "cache_write": null,
-    "input": 4.62e-07,
-    "output": 1.386e-06,
+    "input": 2.64e-07,
+    "output": 7.92e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4.1-flash": {
-    "cache_read": 6e-09,
+    "cache_read": 4.2e-09,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 1.2e-06,
+    "input": 1.4e-07,
+    "output": 4.2e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4.1-flash:batch": {
@@ -16942,10 +17061,10 @@
     "provider": "openrouter"
   },
   "openrouter/google/gemma-4-26b-a4b-it": {
-    "cache_read": 5e-08,
+    "cache_read": 3.75e-08,
     "cache_write": null,
-    "input": 9e-08,
-    "output": 3e-07,
+    "input": 6.75e-08,
+    "output": 2.25e-07,
     "provider": "openrouter"
   },
   "openrouter/google/gemma-4-26b-a4b-it:free": {
@@ -17033,10 +17152,10 @@
     "provider": "openrouter"
   },
   "openrouter/inclusionai/ling-3.0-flash-vl": {
-    "cache_read": 1.2e-08,
+    "cache_read": 4.2e-09,
     "cache_write": null,
-    "input": 6e-08,
-    "output": 1.8e-07,
+    "input": 2.1e-08,
+    "output": 6.16e-08,
     "provider": "openrouter"
   },
   "openrouter/inclusionai/ling-3.0-flash-vl:free": {
@@ -18397,6 +18516,13 @@
     "output": 1.5e-06,
     "provider": "openrouter"
   },
+  "openrouter/perceptron/perceptron-mk1.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 1.5e-06,
+    "provider": "openrouter"
+  },
   "openrouter/perplexity/sonar": {
     "cache_read": null,
     "cache_write": null,
@@ -18659,8 +18785,8 @@
   "openrouter/qwen/qwen3-vl-30b-a3b-instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.3e-07,
-    "output": 5.2e-07,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-vl-30b-a3b-thinking": {
@@ -18751,7 +18877,7 @@
     "cache_read": 1.5e-07,
     "cache_write": null,
     "input": 3.2e-07,
-    "output": 2.7e-06,
+    "output": 3.2e-06,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3.6-35b-a3b": {
@@ -19069,6 +19195,13 @@
     "output": 0.0,
     "provider": "openrouter"
   },
+  "openrouter/typesafe/jev-router": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0,
+    "output": 0,
+    "provider": "openrouter"
+  },
   "openrouter/unbiased/pareto": {
     "cache_read": 2.5e-07,
     "cache_write": null,
@@ -19259,10 +19392,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-4.7": {
-    "cache_read": 8e-08,
+    "cache_read": 1.1e-07,
     "cache_write": 0.0,
-    "input": 4e-07,
-    "output": 1.75e-06,
+    "input": 6e-07,
+    "output": 2.2e-06,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-4.7-flash": {
@@ -19287,10 +19420,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.1": {
-    "cache_read": 1.794e-07,
+    "cache_read": 1.7914e-07,
     "cache_write": 0.0,
-    "input": 9.66e-07,
-    "output": 3.036e-06,
+    "input": 9.646e-07,
+    "output": 3.0316e-06,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.2": {
@@ -19315,10 +19448,10 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3-flash": {
-    "cache_read": 2.85e-08,
+    "cache_read": 1e-08,
     "cache_write": null,
     "input": 4.5e-08,
-    "output": 6e-07,
+    "output": 1.4e-07,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3-flash:batch": {
