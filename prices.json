@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-26T09:23:26Z",
-    "model_count": 3642,
+    "fetched_at": "2026-09-27T10:02:47Z",
+    "model_count": 3657,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -1824,8 +1824,8 @@
   "azure/gpt-4o-mini": {
     "cache_read": 7.5e-08,
     "cache_write": null,
-    "input": 1.65e-07,
-    "output": 6.6e-07,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "azure"
   },
   "azure/gpt-4o-mini-2024-07-18": {
@@ -1859,7 +1859,7 @@
   "azure/gpt-4o-mini-tts": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2.5e-06,
+    "input": 6e-07,
     "output": 1e-05,
     "provider": "azure"
   },
@@ -6378,6 +6378,13 @@
     "output": 2.500001e-05,
     "provider": "databricks"
   },
+  "databricks/databricks-claude-opus-5-5": {
+    "cache_read": 1.9999e-07,
+    "cache_write": 5.00003e-06,
+    "input": 4.00001e-06,
+    "output": 1.999998e-05,
+    "provider": "databricks"
+  },
   "databricks/databricks-claude-sonnet-4": {
     "cache_read": 3.0002e-07,
     "cache_write": 3.74997e-06,
@@ -8563,10 +8570,10 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/deepseek-v4p1-flash": {
-    "cache_read": 6e-09,
+    "cache_read": 7e-09,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 1.2e-06,
+    "input": 2.2e-07,
+    "output": 6.6e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/devstral-small-2505": {
@@ -10236,10 +10243,10 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/deepseek-v4p1-flash": {
-    "cache_read": 6e-09,
+    "cache_read": 7e-09,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 1.2e-06,
+    "input": 2.2e-07,
+    "output": 6.6e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/deepseek-v4p1-flash-us": {
@@ -16748,7 +16755,7 @@
   "openrouter/deepseek/deepseek-v4-flash-0731": {
     "cache_read": 1.6e-08,
     "cache_write": null,
-    "input": 2.2e-08,
+    "input": 2.1e-08,
     "output": 3.2e-07,
     "provider": "openrouter"
   },
@@ -16760,24 +16767,24 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro": {
-    "cache_read": 3.828e-08,
+    "cache_read": 2.9e-08,
     "cache_write": null,
-    "input": 4.5936e-07,
-    "output": 9.1872e-07,
+    "input": 3.48e-07,
+    "output": 6.96e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro-0813": {
-    "cache_read": 8.8e-09,
+    "cache_read": 2.475e-07,
     "cache_write": null,
-    "input": 2.64e-07,
-    "output": 7.92e-07,
+    "input": 2.476e-07,
+    "output": 3.5e-06,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4.1-flash": {
-    "cache_read": 4.2e-09,
+    "cache_read": 1e-09,
     "cache_write": null,
-    "input": 1.4e-07,
-    "output": 4.2e-07,
+    "input": 3.5e-08,
+    "output": 2.9e-07,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4.1-flash:batch": {
@@ -17343,8 +17350,8 @@
   "openrouter/minimax/minimax-m2": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 1.2e-06,
+    "input": 2.55e-07,
+    "output": 1.02e-06,
     "provider": "openrouter"
   },
   "openrouter/minimax/minimax-m2-her": {
@@ -17369,10 +17376,10 @@
     "provider": "openrouter"
   },
   "openrouter/minimax/minimax-m2.7": {
-    "cache_read": 6e-08,
+    "cache_read": 4.2e-08,
     "cache_write": null,
-    "input": 3e-07,
-    "output": 1.2e-06,
+    "input": 2.1e-07,
+    "output": 8.4e-07,
     "provider": "openrouter"
   },
   "openrouter/minimax/minimax-m2.7:free": {
@@ -18391,7 +18398,7 @@
     "provider": "openrouter"
   },
   "openrouter/openai/gpt-oss-20b": {
-    "cache_read": 3e-08,
+    "cache_read": null,
     "cache_write": null,
     "input": 1.8e-08,
     "output": 9e-08,
@@ -18673,8 +18680,8 @@
   "openrouter/qwen/qwen3-30b-a3b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.2e-07,
-    "output": 5e-07,
+    "input": 1.3e-07,
+    "output": 5.2e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-30b-a3b-instruct-2507": {
@@ -19441,17 +19448,17 @@
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3": {
-    "cache_read": 2.6e-07,
+    "cache_read": 3.91e-08,
     "cache_write": null,
-    "input": 1.4e-06,
-    "output": 4.4e-06,
+    "input": 2.38e-07,
+    "output": 7.48e-07,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3-flash": {
-    "cache_read": 1e-08,
+    "cache_read": 1.5e-08,
     "cache_write": null,
-    "input": 4.5e-08,
-    "output": 1.4e-07,
+    "input": 4e-08,
+    "output": 5e-07,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.3-flash:batch": {
@@ -21106,6 +21113,90 @@
     "output": 0.0,
     "provider": "sagemaker"
   },
+  "sail/Qwen/Qwen3.6-35B-A3B": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "input": 5e-08,
+    "output": 4e-07,
+    "provider": "sail"
+  },
+  "sail/deepseek-ai/DeepSeek-V4-Flash-0731": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "input": 9e-08,
+    "output": 1.8e-07,
+    "provider": "sail"
+  },
+  "sail/deepseek-ai/DeepSeek-V4-Pro-0813": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "input": 9.2e-07,
+    "output": 2.77e-06,
+    "provider": "sail"
+  },
+  "sail/deepseek-ai/DeepSeek-V4.1-Flash": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "sail"
+  },
+  "sail/google/gemma-4-12B-it": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 2e-06,
+    "provider": "sail"
+  },
+  "sail/google/gemma-4-31B-it": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 4e-07,
+    "output": 6e-07,
+    "provider": "sail"
+  },
+  "sail/moonshotai/Kimi-K2.6": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 4e-06,
+    "provider": "sail"
+  },
+  "sail/moonshotai/Kimi-K3": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1.25e-05,
+    "provider": "sail"
+  },
+  "sail/nvidia/Gemma-4-31B-IT-NVFP4": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 4e-07,
+    "provider": "sail"
+  },
+  "sail/openai/gpt-oss-120b": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "input": 6e-08,
+    "output": 4e-07,
+    "provider": "sail"
+  },
+  "sail/zai-org/GLM-5.3": {
+    "cache_read": 1.8e-07,
+    "cache_write": null,
+    "input": 9.8e-07,
+    "output": 3.08e-06,
+    "provider": "sail"
+  },
+  "sail/zai-org/GLM-5.3-Flash": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "input": 1.1e-07,
+    "output": 3.5e-07,
+    "provider": "sail"
+  },
   "sambanova/DeepSeek-R1": {
     "cache_read": null,
     "cache_write": null,
@@ -21883,6 +21974,13 @@
     "output": 2.82e-07,
     "provider": "together_ai"
   },
+  "together_ai/Salesforce/Llama-Rank-V1": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 0.0,
+    "provider": "together_ai"
+  },
   "together_ai/arcee-ai/trinity-mini": {
     "cache_read": null,
     "cache_write": null,
@@ -22049,6 +22147,13 @@
     "cache_write": null,
     "input": 8.8e-07,
     "output": 8.8e-07,
+    "provider": "together_ai"
+  },
+  "together_ai/meta-llama/Meta-Llama-3.1-8B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 2e-07,
     "provider": "together_ai"
   },
   "together_ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": {
