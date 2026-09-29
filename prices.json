@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-09-28T10:59:18Z",
-    "model_count": 3658,
+    "fetched_at": "2026-09-29T10:44:11Z",
+    "model_count": 3682,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -855,6 +855,13 @@
     "output": 1e-05,
     "provider": "bedrock_converse"
   },
+  "anthropic.claude-sonnet-5-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "bedrock_converse"
+  },
   "anthropic.claude-v1": {
     "cache_read": null,
     "cache_write": null,
@@ -1058,6 +1065,13 @@
     "output": 1.1e-05,
     "provider": "bedrock_converse"
   },
+  "apac.anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.1e-05,
+    "provider": "bedrock_converse"
+  },
   "au.anthropic.claude-fable-5": {
     "cache_read": 1.1e-06,
     "cache_write": 1.375e-05,
@@ -1129,6 +1143,13 @@
     "provider": "bedrock_converse"
   },
   "au.anthropic.claude-sonnet-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.1e-05,
+    "provider": "bedrock_converse"
+  },
+  "au.anthropic.claude-sonnet-5-5": {
     "cache_read": 2.2e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
@@ -3494,6 +3515,13 @@
     "output": 1e-05,
     "provider": "azure_ai"
   },
+  "azure_ai/claude-sonnet-5-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "azure_ai"
+  },
   "azure_ai/codex-mini": {
     "cache_read": 3.75e-07,
     "cache_write": null,
@@ -3593,10 +3621,10 @@
     "provider": "azure_ai"
   },
   "azure_ai/deepseek-v4.1-flash": {
-    "cache_read": 8e-09,
+    "cache_read": 6e-09,
     "cache_write": null,
-    "input": 3.75e-07,
-    "output": 1.5e-06,
+    "input": 3e-07,
+    "output": 1.2e-06,
     "provider": "azure_ai"
   },
   "azure_ai/embed-v-4-0": {
@@ -3928,13 +3956,6 @@
     "output": 0,
     "provider": "azure_ai"
   },
-  "azure_ai/muse-spark-1.3": {
-    "cache_read": 1.5e-07,
-    "cache_write": null,
-    "input": 1.25e-06,
-    "output": 4.25e-06,
-    "provider": "azure_ai"
-  },
   "babbage-002": {
     "cache_read": null,
     "cache_write": null,
@@ -4260,8 +4281,8 @@
   "bedrock/ap-southeast-2/minimax.minimax-m2.5": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3.09e-07,
-    "output": 1.236e-06,
+    "input": 3.1e-07,
+    "output": 1.24e-06,
     "provider": "bedrock"
   },
   "bedrock/ap-southeast-2/qwen.qwen3-next-80b-a3b": {
@@ -4845,6 +4866,13 @@
     "output": 1.2e-05,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-east-1/anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.4e-07,
+    "cache_write": 3e-06,
+    "input": 2.4e-06,
+    "output": 1.2e-05,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-east-1/claude-sonnet-4-5-20250929-v1:0": {
     "cache_read": 3.6e-07,
     "cache_write": 4.5e-06,
@@ -5014,6 +5042,13 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/anthropic.claude-sonnet-5": {
+    "cache_read": 2.4e-07,
+    "cache_write": 3e-06,
+    "input": 2.4e-06,
+    "output": 1.2e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/anthropic.claude-sonnet-5-5": {
     "cache_read": 2.4e-07,
     "cache_write": 3e-06,
     "input": 2.4e-06,
@@ -5200,6 +5235,20 @@
     "cache_write": 1.25e-06,
     "input": 1e-06,
     "output": 5e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/anthropic.claude-opus-5-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 5.5e-06,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.1e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/deepseek.v3.1": {
@@ -5403,6 +5452,20 @@
     "cache_write": null,
     "input": 2.64e-06,
     "output": 7.92e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/anthropic.claude-opus-5-5": {
+    "cache_read": 2.4e-07,
+    "cache_write": 6e-06,
+    "input": 4.8e-06,
+    "output": 2.4e-05,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.4e-07,
+    "cache_write": 3e-06,
+    "input": 2.4e-06,
+    "output": 1.2e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/google.gemma-4-26b-a4b": {
@@ -5707,6 +5770,13 @@
     "provider": "anthropic"
   },
   "claude-sonnet-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "anthropic"
+  },
+  "claude-sonnet-5-5": {
     "cache_read": 2e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
@@ -8059,6 +8129,13 @@
     "provider": "bedrock_converse"
   },
   "eu.anthropic.claude-sonnet-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.1e-05,
+    "provider": "bedrock_converse"
+  },
+  "eu.anthropic.claude-sonnet-5-5": {
     "cache_read": 2.2e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
@@ -11565,6 +11642,13 @@
     "output": 1e-05,
     "provider": "bedrock_converse"
   },
+  "global.anthropic.claude-sonnet-5-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "bedrock_converse"
+  },
   "global.cohere.embed-v4:0": {
     "cache_read": null,
     "cache_write": null,
@@ -11643,6 +11727,13 @@
     "provider": "bedrock"
   },
   "global.xai.grok-4.6": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "bedrock_converse"
+  },
+  "global.xai.grok-4.7": {
     "cache_read": 5e-07,
     "cache_write": null,
     "input": 2e-06,
@@ -12944,6 +13035,13 @@
     "output": 1.1e-05,
     "provider": "bedrock_converse"
   },
+  "jp.anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.1e-05,
+    "provider": "bedrock_converse"
+  },
   "kimi-k2-thinking-251104": {
     "cache_read": null,
     "cache_write": null,
@@ -13339,15 +13437,15 @@
   "meta.llama3-1-405b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 5.32e-06,
-    "output": 1.6e-05,
+    "input": 2.4e-06,
+    "output": 2.4e-06,
     "provider": "bedrock"
   },
   "meta.llama3-1-70b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 9.9e-07,
-    "output": 9.9e-07,
+    "input": 7.2e-07,
+    "output": 7.2e-07,
     "provider": "bedrock"
   },
   "meta.llama3-1-8b-instruct-v1:0": {
@@ -13360,8 +13458,8 @@
   "meta.llama3-2-11b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3.5e-07,
-    "output": 3.5e-07,
+    "input": 1.6e-07,
+    "output": 1.6e-07,
     "provider": "bedrock"
   },
   "meta.llama3-2-1b-instruct-v1:0": {
@@ -13381,8 +13479,8 @@
   "meta.llama3-2-90b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 2e-06,
+    "input": 7.2e-07,
+    "output": 7.2e-07,
     "provider": "bedrock"
   },
   "meta.llama3-3-70b-instruct-v1:0": {
@@ -13570,8 +13668,8 @@
   "mistral.mistral-large-2407-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3e-06,
-    "output": 9e-06,
+    "input": 2e-06,
+    "output": 6e-06,
     "provider": "bedrock"
   },
   "mistral.mistral-large-3-675b-instruct": {
@@ -16564,6 +16662,13 @@
     "provider": "openrouter"
   },
   "openrouter/anthropic/claude-sonnet-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "openrouter"
+  },
+  "openrouter/anthropic/claude-sonnet-5.5": {
     "cache_read": 2e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
@@ -19846,6 +19951,13 @@
     "output": 1e-05,
     "provider": "perplexity"
   },
+  "perplexity/anthropic/claude-sonnet-5-5": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "perplexity"
+  },
   "perplexity/codellama-34b-instruct": {
     "cache_read": null,
     "cache_write": null,
@@ -20286,6 +20398,20 @@
     "input": 1.4e-07,
     "output": 4.5e-07,
     "provider": "pinstripes"
+  },
+  "prism/deepseek-v4-flash": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 1.7e-07,
+    "output": 2.1e-07,
+    "provider": "prism"
+  },
+  "prism/deepseek-v4.1-flash": {
+    "cache_read": 7e-08,
+    "cache_write": null,
+    "input": 1.7e-07,
+    "output": 6.3e-07,
+    "provider": "prism"
   },
   "publicai/BSC-LT/ALIA-40b-instruct_Q8_0": {
     "cache_read": null,
@@ -22436,6 +22562,13 @@
     "output": 1.2e-05,
     "provider": "bedrock_converse"
   },
+  "us-gov.anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.4e-07,
+    "cache_write": 3e-06,
+    "input": 2.4e-06,
+    "output": 1.2e-05,
+    "provider": "bedrock_converse"
+  },
   "us-gov.nvidia.nemotron-nano-12b-v2": {
     "cache_read": null,
     "cache_write": null,
@@ -22681,6 +22814,13 @@
     "output": 1.1e-05,
     "provider": "bedrock_converse"
   },
+  "us.anthropic.claude-sonnet-5-5": {
+    "cache_read": 2.2e-07,
+    "cache_write": 2.75e-06,
+    "input": 2.2e-06,
+    "output": 1.1e-05,
+    "provider": "bedrock_converse"
+  },
   "us.cohere.embed-v4:0": {
     "cache_read": null,
     "cache_write": null,
@@ -22705,15 +22845,15 @@
   "us.meta.llama3-1-405b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 5.32e-06,
-    "output": 1.6e-05,
+    "input": 2.4e-06,
+    "output": 2.4e-06,
     "provider": "bedrock"
   },
   "us.meta.llama3-1-70b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 9.9e-07,
-    "output": 9.9e-07,
+    "input": 7.2e-07,
+    "output": 7.2e-07,
     "provider": "bedrock"
   },
   "us.meta.llama3-1-8b-instruct-v1:0": {
@@ -22726,8 +22866,8 @@
   "us.meta.llama3-2-11b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 3.5e-07,
-    "output": 3.5e-07,
+    "input": 1.6e-07,
+    "output": 1.6e-07,
     "provider": "bedrock"
   },
   "us.meta.llama3-2-1b-instruct-v1:0": {
@@ -22747,8 +22887,8 @@
   "us.meta.llama3-2-90b-instruct-v1:0": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2e-06,
-    "output": 2e-06,
+    "input": 7.2e-07,
+    "output": 7.2e-07,
     "provider": "bedrock"
   },
   "us.meta.llama3-3-70b-instruct-v1:0": {
@@ -22878,6 +23018,13 @@
     "provider": "bedrock_converse"
   },
   "us.xai.grok-4.6": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "input": 2.2e-06,
+    "output": 6.6e-06,
+    "provider": "bedrock_converse"
+  },
+  "us.xai.grok-4.7": {
     "cache_read": 5.5e-07,
     "cache_write": null,
     "input": 2.2e-06,
@@ -23823,6 +23970,20 @@
     "provider": "vertex_ai-anthropic_models"
   },
   "vertex_ai/claude-sonnet-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "vertex_ai-anthropic_models"
+  },
+  "vertex_ai/claude-sonnet-5-5": {
+    "cache_read": 2e-07,
+    "cache_write": 2.5e-06,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "vertex_ai-anthropic_models"
+  },
+  "vertex_ai/claude-sonnet-5-5@default": {
     "cache_read": 2e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
@@ -25163,6 +25324,13 @@
     "cache_read": null,
     "cache_write": null,
     "input": 6e-07,
+    "output": 6e-06,
+    "provider": "bedrock_converse"
+  },
+  "xai.grok-4.7": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
     "output": 6e-06,
     "provider": "bedrock_converse"
   },
