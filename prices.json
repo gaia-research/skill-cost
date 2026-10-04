@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-03T09:54:30Z",
-    "model_count": 3724,
+    "fetched_at": "2026-10-04T10:36:59Z",
+    "model_count": 3736,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3872,6 +3872,13 @@
     "output": 7e-07,
     "provider": "azure_ai"
   },
+  "azure_ai/kimi-k2-thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.5e-06,
+    "provider": "azure_ai"
+  },
   "azure_ai/kimi-k2.5": {
     "cache_read": 1e-07,
     "cache_write": null,
@@ -5846,6 +5853,20 @@
     "output": 5.55e-07,
     "provider": "cloudflare"
   },
+  "cloudflare/@cf/cloudflare/clef": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.4e-07,
+    "output": 0.0,
+    "provider": "cloudflare"
+  },
+  "cloudflare/@cf/cloudflare/clef-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 9e-08,
+    "output": 0.0,
+    "provider": "cloudflare"
+  },
   "cloudflare/@cf/deepseek-ai/deepseek-r1-distill-qwen-32b": {
     "cache_read": null,
     "cache_write": null,
@@ -6049,6 +6070,20 @@
     "output": 1.923e-06,
     "provider": "cloudflare"
   },
+  "cloudflare/clef": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2.4e-07,
+    "output": 0.0,
+    "provider": "cloudflare"
+  },
+  "cloudflare/clef-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 9e-08,
+    "output": 0.0,
+    "provider": "cloudflare"
+  },
   "codestral/codestral-2405": {
     "cache_read": null,
     "cache_write": null,
@@ -6127,6 +6162,20 @@
     "provider": "bedrock"
   },
   "cohere/embed-v4.0": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.2e-07,
+    "output": 0.0,
+    "provider": "cohere"
+  },
+  "cohere/embed-v5.0-fast": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 8e-08,
+    "output": 0.0,
+    "provider": "cohere"
+  },
+  "cohere/embed-v5.0-pro": {
     "cache_read": null,
     "cache_write": null,
     "input": 1.2e-07,
@@ -16956,10 +17005,10 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-chat-v3-0324": {
-    "cache_read": 1.1e-07,
+    "cache_read": null,
     "cache_write": null,
-    "input": 2.9e-07,
-    "output": 1.14e-06,
+    "input": 2.5e-07,
+    "output": 1e-06,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-chat-v3.1": {
@@ -17019,9 +17068,9 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-flash-0731": {
-    "cache_read": 5.1e-09,
+    "cache_read": 1.37e-08,
     "cache_write": null,
-    "input": 5.1e-09,
+    "input": 1.52e-08,
     "output": 1.28e-06,
     "provider": "openrouter"
   },
@@ -17040,10 +17089,10 @@
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4-pro-0813": {
-    "cache_read": 4.4e-08,
+    "cache_read": 1.4e-07,
     "cache_write": null,
-    "input": 1.32e-06,
-    "output": 3.96e-06,
+    "input": 2.2e-07,
+    "output": 4.2e-06,
     "provider": "openrouter"
   },
   "openrouter/deepseek/deepseek-v4.1-flash": {
@@ -17523,10 +17572,10 @@
     "provider": "openrouter"
   },
   "openrouter/meta-llama/llama-3.3-70b-instruct": {
-    "cache_read": null,
+    "cache_read": 1.1e-07,
     "cache_write": null,
-    "input": 1e-07,
-    "output": 3.2e-07,
+    "input": 2.2e-07,
+    "output": 5e-07,
     "provider": "openrouter"
   },
   "openrouter/meta-llama/llama-4-maverick": {
@@ -17887,10 +17936,10 @@
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k2.6": {
-    "cache_read": 7.312e-08,
+    "cache_read": 1.6e-07,
     "cache_write": null,
-    "input": 4.3415e-07,
-    "output": 1.828e-06,
+    "input": 9.5e-07,
+    "output": 4e-06,
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k2.7-code": {
@@ -17901,10 +17950,10 @@
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k3": {
-    "cache_read": 2.7e-07,
+    "cache_read": 4.9e-07,
     "cache_write": null,
-    "input": 2.7e-06,
-    "output": 1.35e-05,
+    "input": 4.99e-07,
+    "output": 1.3e-05,
     "provider": "openrouter"
   },
   "openrouter/moonshotai/kimi-k3:batch": {
@@ -18684,6 +18733,27 @@
     "output": 3e-05,
     "provider": "openrouter"
   },
+  "openrouter/openai/gpt-image-2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openrouter"
+  },
+  "openrouter/openai/gpt-image-2.5-flare": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openrouter"
+  },
+  "openrouter/openai/gpt-image-2.5-sunburst": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openrouter"
+  },
   "openrouter/openai/gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -18988,8 +19058,8 @@
   "openrouter/qwen/qwen3-30b-a3b-instruct-2507": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-07,
-    "output": 3e-07,
+    "input": 4.815e-08,
+    "output": 1.9305e-07,
     "provider": "openrouter"
   },
   "openrouter/qwen/qwen3-30b-a3b-thinking-2507": {
@@ -19744,8 +19814,8 @@
   "openrouter/z-ai/glm-5.2": {
     "cache_read": 2.6e-07,
     "cache_write": null,
-    "input": 4.1e-07,
-    "output": 3.99e-06,
+    "input": 3e-07,
+    "output": 3.49e-06,
     "provider": "openrouter"
   },
   "openrouter/z-ai/glm-5.2:free": {
@@ -20460,6 +20530,13 @@
     "cache_write": null,
     "input": 0.0,
     "output": 2.8e-07,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-decider-v1-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 4e-08,
+    "output": 0.0,
     "provider": "perplexity"
   },
   "perplexity/pplx-embed-context-v1-0.6b": {
@@ -21910,6 +21987,13 @@
     "input": 7.2e-07,
     "output": 7.2e-07,
     "provider": "snowflake"
+  },
+  "strands_decider/strands-decider-2B-hobson-v19": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "strands_decider"
   },
   "tencent/deepseek-v4-flash": {
     "cache_read": 2.8e-09,
