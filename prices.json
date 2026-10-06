@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-05T11:34:59Z",
-    "model_count": 3736,
+    "fetched_at": "2026-10-06T11:19:41Z",
+    "model_count": 3739,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -574,6 +574,13 @@
     "input": 8e-07,
     "output": 3.2e-06,
     "provider": "amazon_nova"
+  },
+  "amazon.nova-2-5-sonic": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3.3e-07,
+    "output": 2.75e-06,
+    "provider": "bedrock"
   },
   "amazon.nova-2-lite-v1:0": {
     "cache_read": 7.5e-08,
@@ -11878,6 +11885,13 @@
     "cache_write": null,
     "input": 2e-06,
     "output": 6e-06,
+    "provider": "bedrock_converse"
+  },
+  "global.zai.glm-5.3": {
+    "cache_read": 3.12e-07,
+    "cache_write": 2.1e-06,
+    "input": 1.68e-06,
+    "output": 5.28e-06,
     "provider": "bedrock_converse"
   },
   "gmi/MiniMaxAI/MiniMax-M2.1": {
@@ -23365,6 +23379,13 @@
     "cache_write": null,
     "input": 2.2e-06,
     "output": 6.6e-06,
+    "provider": "bedrock_converse"
+  },
+  "us.zai.glm-5.3": {
+    "cache_read": 3.432e-07,
+    "cache_write": 2.31e-06,
+    "input": 1.848e-06,
+    "output": 5.808e-06,
     "provider": "bedrock_converse"
   },
   "v0/v0-1.0-md": {
