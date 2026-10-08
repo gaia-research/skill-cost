@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-07T11:07:44Z",
-    "model_count": 3744,
+    "fetched_at": "2026-10-08T11:25:33Z",
+    "model_count": 3762,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -757,6 +757,13 @@
     "output": 5e-06,
     "provider": "bedrock_converse"
   },
+  "anthropic.claude-haiku-5-5": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "bedrock_converse"
+  },
   "anthropic.claude-instant-v1": {
     "cache_read": null,
     "cache_write": null,
@@ -863,7 +870,7 @@
     "provider": "bedrock_converse"
   },
   "anthropic.claude-sonnet-5-5": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
@@ -1016,6 +1023,13 @@
     "output": 5.5e-06,
     "provider": "bedrock_converse"
   },
+  "apac.anthropic.claude-haiku-5-5": {
+    "cache_read": 1.1e-08,
+    "cache_write": 1.375e-07,
+    "input": 1.1e-07,
+    "output": 5.5e-07,
+    "provider": "bedrock_converse"
+  },
   "apac.anthropic.claude-mythos-preview": {
     "cache_read": 2.75e-06,
     "cache_write": 3.4375e-05,
@@ -1073,7 +1087,7 @@
     "provider": "bedrock_converse"
   },
   "apac.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.2e-07,
+    "cache_read": 1.1e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.1e-05,
@@ -1091,6 +1105,13 @@
     "cache_write": 1.375e-06,
     "input": 1.1e-06,
     "output": 5.5e-06,
+    "provider": "bedrock_converse"
+  },
+  "au.anthropic.claude-haiku-5-5": {
+    "cache_read": 1.1e-08,
+    "cache_write": 1.375e-07,
+    "input": 1.1e-07,
+    "output": 5.5e-07,
     "provider": "bedrock_converse"
   },
   "au.anthropic.claude-mythos-preview": {
@@ -1157,7 +1178,7 @@
     "provider": "bedrock_converse"
   },
   "au.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.2e-07,
+    "cache_read": 1.1e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.1e-05,
@@ -3501,6 +3522,13 @@
     "output": 5e-06,
     "provider": "azure_ai"
   },
+  "azure_ai/claude-haiku-5-5": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "azure_ai"
+  },
   "azure_ai/claude-opus-4-5": {
     "cache_read": 5e-07,
     "cache_write": 6.25e-06,
@@ -4908,6 +4936,13 @@
     "output": 6e-06,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-east-1/anthropic.claude-haiku-5-5": {
+    "cache_read": 1.2e-08,
+    "cache_write": 1.5e-07,
+    "input": 1.2e-07,
+    "output": 6e-07,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-east-1/anthropic.claude-opus-4-8": {
     "cache_read": 6e-07,
     "cache_write": 7.5e-06,
@@ -4944,7 +4979,7 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-east-1/anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.4e-07,
+    "cache_read": 1.2e-07,
     "cache_write": 3e-06,
     "input": 2.4e-06,
     "output": 1.2e-05,
@@ -5090,6 +5125,13 @@
     "output": 6e-06,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-west-1/anthropic.claude-haiku-5-5": {
+    "cache_read": 1.2e-08,
+    "cache_write": 1.5e-07,
+    "input": 1.2e-07,
+    "output": 6e-07,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-west-1/anthropic.claude-opus-4-8": {
     "cache_read": 6e-07,
     "cache_write": 7.5e-06,
@@ -5126,7 +5168,7 @@
     "provider": "bedrock"
   },
   "bedrock/us-gov-west-1/anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.4e-07,
+    "cache_read": 1.2e-07,
     "cache_write": 3e-06,
     "input": 2.4e-06,
     "output": 1.2e-05,
@@ -5314,6 +5356,13 @@
     "output": 5e-06,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/anthropic.claude-haiku-5-5": {
+    "cache_read": 1.1e-08,
+    "cache_write": 1.375e-07,
+    "input": 1.1e-07,
+    "output": 5.5e-07,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/anthropic.claude-opus-5-5": {
     "cache_read": 2.2e-07,
     "cache_write": 5.5e-06,
@@ -5322,7 +5371,7 @@
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.2e-07,
+    "cache_read": 1.1e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.1e-05,
@@ -5538,6 +5587,13 @@
     "output": 7.92e-06,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/us-gov-west-1/anthropic.claude-haiku-5-5": {
+    "cache_read": 1.2e-08,
+    "cache_write": 1.5e-07,
+    "input": 1.2e-07,
+    "output": 6e-07,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/us-gov-west-1/anthropic.claude-opus-5-5": {
     "cache_read": 2.4e-07,
     "cache_write": 6e-06,
@@ -5546,7 +5602,7 @@
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.4e-07,
+    "cache_read": 1.2e-07,
     "cache_write": 3e-06,
     "input": 2.4e-06,
     "output": 1.2e-05,
@@ -5574,24 +5630,24 @@
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-5.4": {
-    "cache_read": 3.3e-07,
+    "cache_read": 3.375e-07,
     "cache_write": null,
-    "input": 3.3e-06,
-    "output": 1.98e-05,
+    "input": 3.375e-06,
+    "output": 2.025e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-5.6-luna": {
-    "cache_read": 2.64e-08,
-    "cache_write": 3.3e-07,
-    "input": 2.64e-07,
-    "output": 1.584e-06,
+    "cache_read": 2.7e-08,
+    "cache_write": 3.375e-07,
+    "input": 2.7e-07,
+    "output": 1.62e-06,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-5.6-terra": {
-    "cache_read": 2.64e-07,
-    "cache_write": 3.3e-06,
-    "input": 2.64e-06,
-    "output": 1.584e-05,
+    "cache_read": 2.7e-07,
+    "cache_write": 3.375e-06,
+    "input": 2.7e-06,
+    "output": 1.62e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-oss-120b": {
@@ -5762,6 +5818,13 @@
     "output": 5e-06,
     "provider": "anthropic"
   },
+  "claude-haiku-5-5": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "anthropic"
+  },
   "claude-mythos-5": {
     "cache_read": 1e-06,
     "cache_write": 1.25e-05,
@@ -5882,7 +5945,7 @@
     "provider": "anthropic"
   },
   "claude-sonnet-5-5": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
@@ -8198,6 +8261,13 @@
     "output": 5.5e-06,
     "provider": "bedrock_converse"
   },
+  "eu.anthropic.claude-haiku-5-5": {
+    "cache_read": 1.1e-08,
+    "cache_write": 1.375e-07,
+    "input": 1.1e-07,
+    "output": 5.5e-07,
+    "provider": "bedrock_converse"
+  },
   "eu.anthropic.claude-opus-4-1-20250805-v1:0": {
     "cache_read": 1.5e-06,
     "cache_write": 1.875e-05,
@@ -8283,7 +8353,7 @@
     "provider": "bedrock_converse"
   },
   "eu.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.2e-07,
+    "cache_read": 1.1e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.1e-05,
@@ -11747,6 +11817,13 @@
     "output": 5e-06,
     "provider": "bedrock_converse"
   },
+  "global.anthropic.claude-haiku-5-5": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "bedrock_converse"
+  },
   "global.anthropic.claude-mythos-5-1": {
     "cache_read": 2.5e-07,
     "cache_write": 1.25e-05,
@@ -11825,7 +11902,7 @@
     "provider": "bedrock_converse"
   },
   "global.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
@@ -13203,6 +13280,13 @@
     "output": 5.5e-06,
     "provider": "bedrock_converse"
   },
+  "jp.anthropic.claude-haiku-5-5": {
+    "cache_read": 1.1e-08,
+    "cache_write": 1.375e-07,
+    "input": 1.1e-07,
+    "output": 5.5e-07,
+    "provider": "bedrock_converse"
+  },
   "jp.anthropic.claude-opus-4-7": {
     "cache_read": 5.5e-07,
     "cache_write": 6.875e-06,
@@ -13253,7 +13337,7 @@
     "provider": "bedrock_converse"
   },
   "jp.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.2e-07,
+    "cache_read": 1.1e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.1e-05,
@@ -16794,6 +16878,13 @@
     "output": 2.5e-06,
     "provider": "openrouter"
   },
+  "openrouter/anthropic/claude-haiku-5.5": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "openrouter"
+  },
   "openrouter/anthropic/claude-opus-4.1": {
     "cache_read": 1.5e-06,
     "cache_write": 1.875e-05,
@@ -20217,6 +20308,13 @@
     "output": 5e-06,
     "provider": "perplexity"
   },
+  "perplexity/anthropic/claude-haiku-5-5": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "perplexity"
+  },
   "perplexity/anthropic/claude-opus-4-5": {
     "cache_read": 5e-07,
     "cache_write": null,
@@ -22898,6 +22996,13 @@
     "output": 6e-05,
     "provider": "bedrock_converse"
   },
+  "us-gov.anthropic.claude-haiku-5-5": {
+    "cache_read": 1.2e-08,
+    "cache_write": 1.5e-07,
+    "input": 1.2e-07,
+    "output": 6e-07,
+    "provider": "bedrock_converse"
+  },
   "us-gov.anthropic.claude-opus-4-8": {
     "cache_read": 6e-07,
     "cache_write": 7.5e-06,
@@ -22934,7 +23039,7 @@
     "provider": "bedrock_converse"
   },
   "us-gov.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.4e-07,
+    "cache_read": 1.2e-07,
     "cache_write": 3e-06,
     "input": 2.4e-06,
     "output": 1.2e-05,
@@ -23080,6 +23185,13 @@
     "output": 5.5e-06,
     "provider": "bedrock_converse"
   },
+  "us.anthropic.claude-haiku-5-5": {
+    "cache_read": 1.1e-08,
+    "cache_write": 1.375e-07,
+    "input": 1.1e-07,
+    "output": 5.5e-07,
+    "provider": "bedrock_converse"
+  },
   "us.anthropic.claude-mythos-5": {
     "cache_read": 1.1e-06,
     "cache_write": 1.375e-05,
@@ -23186,7 +23298,7 @@
     "provider": "bedrock_converse"
   },
   "us.anthropic.claude-sonnet-5-5": {
-    "cache_read": 2.2e-07,
+    "cache_read": 1.1e-07,
     "cache_write": 2.75e-06,
     "input": 2.2e-06,
     "output": 1.1e-05,
@@ -24242,6 +24354,20 @@
     "output": 5e-06,
     "provider": "vertex_ai-anthropic_models"
   },
+  "vertex_ai/claude-haiku-5-5": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "vertex_ai-anthropic_models"
+  },
+  "vertex_ai/claude-haiku-5-5@default": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "vertex_ai-anthropic_models"
+  },
   "vertex_ai/claude-opus-4-5": {
     "cache_read": 5e-07,
     "cache_write": 6.25e-06,
@@ -24362,14 +24488,14 @@
     "provider": "vertex_ai-anthropic_models"
   },
   "vertex_ai/claude-sonnet-5-5": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
     "provider": "vertex_ai-anthropic_models"
   },
   "vertex_ai/claude-sonnet-5-5@default": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
