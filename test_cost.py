@@ -307,3 +307,17 @@ class CacheReportingTests(unittest.TestCase):
         agg.by_model["test-cheap-x"] = cost.Bucket(cache_read=1_000_000)
         # $4.50 saved on the dear model, $0.90 on the cheap one.
         self.assertAlmostEqual(agg.cache_savings(prices), 4.5 + 0.9)
+
+class ParseSinceTests(unittest.TestCase):
+    def test_parse_since_date_boundary_is_utc_midnight(self):
+        parsed = cost.parse_since("2024-02-29")
+
+        self.assertEqual(parsed.isoformat(), "2024-02-29T00:00:00+00:00")
+
+    def test_parse_since_invalid_values_fall_back_to_utc_minimum(self):
+        for value in ("2023-02-29", "not-a-date", None):
+            with self.subTest(value=value):
+                parsed = cost.parse_since(value)
+
+                self.assertEqual(parsed.isoformat(), "0001-01-01T00:00:00+00:00")
+
