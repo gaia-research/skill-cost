@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-12T12:06:29Z",
-    "model_count": 3285,
+    "fetched_at": "2026-10-13T11:52:39Z",
+    "model_count": 3312,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -1194,7 +1194,7 @@
   "azure/ada": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-07,
+    "input": 1.1e-07,
     "output": 0.0,
     "provider": "azure"
   },
@@ -1705,8 +1705,8 @@
   "azure/gpt-3.5-turbo-instruct-0914": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.5e-06,
-    "output": 2e-06,
+    "input": 1.65e-06,
+    "output": 2.2e-06,
     "provider": "azure_text"
   },
   "azure/gpt-35-turbo": {
@@ -1733,15 +1733,15 @@
   "azure/gpt-35-turbo-instruct": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.5e-06,
-    "output": 2e-06,
+    "input": 1.65e-06,
+    "output": 2.2e-06,
     "provider": "azure_text"
   },
   "azure/gpt-35-turbo-instruct-0914": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.5e-06,
-    "output": 2e-06,
+    "input": 1.65e-06,
+    "output": 2.2e-06,
     "provider": "azure_text"
   },
   "azure/gpt-4": {
@@ -1789,22 +1789,22 @@
   "azure/gpt-4-turbo": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-05,
-    "output": 3e-05,
+    "input": 1.1e-05,
+    "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/gpt-4-turbo-2024-04-09": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-05,
-    "output": 3e-05,
+    "input": 1.1e-05,
+    "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/gpt-4-turbo-vision-preview": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-05,
-    "output": 3e-05,
+    "input": 1.1e-05,
+    "output": 3.3e-05,
     "provider": "azure"
   },
   "azure/gpt-4.1": {
@@ -2664,21 +2664,21 @@
   "azure/text-embedding-3-large": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1.3e-07,
+    "input": 1.43e-07,
     "output": 0.0,
     "provider": "azure"
   },
   "azure/text-embedding-3-small": {
     "cache_read": null,
     "cache_write": null,
-    "input": 2e-08,
+    "input": 2.2e-08,
     "output": 0.0,
     "provider": "azure"
   },
   "azure/text-embedding-ada-002": {
     "cache_read": null,
     "cache_write": null,
-    "input": 1e-07,
+    "input": 1.1e-07,
     "output": 0.0,
     "provider": "azure"
   },
@@ -6000,6 +6000,13 @@
     "output": 0.0,
     "provider": "cloudflare"
   },
+  "cloudflare/@cf/cloudflare/clef-omni": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 0.0,
+    "provider": "cloudflare"
+  },
   "cloudflare/@cf/deepseek-ai/deepseek-r1-distill-qwen-32b": {
     "cache_read": null,
     "cache_write": null,
@@ -6217,6 +6224,13 @@
     "output": 0.0,
     "provider": "cloudflare"
   },
+  "cloudflare/clef-omni": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 0.0,
+    "provider": "cloudflare"
+  },
   "codestral/codestral-2405": {
     "cache_read": null,
     "cache_write": null,
@@ -6363,6 +6377,55 @@
     "input": 3e-06,
     "output": 1.2e-05,
     "provider": "openai"
+  },
+  "computer-use-preview-2025-03-11": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 3e-06,
+    "output": 1.2e-05,
+    "provider": "openai"
+  },
+  "coralbricks/deepseek-v4.1-flash": {
+    "cache_read": 0.0,
+    "cache_write": 9e-08,
+    "input": 1e-08,
+    "output": 1.2e-06,
+    "provider": "coralbricks"
+  },
+  "coralbricks/deepseek-v4.1-flash-fast": {
+    "cache_read": 0.0,
+    "cache_write": 9e-08,
+    "input": 1e-08,
+    "output": 1.2e-06,
+    "provider": "coralbricks"
+  },
+  "coralbricks/deepseek-v4.1-flash-fast-fp4": {
+    "cache_read": 0.0,
+    "cache_write": 9e-08,
+    "input": 1e-08,
+    "output": 1.2e-06,
+    "provider": "coralbricks"
+  },
+  "coralbricks/glm-5.3": {
+    "cache_read": 0.0,
+    "cache_write": 1.68e-06,
+    "input": 1.12e-06,
+    "output": 4.4e-06,
+    "provider": "coralbricks"
+  },
+  "coralbricks/glm-5.3-fast": {
+    "cache_read": 0.0,
+    "cache_write": 1.68e-06,
+    "input": 1.12e-06,
+    "output": 4.4e-06,
+    "provider": "coralbricks"
+  },
+  "coralbricks/glm-5.3-fp4": {
+    "cache_read": 0.0,
+    "cache_write": 1.68e-06,
+    "input": 1.12e-06,
+    "output": 4.4e-06,
+    "provider": "coralbricks"
   },
   "crusoe/Qwen/Qwen3-235B-A22B-Instruct-2507": {
     "cache_read": null,
@@ -10550,6 +10613,13 @@
     "output": 2.25e-05,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/rune": {
+    "cache_read": 8.4e-09,
+    "cache_write": null,
+    "input": 4.2e-08,
+    "output": 0.0,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/deepseek-v4-flash": {
     "cache_read": 2.8e-08,
     "cache_write": null,
@@ -11276,6 +11346,13 @@
     "cache_write": null,
     "input": 3e-07,
     "output": 2.5e-06,
+    "provider": "vertex_ai-language-models"
+  },
+  "gemini-robotics-er-2-preview": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 5e-06,
     "provider": "vertex_ai-language-models"
   },
   "gemini/deep-research-max-preview-04-2026": {
@@ -12377,6 +12454,13 @@
     "output": 6e-07,
     "provider": "openai"
   },
+  "gpt-4o-mini-search-preview-2025-03-11": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "openai"
+  },
   "gpt-4o-mini-transcribe": {
     "cache_read": null,
     "cache_write": null,
@@ -12420,6 +12504,13 @@
     "provider": "openai"
   },
   "gpt-4o-search-preview": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "input": 2.5e-06,
+    "output": 1e-05,
+    "provider": "openai"
+  },
+  "gpt-4o-search-preview-2025-03-11": {
     "cache_read": 1.25e-06,
     "cache_write": null,
     "input": 2.5e-06,
@@ -12805,6 +12896,13 @@
     "provider": "openai"
   },
   "gpt-audio-mini": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "openai"
+  },
+  "gpt-audio-mini-2025-10-06": {
     "cache_read": null,
     "cache_write": null,
     "input": 6e-07,
@@ -13915,6 +14013,13 @@
     "cache_write": null,
     "input": 1e-07,
     "output": 2e-07,
+    "provider": "meta"
+  },
+  "meta/muse-wonder-1.0": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "meta"
   },
   "microsoft_365_copilot/chat": {
@@ -16157,6 +16262,13 @@
     "output": 4e-05,
     "provider": "openai"
   },
+  "o3-deep-research-2025-06-26": {
+    "cache_read": 2.5e-06,
+    "cache_write": null,
+    "input": 1e-05,
+    "output": 4e-05,
+    "provider": "openai"
+  },
   "o3-mini": {
     "cache_read": 5.5e-07,
     "cache_write": null,
@@ -16200,6 +16312,13 @@
     "provider": "openai"
   },
   "o4-mini-deep-research": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 8e-06,
+    "provider": "openai"
+  },
+  "o4-mini-deep-research-2025-06-26": {
     "cache_read": 5e-07,
     "cache_write": null,
     "input": 2e-06,
@@ -17301,7 +17420,14 @@
   "perplexity/pplx-decider-v1-27b": {
     "cache_read": null,
     "cache_write": null,
-    "input": 4e-08,
+    "input": 2e-08,
+    "output": 0.0,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-decider-v1.1-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-08,
     "output": 0.0,
     "provider": "perplexity"
   },
@@ -19539,7 +19665,7 @@
     "provider": "together_ai"
   },
   "together_ai/together/Tev1-4B-experimental": {
-    "cache_read": 4.2e-08,
+    "cache_read": null,
     "cache_write": null,
     "input": 4.2e-08,
     "output": 0.0,
@@ -21512,6 +21638,13 @@
     "output": 9e-06,
     "provider": "vertex_ai"
   },
+  "vertex_ai/gemini-robotics-er-2-preview": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 1e-06,
+    "output": 5e-06,
+    "provider": "vertex_ai"
+  },
   "vertex_ai/gemma-4-26b-a4b-it": {
     "cache_read": 1.5e-08,
     "cache_write": null,
@@ -21812,6 +21945,62 @@
     "input": 1.5e-07,
     "output": 1.2e-06,
     "provider": "vertex_ai-qwen_models"
+  },
+  "vertex_ai/semantic-ranker-default": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-default-002": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-default-003": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-default-004": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-default@latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-fast": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-fast-004": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/semantic-ranker-fast@latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "vertex_ai"
   },
   "vertex_ai/xai/grok-4.1-fast-non-reasoning": {
     "cache_read": 5e-08,
