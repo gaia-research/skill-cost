@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-13T11:52:39Z",
-    "model_count": 3312,
+    "fetched_at": "2026-10-14T09:33:50Z",
+    "model_count": 3327,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3537,6 +3537,13 @@
     "provider": "azure_ai"
   },
   "azure_ai/claude-fable-5-1": {
+    "cache_read": 2.5e-07,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "azure_ai"
+  },
+  "azure_ai/claude-fable-5-5": {
     "cache_read": 2.5e-07,
     "cache_write": 1.25e-05,
     "input": 1e-05,
@@ -11621,6 +11628,13 @@
     "output": 4.5e-06,
     "provider": "gemini"
   },
+  "gemini/gemini-4-argon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gemini"
+  },
   "gemini/gemini-embedding-001": {
     "cache_read": null,
     "cache_write": null,
@@ -11871,6 +11885,13 @@
     "cache_write": 1.25e-07,
     "input": 1e-07,
     "output": 5e-07,
+    "provider": "github_copilot"
+  },
+  "github_copilot/gemini-4-argon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1e-05,
     "provider": "github_copilot"
   },
   "github_copilot/gpt-5-mini": {
@@ -18930,10 +18951,80 @@
     "provider": "tencent"
   },
   "tencent/deepseek-v4-pro": {
-    "cache_read": 3.625e-09,
+    "cache_read": 1.45e-07,
     "cache_write": 0.0,
-    "input": 4.35e-07,
-    "output": 8.7e-07,
+    "input": 1.74e-06,
+    "output": 3.48e-06,
+    "provider": "tencent"
+  },
+  "tencent/deepseek-v4-pro-0813": {
+    "cache_read": 4.4e-08,
+    "cache_write": 0.0,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
+    "provider": "tencent"
+  },
+  "tencent/deepseek-v4.1-flash": {
+    "cache_read": 6e-09,
+    "cache_write": 0.0,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "tencent"
+  },
+  "tencent/glm-5.2": {
+    "cache_read": 2.6e-07,
+    "cache_write": 0.0,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "tencent"
+  },
+  "tencent/glm-5.3": {
+    "cache_read": 2.6e-07,
+    "cache_write": 0.0,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "tencent"
+  },
+  "tencent/glm-5.3-flash": {
+    "cache_read": 3e-08,
+    "cache_write": 0.0,
+    "input": 1.5e-07,
+    "output": 5e-07,
+    "provider": "tencent"
+  },
+  "tencent/glm-5.3-flashx": {
+    "cache_read": 7.5e-08,
+    "cache_write": 0.0,
+    "input": 3.7e-07,
+    "output": 1.25e-06,
+    "provider": "tencent"
+  },
+  "tencent/kimi-k2.7-code": {
+    "cache_read": 1.9e-07,
+    "cache_write": 0.0,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "tencent"
+  },
+  "tencent/kimi-k2.7-code-highspeed": {
+    "cache_read": 3.8e-07,
+    "cache_write": 0.0,
+    "input": 1.9e-06,
+    "output": 8e-06,
+    "provider": "tencent"
+  },
+  "tencent/kimi-k2.8-preview": {
+    "cache_read": 2.5e-07,
+    "cache_write": 0.0,
+    "input": 1e-06,
+    "output": 4e-06,
+    "provider": "tencent"
+  },
+  "tencent/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": 0.0,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "tencent"
   },
   "tencent/minimax-m3": {
@@ -19336,10 +19427,10 @@
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.7-Max": {
-    "cache_read": 5e-07,
+    "cache_read": 3e-07,
     "cache_write": null,
-    "input": 2.5e-06,
-    "output": 7.5e-06,
+    "input": 1.5e-06,
+    "output": 4.5e-06,
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.7-Plus": {
@@ -19616,10 +19707,10 @@
     "provider": "together_ai"
   },
   "together_ai/moonshotai/Kimi-K3": {
-    "cache_read": 2.7e-07,
+    "cache_read": 3e-07,
     "cache_write": null,
-    "input": 2.7e-06,
-    "output": 1.35e-05,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "together_ai"
   },
   "together_ai/nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": {
@@ -21601,6 +21692,20 @@
     "cache_write": null,
     "input": 7.5e-07,
     "output": 4.5e-06,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/gemini-4-argon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/gemini-4-argon-cyber-permissive": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "input": 4e-06,
+    "output": 2e-05,
     "provider": "vertex_ai"
   },
   "vertex_ai/gemini-embedding-2": {
