@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-17T08:37:24Z",
-    "model_count": 3410,
+    "fetched_at": "2026-10-18T08:53:27Z",
+    "model_count": 3422,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -4145,6 +4145,20 @@
     "output": 1.2e-06,
     "provider": "baseten"
   },
+  "baseten/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+    "cache_read": 7e-09,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "baseten"
+  },
+  "baseten/deepseek-ai/DeepSeek-V4.1-Flash-1017-Fast": {
+    "cache_read": 1.4e-08,
+    "cache_write": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "baseten"
+  },
   "baseten/deepseek-ai/DeepSeek-V4.1-Flash-Fast": {
     "cache_read": 1.4e-08,
     "cache_write": null,
@@ -7645,6 +7659,20 @@
     "output": 2.6e-06,
     "provider": "deepinfra"
   },
+  "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash": {
+    "cache_read": 4.2e-09,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 4.2e-07,
+    "provider": "deepinfra"
+  },
+  "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+    "cache_read": 4.2e-09,
+    "cache_write": null,
+    "input": 1.4e-07,
+    "output": 4.2e-07,
+    "provider": "deepinfra"
+  },
   "deepinfra/google/gemini-2.5-flash": {
     "cache_read": null,
     "cache_write": null,
@@ -8997,6 +9025,13 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/deepseek-v4p1-flash": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/deepseek-v4p1-flash-1017": {
     "cache_read": 6e-09,
     "cache_write": null,
     "input": 3e-07,
@@ -17431,6 +17466,27 @@
     "output": 2e-07,
     "provider": "bedrock_converse"
   },
+  "openinfer/@oi/GLM-5.3-Flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.95e-07,
+    "output": 1.56e-06,
+    "provider": "openinfer"
+  },
+  "openinfer/@oi/Qwen3.5-27B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1.95e-07,
+    "output": 1.56e-06,
+    "provider": "openinfer"
+  },
+  "openinfer/@oi/Qwen3.5-9B": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 5e-06,
+    "output": 1.5e-07,
+    "provider": "openinfer"
+  },
   "ovhcloud/DeepSeek-R1-Distill-Llama-70B": {
     "cache_read": null,
     "cache_write": null,
@@ -17956,6 +18012,27 @@
     "output": 2.8e-07,
     "provider": "perplexity"
   },
+  "perplexity/pplx-decider-flash-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-08,
+    "output": 0.0,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-decider-flash-v1.2": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 1e-08,
+    "output": 0.0,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-decider-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-08,
+    "output": 0.0,
+    "provider": "perplexity"
+  },
   "perplexity/pplx-decider-v1-27b": {
     "cache_read": null,
     "cache_write": null,
@@ -17964,6 +18041,13 @@
     "provider": "perplexity"
   },
   "perplexity/pplx-decider-v1.1-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "input": 2e-08,
+    "output": 0.0,
+    "provider": "perplexity"
+  },
+  "perplexity/pplx-decider-v1.2": {
     "cache_read": null,
     "cache_write": null,
     "input": 2e-08,
