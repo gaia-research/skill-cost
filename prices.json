@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-18T08:53:27Z",
-    "model_count": 3422,
+    "fetched_at": "2026-10-19T09:59:16Z",
+    "model_count": 3429,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -11971,6 +11971,13 @@
     "output": 2.5e-05,
     "provider": "github_copilot"
   },
+  "github_copilot/claude-opus-4.8-fast": {
+    "cache_read": 1e-06,
+    "cache_write": 1.25e-05,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "github_copilot"
+  },
   "github_copilot/claude-opus-5": {
     "cache_read": 5e-07,
     "cache_write": 6.25e-06,
@@ -11983,6 +11990,13 @@
     "cache_write": 5e-06,
     "input": 4e-06,
     "output": 2e-05,
+    "provider": "github_copilot"
+  },
+  "github_copilot/claude-sonnet-4.6": {
+    "cache_read": 3e-07,
+    "cache_write": 3.75e-06,
+    "input": 3e-06,
+    "output": 1.5e-05,
     "provider": "github_copilot"
   },
   "github_copilot/claude-sonnet-5": {
@@ -12048,6 +12062,13 @@
     "output": 4.5e-06,
     "provider": "github_copilot"
   },
+  "github_copilot/gpt-5.4-nano": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "input": 2e-07,
+    "output": 1.25e-06,
+    "provider": "github_copilot"
+  },
   "github_copilot/gpt-5.5": {
     "cache_read": 5e-07,
     "cache_write": null,
@@ -12102,6 +12123,27 @@
     "cache_write": 2.5e-06,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "github_copilot"
+  },
+  "github_copilot/grok-4.5": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "github_copilot"
+  },
+  "github_copilot/grok-4.6": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "github_copilot"
+  },
+  "github_copilot/grok-4.7": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "input": 2e-06,
+    "output": 6e-06,
     "provider": "github_copilot"
   },
   "github_copilot/kimi-k3": {
@@ -20155,6 +20197,13 @@
     "provider": "together_ai"
   },
   "together_ai/deepseek-ai/DeepSeek-V4.1-Flash": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
     "cache_read": 6e-09,
     "cache_write": null,
     "input": 3e-07,
