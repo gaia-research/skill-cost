@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-19T09:59:16Z",
-    "model_count": 3429,
+    "fetched_at": "2026-10-20T09:28:30Z",
+    "model_count": 3430,
     "note": "Pruned to input/output/cache_read/cache_write/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -6688,7 +6688,7 @@
   },
   "dashscope/qwen3.7-max": {
     "cache_read": 5e-07,
-    "cache_write": null,
+    "cache_write": 3.125e-06,
     "input": 2.5e-06,
     "output": 7.5e-06,
     "provider": "dashscope"
@@ -9666,6 +9666,13 @@
     "cache_write": null,
     "input": 3e-07,
     "output": 1.2e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/minimax-m3p1-flash": {
+    "cache_read": 1.5e-08,
+    "cache_write": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/ministral-3-14b-instruct-2512": {
@@ -18560,7 +18567,7 @@
   },
   "qwen_ai_platform/qwen3.7-max": {
     "cache_read": 5e-07,
-    "cache_write": null,
+    "cache_write": 3.125e-06,
     "input": 2.5e-06,
     "output": 7.5e-06,
     "provider": "qwen_ai_platform"
@@ -18749,7 +18756,7 @@
   },
   "qwencloud/qwen3.7-max": {
     "cache_read": 5e-07,
-    "cache_write": null,
+    "cache_write": 3.125e-06,
     "input": 2.5e-06,
     "output": 7.5e-06,
     "provider": "qwencloud"
