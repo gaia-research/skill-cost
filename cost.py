@@ -114,6 +114,9 @@ def refresh_prices(write: bool = True, quiet: bool = False) -> dict:
             "output":     out,
             "cache_read": m.get("cache_read_input_token_cost"),
             "cache_write": m.get("cache_creation_input_token_cost"),
+            # Anthropic bills a 1-hour cache write at 2x input, not the 1.25x
+            # that a 5-minute write costs. Keep the two rates apart.
+            "cache_write_1h": m.get("cache_creation_input_token_cost_above_1hr"),
             "provider":   m.get("litellm_provider"),
         }
     # Embed source attribution so the data always travels with its provenance.
@@ -124,7 +127,7 @@ def refresh_prices(write: bool = True, quiet: bool = False) -> dict:
         "source_repo": "https://github.com/BerriAI/litellm",
         "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "model_count": len(pruned),
-        "note": "Pruned to input/output/cache_read/cache_write/provider. "
+        "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. "
                 "Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     }
     if write:
@@ -196,21 +199,26 @@ class Bucket:
     output: int = 0
     cache_read: int = 0
     cache_write: int = 0
+    # Anthropic's 1-hour prompt-cache writes are billed at 2x input, twice the
+    # 1.25x that a 5-minute write costs, so they are counted apart.
+    cache_write_1h: int = 0
 
     def add(self, o: "Bucket") -> None:
         self.input += o.input
         self.output += o.output
         self.cache_read += o.cache_read
         self.cache_write += o.cache_write
+        self.cache_write_1h += o.cache_write_1h
 
     def total_tokens(self) -> int:
-        return self.input + self.output + self.cache_read + self.cache_write
+        return self.input + self.output + self.cache_read + self.cache_write + self.cache_write_1h
 
     def cost(self, model: str, prices: dict) -> float | None:
         parts = self.cost_parts(model, prices)
         if parts is None:
             return None
-        return parts["input"] + parts["output"] + parts["cache_read"] + parts["cache_write"]
+        return (parts["input"] + parts["output"] + parts["cache_read"]
+                + parts["cache_write"] + parts["cache_write_1h"])
 
     def cost_parts(self, model: str, prices: dict) -> dict | None:
         """Cost split by billing component, plus what the cache reads would have cost
@@ -223,11 +231,13 @@ class Bucket:
         out = float(p.get("output") or 0)
         cr  = float(p.get("cache_read")  or inp * 0.10)
         cw  = float(p.get("cache_write") or inp * 1.25)
+        cw1h = float(p.get("cache_write_1h") or inp * 2.0)
         return {
             "input":       self.input       * inp,
             "output":      self.output      * out,
             "cache_read":  self.cache_read  * cr,
             "cache_write": self.cache_write * cw,
+            "cache_write_1h": self.cache_write_1h * cw1h,
             # Counterfactual: the same cached prompt tokens billed as ordinary input.
             "uncached_equivalent": self.cache_read * inp,
         }
@@ -235,7 +245,7 @@ class Bucket:
     def prompt_tokens(self) -> int:
         """Every prompt token is billed as exactly one of uncached input, a cache read,
         or a cache write -- so these three are the denominator for a hit rate."""
-        return self.input + self.cache_read + self.cache_write
+        return self.input + self.cache_read + self.cache_write + self.cache_write_1h
 
     def cache_hit_rate(self) -> float | None:
         prompt = self.prompt_tokens()
@@ -252,6 +262,10 @@ class SessionAgg:
     last_ts: str = ""
     by_model: dict[str, Bucket] = field(default_factory=dict)
     compactions: list[dict] = field(default_factory=list)   # {ts, tokens_before}
+    # Claude Code writes one jsonl line per content block of a response, each
+    # repeating the same usage. This maps an API call to what was already
+    # billed for it so a repeat replaces rather than adds.
+    claude_calls: dict = field(default_factory=dict)
 
     def bucket(self, model: str) -> Bucket:
         return self.by_model.setdefault(model or "<unknown>", Bucket())
@@ -272,7 +286,8 @@ class SessionAgg:
     def cost_parts(self, prices: dict) -> dict:
         """Per-component spend summed across models, each at its own rate."""
         agg = {"input": 0.0, "output": 0.0, "cache_read": 0.0,
-               "cache_write": 0.0, "uncached_equivalent": 0.0}
+               "cache_write": 0.0, "cache_write_1h": 0.0,
+               "uncached_equivalent": 0.0}
         for model, bucket in self.by_model.items():
             parts = bucket.cost_parts(model, prices)
             if parts is None:
@@ -387,16 +402,41 @@ def parse_claude_code(line: str, agg: SessionAgg) -> None:
     model = msg.get("model") or "<unknown>"
     if model == "<synthetic>":
         return
-    b = agg.bucket(model)
-    b.input      += _int(u.get("input_tokens"))
-    b.output     += _int(u.get("output_tokens"))
-    b.cache_read += _int(u.get("cache_read_input_tokens"))
     cc = u.get("cache_creation") or {}
     if cc:
-        b.cache_write += _int(cc.get("ephemeral_5m_input_tokens"))
-        b.cache_write += _int(cc.get("ephemeral_1h_input_tokens"))
+        write_5m  = _int(cc.get("ephemeral_5m_input_tokens"))
+        write_1h  = _int(cc.get("ephemeral_1h_input_tokens"))
     else:
-        b.cache_write += _int(u.get("cache_creation_input_tokens"))
+        write_5m  = _int(u.get("cache_creation_input_tokens"))
+        write_1h  = 0
+    call = (
+        _int(u.get("input_tokens")),
+        _int(u.get("output_tokens")),
+        _int(u.get("cache_read_input_tokens")),
+        write_5m,
+        write_1h,
+    )
+    # Claude Code writes one jsonl line per content block of a response and
+    # repeats the same usage on each. A streaming assistant message also
+    # reports a growing output_tokens as the answer is produced. Both cases
+    # mean the same API call, so the last line for a call replaces what the
+    # earlier lines billed rather than adding to it.
+    key = (msg.get("id"), d.get("requestId"))
+    if key in agg.claude_calls:
+        prev_model, prev = agg.claude_calls[key]
+        pb = agg.bucket(prev_model)
+        pb.input      -= prev[0]
+        pb.output     -= prev[1]
+        pb.cache_read -= prev[2]
+        pb.cache_write    -= prev[3]
+        pb.cache_write_1h -= prev[4]
+    agg.claude_calls[key] = (model, call)
+    b = agg.bucket(model)
+    b.input      += call[0]
+    b.output     += call[1]
+    b.cache_read += call[2]
+    b.cache_write    += call[3]
+    b.cache_write_1h += call[4]
 
 
 def parse_codex(line: str, agg: SessionAgg) -> None:
@@ -735,6 +775,7 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
     print(f"   file:   {a.path}")
     print(f"   tokens: in={toks(c.input)} out={toks(c.output)} "
           f"cache_r={toks(c.cache_read)} cache_w={toks(c.cache_write)} "
+          f"cache_w_1h={toks(c.cache_write_1h)} "
           f"total={toks(c.total_tokens())}")
     if a.compactions:
         tb = [x["tokens_before"] for x in a.compactions if x["tokens_before"]]
@@ -749,10 +790,12 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
         print(f"   cache:  {hit * 100:.1f}% of {toks(c.prompt_tokens())} prompt tokens "
               f"served from cache · saved {money(saved)} vs the same tokens as fresh input")
     parts = a.cost_parts(prices)
-    if any(parts[k] for k in ("input", "output", "cache_read", "cache_write")):
+    if any(parts[k] for k in ("input", "output", "cache_read", "cache_write", "cache_write_1h")):
         print(f"   spend:  in {money(parts['input'])} · out {money(parts['output'])} "
               f"· cache read {money(parts['cache_read'])} "
-              f"· cache write {money(parts['cache_write'])}")
+              f"· cache write {money(parts['cache_write'])}"
+              + (f" · cache write 1h {money(parts['cache_write_1h'])}"
+                 if parts["cache_write_1h"] else ""))
     unpriced = a.unpriced(prices)
     line = f"   cost:   {money(a.total_cost(prices))}"
     if unpriced:
@@ -765,7 +808,8 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
             print(f"     - {m:40s} in={toks(b.input):>10s} "
                   f"out={toks(b.output):>10s} "
                   f"cache_r={toks(b.cache_read):>10s} "
-                  f"cache_w={toks(b.cache_write):>10s} cost={cs}")
+                  f"cache_w={toks(b.cache_write):>10s} "
+                  f"cache_w_1h={toks(b.cache_write_1h):>10s} cost={cs}")
 
 
 def to_dict(a: SessionAgg, prices: dict) -> dict:
@@ -782,6 +826,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
             "output":     c.output,
             "cache_read": c.cache_read,
             "cache_write": c.cache_write,
+            "cache_write_1h": c.cache_write_1h,
             "total":      c.total_tokens(),
             "prompt_tokens":  c.prompt_tokens(),
             "cache_hit_rate": (round(c.cache_hit_rate(), 6)
@@ -797,6 +842,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
                 "output":     b.output,
                 "cache_read": b.cache_read,
                 "cache_write": b.cache_write,
+                "cache_write_1h": b.cache_write_1h,
                 "cost_usd":   (round(b.cost(m, prices), 6)
                                if b.cost(m, prices) is not None else None),
                 "priced":     price_for(m, prices) is not None,

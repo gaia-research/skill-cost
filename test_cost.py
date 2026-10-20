@@ -1,3 +1,4 @@
+import json
 import os
 import sqlite3
 import tempfile
@@ -307,3 +308,96 @@ class CacheReportingTests(unittest.TestCase):
         agg.by_model["test-cheap-x"] = cost.Bucket(cache_read=1_000_000)
         # $4.50 saved on the dear model, $0.90 on the cheap one.
         self.assertAlmostEqual(agg.cache_savings(prices), 4.5 + 0.9)
+
+
+class ClaudeCodeUsageTests(unittest.TestCase):
+    """Claude Code writes one jsonl line per content block of a response and repeats
+    the same usage on each, and a streaming assistant message reports a growing
+    output_tokens as the answer is produced. Summing every line bills the same API
+    call several times over. A call is identified by (message.id, requestId) and
+    the last line for it wins."""
+
+    PRICES = {
+        "test-opus-x": {
+            "input": 4e-6,
+            "output": 2e-5,
+            "cache_read": 2e-7,
+            "cache_write": 5e-6,
+            "cache_write_1h": 8e-6,
+        }
+    }
+
+    def _line(self, msg_id: str, request_id: str, uuid: str, usage: dict) -> str:
+        return json.dumps({
+            "type": "assistant",
+            "uuid": uuid,
+            "requestId": request_id,
+            "timestamp": "2026-01-01T00:00:00.000Z",
+            "message": {"id": msg_id, "model": MODEL, "usage": usage},
+        })
+
+    def _agg(self, lines: list[str]) -> cost.SessionAgg:
+        agg = cost.SessionAgg(harness="claude-code", path="p")
+        for line in lines:
+            cost.parse_claude_code(line, agg)
+        return agg
+
+    def test_duplicate_content_block_lines_are_counted_once(self) -> None:
+        usage = {"input_tokens": 2, "output_tokens": 547,
+                 "cache_read_input_tokens": 28_588,
+                 "cache_creation": {"ephemeral_5m_input_tokens": 0,
+                                    "ephemeral_1h_input_tokens": 42_771}}
+        lines = [self._line("msg_1", "req_1", f"u{i}", usage) for i in range(4)]
+        agg = self._agg(lines)
+        b = agg.by_model[MODEL]
+        self.assertEqual(b.input, 2)
+        self.assertEqual(b.output, 547)
+        self.assertEqual(b.cache_read, 28_588)
+        self.assertEqual(b.cache_write_1h, 42_771)
+        self.assertEqual(b.total_tokens(), 2 + 547 + 28_588 + 42_771)
+
+    def test_distinct_calls_are_still_counted_separately(self) -> None:
+        usage = {"input_tokens": 2, "output_tokens": 100,
+                 "cache_read_input_tokens": 1_000,
+                 "cache_creation": {"ephemeral_5m_input_tokens": 500,
+                                    "ephemeral_1h_input_tokens": 0}}
+        lines = [self._line("msg_1", "req_1", "u1", usage),
+                 self._line("msg_2", "req_2", "u2", usage)]
+        agg = self._agg(lines)
+        b = agg.by_model[MODEL]
+        self.assertEqual(b.input, 4)
+        self.assertEqual(b.output, 200)
+        self.assertEqual(b.cache_read, 2_000)
+
+    def test_last_line_wins_when_output_grows_while_streaming(self) -> None:
+        early = {"input_tokens": 2, "output_tokens": 8,
+                 "cache_read_input_tokens": 60_040,
+                 "cache_creation": {"ephemeral_5m_input_tokens": 0,
+                                    "ephemeral_1h_input_tokens": 8_733}}
+        late = dict(early, output_tokens=431)
+        agg = self._agg([self._line("msg_1", "req_1", "u1", early),
+                         self._line("msg_1", "req_1", "u2", late)])
+        self.assertEqual(agg.by_model[MODEL].output, 431)
+
+    def test_one_hour_cache_writes_are_priced_at_the_one_hour_rate(self) -> None:
+        b = cost.Bucket(cache_write=1_000, cache_write_1h=1_000)
+        parts = b.cost_parts(MODEL, self.PRICES)
+        self.assertAlmostEqual(parts["cache_write"], 1_000 * 5e-6)
+        self.assertAlmostEqual(parts["cache_write_1h"], 1_000 * 8e-6)
+        self.assertAlmostEqual(
+            parts["input"] + parts["output"] + parts["cache_read"]
+            + parts["cache_write"] + parts["cache_write_1h"],
+            b.cost(MODEL, self.PRICES),
+        )
+
+    def test_one_hour_cache_writes_fall_back_to_twice_input(self) -> None:
+        prices = {"test-opus-x": {"input": 4e-6, "output": 2e-5,
+                                  "cache_read": 2e-7, "cache_write": 5e-6}}
+        b = cost.Bucket(cache_write_1h=1_000)
+        parts = b.cost_parts(MODEL, prices)
+        self.assertAlmostEqual(parts["cache_write_1h"], 1_000 * 8e-6)
+
+    def test_one_hour_cache_writes_count_toward_the_prompt_token_total(self) -> None:
+        b = cost.Bucket(input=10, cache_read=100, cache_write=5, cache_write_1h=7)
+        self.assertEqual(b.prompt_tokens(), 10 + 100 + 5 + 7)
+        self.assertEqual(b.total_tokens(), 10 + 100 + 5 + 7)
