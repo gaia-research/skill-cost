@@ -485,7 +485,48 @@ class RunReportTests(unittest.TestCase):
         self.assertIn("| Role | Model |", text)
         self.assertIn("| lead | claude-sonnet-5-5 |", text)
         self.assertIn("not a bill", text)
-        self.assertIn("Actual billed spend:** null", text)
+        self.assertIn("User-supplied billed figure (unverified):** none supplied", text)
+        self.assertNotIn("Actual billed spend", text)
+        self.assertIn("complete (measured tokens); USD complete", text)
+
+    def test_partial_usd_is_marked_in_status_and_total_row(self) -> None:
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5"),
+            self._rec("msg_x", "req_x", "claude-haiku-5-9-preview"),
+        ])
+        _, _, text = self._run("--markdown")
+        self.assertIn("complete (measured tokens); USD partial: 1 unpriced model(s)", text)
+        self.assertIn("≥ **$", text)
+        self.assertIn("(partial)", text)
+        self.assertIn("no USD: no exact catalog entry", text)
+
+    def test_billed_figure_is_labelled_unverified_and_disclaimed(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIn("not verified by this tool", rep["disclaimer"])
+        self.assertIn("user-supplied", rep["disclaimer"])
+        _, _, text = self._run("--markdown", "--billed-usd", "12.5",
+                               "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIn("User-supplied billed figure (unverified):** $12.5000", text)
+        self.assertNotIn("Actual billed spend", text)
+        self.assertIn("not verified by this tool", text)
+
+    def test_unsupplied_billed_figure_has_no_billed_disclaimer(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertNotIn("user-supplied", rep["disclaimer"])
+        self.assertIn("not a bill", rep["disclaimer"])
+
+    def test_billed_flags_without_run_report_are_a_usage_error(self) -> None:
+        self._standard_fixture()
+        err = StringIO()
+        buf = StringIO()
+        with redirect_stdout(buf), mock.patch("sys.stderr", err):
+            code = cost.main(["--offline", "--billed-usd", "3", "--billed-source", "invoice"])
+        self.assertEqual(code, 2)
+        self.assertIn("--run-report", err.getvalue())
+        self.assertEqual(buf.getvalue(), "")
 
     def test_session_selection_by_id_and_absent_session(self) -> None:
         self._standard_fixture()

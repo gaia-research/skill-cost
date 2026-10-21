@@ -886,9 +886,13 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 TOOL_VERSION = "1.2.0"
 RUN_REPORT_SCHEMA = "skill-cost-run-report-v1"
 RUN_DISCLAIMER = (
-    "USD figures are a public-rate equivalent: measured tokens priced at the LiteLLM "
-    "catalog rate. They are not a bill. Claude Code Pro/Max subscription usage is not "
-    "billed per token, so these figures are not an additional API charge."
+    "USD figures are public-rate equivalents: measured tokens priced at the LiteLLM "
+    "catalog rate. They are estimates, not a bill. Claude Code Pro/Max subscription usage "
+    "is not billed per token, so these figures are not an additional API charge."
+)
+BILLED_NOTE = (
+    "The actual billed figure, when present, is user-supplied through --billed-usd and is "
+    "not verified by this tool. It is not derived from the logs."
 )
 UNATTRIBUTED = "unattributed"
 
@@ -1376,8 +1380,9 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         if log.bad_lines:
             incomplete.append(f"{log.bad_lines} unparsable line(s) in {_report_path(log, main)}")
         if log.malformed_usage:
-            incomplete.append(f"{log.malformed_usage} usage record(s) with negative, boolean or "
-                              f"non-numeric token counts excluded from totals in "
+            incomplete.append(f"{log.malformed_usage} malformed usage record(s) (negative, "
+                              f"boolean or non-numeric token counts, or a cache-write split "
+                              f"that cannot be placed) excluded from totals in "
                               f"{_report_path(log, main)}")
 
     if billed is None:
@@ -1457,7 +1462,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         },
         "rows": row_out,
         "actualBilledSpend": actual,
-        "disclaimer": RUN_DISCLAIMER,
+        "disclaimer": RUN_DISCLAIMER + (" " + BILLED_NOTE if billed is not None else ""),
         "prices": {
             "file": prices_path.name,
             "sha256": prices_sha,
@@ -1486,11 +1491,17 @@ def render_run_markdown(rep: dict) -> str:
         return str(s).replace("|", "\\|")
 
     s = rep["session"]
+    pub = rep["publicRateUsdEquivalent"]
     out = ["## skill-cost run report", ""]
     if rep["complete"]:
-        out.append("- **Status:** complete")
+        status = "complete (measured tokens)"
     else:
-        out.append("- **Status:** INCOMPLETE — " + "; ".join(rep["incompleteReasons"]))
+        status = "INCOMPLETE — " + "; ".join(rep["incompleteReasons"])
+    if pub["complete"]:
+        status += "; USD complete"
+    else:
+        status += f"; USD partial: {len(rep['unknownPrices'])} unpriced model(s)"
+    out.append(f"- **Status:** {status}")
     cwd_txt = (f"`{s['cwd']}` (cwdSha256 `{s['cwdSha256']}`)" if s["cwd"] else "unknown")
     out.append(f"- **Session:** `{s['sessionId']}` · lead model `{s['leadModel'] or 'unknown'}` "
                f"· cwd {cwd_txt}")
@@ -1509,22 +1520,31 @@ def render_run_markdown(rep: dict) -> str:
                    f"| {toks(t['cacheWrite'] + t['cacheWrite1h'])} | {usd} "
                    f"| {'yes' if r['priced'] else 'no'} |")
     m = rep["measuredTokens"]
-    pub = rep["publicRateUsdEquivalent"]
+    if pub["complete"]:
+        total_usd = f"**${pub['usd']:,.4f}**"
+    else:
+        total_usd = f"≥ **${pub['usd']:,.4f}** (partial)"
     out.append(f"| **total** | | {toks(m['input'])} | {toks(m['output'])} "
                f"| {toks(m['cacheRead'])} | {toks(m['cacheWrite'] + m['cacheWrite1h'])} "
-               f"| **${pub['usd']:,.4f}** | |")
+               f"| {total_usd} | |")
     out.append("")
     out.append(f"- **Public-rate USD equivalent:** ${pub['usd']:,.4f} "
                f"({pub['kind']}; complete={str(pub['complete']).lower()})")
     if rep["unknownPrices"]:
-        parts = [f"`{u['model']}` ({toks(u['tokens'])} tokens, no USD)" for u in rep["unknownPrices"]]
+        parts = [f"`{u['model']}` ({toks(u['tokens'])} tokens, no USD: "
+                 f"{UNKNOWN_PRICE_REASONS.get(u['reason'], u['reason'])})"
+                 for u in rep["unknownPrices"]]
         out.append("- **Unknown prices (never substituted):** " + ", ".join(parts)
                    + " — run `python3 cost.py --refresh-prices` if the model is new")
+    if rep["priceAssumptions"]:
+        parts = [f"`{a['model']}`, {toks(a['tokens'])} tokens: {a['assumption']}"
+                 for a in rep["priceAssumptions"]]
+        out.append("- **Price assumptions (USD only):** " + "; ".join(parts))
     b = rep["actualBilledSpend"]
     if b["usd"] is None:
-        out.append(f"- **Actual billed spend:** null ({b['reason']})")
+        out.append(f"- **User-supplied billed figure (unverified):** none supplied ({b['reason']})")
     else:
-        out.append(f"- **Actual billed spend:** ${b['usd']:,.4f} "
+        out.append(f"- **User-supplied billed figure (unverified):** ${b['usd']:,.4f} "
                    f"(source: {b['source']}; {b['provenance']})")
     if rep["inaccessible"]:
         out.append("- **Inaccessible:**")
@@ -1657,6 +1677,11 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--billed-source", metavar="TEXT",
                     help="with --run-report: where --billed-usd came from (required with it)")
     args = ap.parse_args(argv)
+
+    if (args.billed_usd is not None or args.billed_source is not None) and not args.run_report:
+        print("error: --billed-usd and --billed-source are only valid with --run-report",
+              file=sys.stderr)
+        return 2
 
     if args.refresh_prices:
         refresh_prices(write=True)
