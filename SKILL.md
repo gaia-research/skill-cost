@@ -133,7 +133,7 @@ python3 cost.py --run-report --json --billed-usd 12.50 --billed-source "Anthropi
 
 Flags: `--session` (substring on the session id), `--cwd` (recorded cwd), `--json`,
 `--markdown`, `--role-map FILE`, `--strict`, `--billed-usd N` with `--billed-source TEXT`
-(required together), `--offline`.
+(required together, and only valid with `--run-report`; otherwise exit 2), `--offline`.
 
 ### Role map file
 
@@ -167,29 +167,79 @@ Rules run in this order. The first match wins.
 
 - **Measured tokens** (`measuredTokens`) are read from the logs. Each API call is
   counted once across the main and subagent transcripts. Records are keyed by
-  `message.id` + `requestId`. Streaming copies of one call collapse to the largest.
+  `message.id` + `requestId`, and streaming copies of one call collapse to the largest.
+  If any copy of a `message.id` has no `requestId`, every copy with that id is one call.
+- **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A usage
+  record with a negative, boolean, non-numeric or non-integral token count, or with a
+  cache-write split that cannot be placed, is excluded from every total. It counts here
+  and sets `complete: false`. Counts are never zero-filled or coerced. A cache-write
+  total with a missing 5-minute or 1-hour part is split from
+  `cache_creation_input_tokens`. A part with no total to split from is malformed.
 - **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
-  catalog rate. It is an equivalent, not a bill. Pricing uses exact catalog keys
-  (after the same name normalization as the normal view), with no substring
-  fallback. A model with no exact entry is listed in `unknownPrices` with its tokens and
-  no USD, and it is never priced with a different model's rate.
-- **Actual billed spend** (`actualBilledSpend`) is always `null` with
+  catalog rate. It is an equivalent, not a bill. Pricing uses exact catalog keys (after
+  the same name normalization as the normal view), with no substring fallback. Three
+  cases are never filled in silently:
+  - A model with no exact entry is listed in `unknownPrices` with
+    `reason: "no-catalog-entry"`, and it is never priced with another model's rate.
+  - A model whose entry has no output price is listed with
+    `reason: "incomplete-price-entry"`. It is not priced as if output were free.
+  - A missing cache price falls back to 10% (cache read), 125% (5-minute cache write)
+    or 200% (1-hour cache write) of the input rate. Each fallback, with the tokens it
+    covers, is listed in `priceAssumptions[]`. So is a cache-write split that had to be
+    inferred. A catalog value of `0` is kept as `0`.
+  `publicRateUsdEquivalent.complete` is `false` whenever `unknownPrices` is non-empty.
+  The markdown status then says `USD partial: N unpriced model(s)`, and the total row
+  reads `≥ $X (partial)`, meaning a lower bound.
+- **User-supplied billed figure** (`actualBilledSpend`) is `null` with
   `reason: "not measured by this tool"`, unless the caller supplies `--billed-usd` and
-  `--billed-source`. Those values are echoed with that provenance and never checked.
+  `--billed-source`. The markdown labels it `User-supplied billed figure (unverified)`.
+  The value is echoed with that provenance. It is never checked against an invoice or
+  against the logs, and the disclaimer says so.
 - **Subscriptions.** Claude Code Pro/Max usage is not billed per token. Never present
   the USD figure as an extra API charge. The `disclaimer` field and the markdown
   footer say so.
-- **Completeness.** A referenced subagent with no transcript, a role-map key that
-  matches nothing, an unreadable file, or an unparsable JSON line sets
-  `complete: false` and records the reason under `incompleteReasons` and
-  `inaccessible[]`. The report is still written, and the exit code stays 0 unless
-  `--strict` is set, in which case it is 3. Numbers are never invented to fill a gap.
+- **Completeness.** `complete` is `false` (exit 0, or exit 3 with `--strict`) when any
+  of these holds. Each is recorded in `incompleteReasons`, and each subagent case also
+  in `inaccessible[]`:
+  - a subagent is named by a `toolUseResult.agentId` in a transcript (the main session or
+    a subagent) and no transcript exists for it;
+  - a subagent has a metadata sidecar but no transcript, or a `--role-map` key matches
+    no session or subagent;
+  - a transcript cannot be read, or a JSON line cannot be parsed;
+  - a usage record is malformed (see above).
+  The report is still written. Numbers are never invented to fill a gap.
 - **Advisor.** Records can carry `advisorModel`. That field is metadata, not usage.
   If no usage record for it exists, the report warns that advisor tokens are not
   visible in the logs.
-- **Provenance.** Each run records `prices.json` sha256, source URL and fetch
-  time, the tool version, the generation time, and the log files read (relative
-  paths with sha256, size and mtime).
+- **Provenance and privacy.** The report contains no absolute paths, so it is safe to
+  paste. `session.cwd` is the directory's basename. `session.cwdSha256` is the first 8
+  hex characters of the sha256 of the full cwd, so two reports from one directory can
+  be correlated. `logPath` and `files[].path` are `<session>.jsonl` or
+  `<session>/subagents/<file>`, relative to the projects root and without the encoded
+  project directory (that directory name spells out the cwd). Each file entry has its
+  sha256, size, mtime, usage-record count and malformed count. The run also records
+  the `prices.json` sha256, source URL and fetch time, the tool version, the generation
+  time, and the role-map sha256 when one is given.
+
+### Limitations
+
+- `--run-report` reads Claude Code only: the main session and its subagent transcripts.
+  Anything outside those files is not measured. Advisor tokens appear only if their
+  usage records are in these logs.
+- Missing, unreadable or malformed data makes the report `complete: false`. It does not
+  estimate. A complete report is a checked total for the logs it read, not a bill.
+- `--role-map` is the only way to tell two same-model subagents apart. Without it they
+  share a `subagent:<model>` role.
+- **The default `/cost` view is not covered by these rules, and it is unchanged.** It
+  shares the Claude Code parser, which keeps its earlier behavior so that default output
+  stays byte-identical. In that view, a negative or boolean token count is added as
+  is (`true` counts as 1). A cache-write total is dropped when `cache_creation` has no
+  `ephemeral_5m_input_tokens`. One message id with and without a `requestId` is counted
+  twice. A usage value that is not an object, or a non-object JSON line, stops the view
+  with an `AttributeError`. Use `--run-report` for a checked total of one session.
+- The price catalog is LiteLLM's. A model it does not list is reported under
+  `unknownPrices`, never guessed. Run `python3 cost.py --refresh-prices` if a new model
+  shows up there.
 
 ### How a Gaia Steward campaign calls it
 
@@ -203,7 +253,9 @@ python3 cost.py --run-report --json --offline --session <lead-session-id> --role
 Paste the markdown rendering (`--markdown`) into the campaign issue or PR comment.
 Do not hand-write the numbers, and do not add a billed figure unless the invoice was
 read. If the report says `complete: false`, state that in the comment and list the
-`inaccessible[]` entries. Do not present the totals as complete.
+`inaccessible[]` entries and `incompleteReasons`. Do not present the totals as complete.
+If `publicRateUsdEquivalent.complete` is `false`, say that the USD total is a lower bound
+and name the `unknownPrices` models.
 
 ## Presenting results to the user
 
