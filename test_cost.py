@@ -534,6 +534,65 @@ class RunReportTests(unittest.TestCase):
         self.assertEqual((agent_type, err), ("", "Permission denied"))
         self.assertNotIn(str(self.home), err)
 
+    def test_negative_boolean_and_string_counts_are_excluded_and_flagged(self) -> None:
+        def usage(**over):
+            return dict(self.USAGE, **over)
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_neg", "req_neg", "claude-sonnet-5-5", usage=usage(input_tokens=-3)),
+            self._rec("msg_bool", "req_bool", "claude-sonnet-5-5", usage=usage(output_tokens=True)),
+            self._rec("msg_str", "req_str", "claude-sonnet-5-5", usage=usage(output_tokens="12")),
+            json.dumps({"type": "assistant", "requestId": "req_k", "timestamp": "2026-01-01T00:00:01Z",
+                        "message": {"id": "msg_k", "model": "claude-sonnet-5-5", "usage": "oops"}}),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 4)
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any("excluded from totals" in r for r in rep["incompleteReasons"]))
+        # Only the valid record reaches the totals: no -3, no True-as-1, no "12".
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        main_entry = [f for f in rep["files"] if f["kind"] == "main"][0]
+        self.assertEqual(main_entry["malformedUsageRecords"], 4)
+        self.assertEqual(main_entry["usageRecords"], 1)
+
+    def test_missing_cache_write_part_is_derived_from_the_total(self) -> None:
+        partial = dict(self.USAGE, cache_creation_input_tokens=40,
+                       cache_creation={"ephemeral_1h_input_tokens": 8})
+        self._main_file([self._rec("msg_p", "req_p", "claude-sonnet-5-5", usage=partial)])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 32)
+        self.assertEqual(rep["measuredTokens"]["cacheWrite1h"], 8)
+        self.assertEqual(rep["malformedUsage"], 0)
+        self.assertTrue(rep["complete"])
+
+    def test_cache_write_part_that_cannot_be_placed_is_malformed(self) -> None:
+        orphan_5m = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                     "cache_creation": {"ephemeral_5m_input_tokens": 5}}
+        bigger_1h = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                     "cache_creation_input_tokens": 4,
+                     "cache_creation": {"ephemeral_1h_input_tokens": 8}}
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_o", "req_o", "claude-sonnet-5-5", usage=orphan_5m),
+            self._rec("msg_b", "req_b", "claude-sonnet-5-5", usage=bigger_1h),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 50)
+        self.assertEqual(rep["measuredTokens"]["cacheWrite1h"], 0)
+
+    def test_legacy_total_only_usage_still_counts_as_five_minute_writes(self) -> None:
+        legacy = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                  "cache_creation_input_tokens": 7}
+        self.assertEqual(cost.run_usage_tuple(legacy), ((1, 1, 0, 7, 0), False))
+        self._main_file([self._rec("msg_l", "req_l", "claude-sonnet-5-5", usage=legacy)])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 7)
+        self.assertTrue(rep["complete"])
+
 
 if __name__ == "__main__":
     unittest.main()

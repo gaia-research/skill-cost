@@ -924,6 +924,75 @@ def load_role_map(path: str) -> tuple[dict, str]:
     return out, hashlib.sha256(raw).hexdigest()
 
 
+_ABSENT = object()
+_BAD = object()
+
+
+def _count_field(src: dict, key: str):
+    """One token count from untrusted JSON. Absent -> _ABSENT. Negative, boolean,
+    non-numeric, non-integral or non-finite -> _BAD. Used by run reports only: the
+    default view keeps claude_usage_tuple, where True would count as 1 and -3 as -3."""
+    if key not in src:
+        return _ABSENT
+    v = src[key]
+    if isinstance(v, bool):
+        return _BAD
+    if isinstance(v, int):
+        return v if v >= 0 else _BAD
+    if isinstance(v, float) and math.isfinite(v) and v.is_integer() and v >= 0:
+        return int(v)
+    return _BAD
+
+
+def run_usage_tuple(u: dict):
+    """Strict (input, output, cache_read, cache_write_5m, cache_write_1h) from a Claude
+    Code `message.usage` object, as (tuple, split_inferred). Returns None when the record
+    is malformed, and the caller excludes it from totals. Never zero-fills a count that
+    cannot be placed: a missing 5m or 1h part is derived from cache_creation_input_tokens,
+    and if that total is absent too the record is malformed."""
+    fixed = []
+    for key in ("input_tokens", "output_tokens", "cache_read_input_tokens"):
+        v = _count_field(u, key)
+        if v is _BAD:
+            return None
+        fixed.append(0 if v is _ABSENT else v)
+    total = _count_field(u, "cache_creation_input_tokens")
+    if total is _BAD:
+        return None
+    cc = u.get("cache_creation")
+    legacy = cc is None          # older records carry only the total
+    if legacy:
+        cc = {}
+    elif not isinstance(cc, dict):
+        return None
+    five = _count_field(cc, "ephemeral_5m_input_tokens")
+    one = _count_field(cc, "ephemeral_1h_input_tokens")
+    if five is _BAD or one is _BAD:
+        return None
+    inferred = False
+    if five is _ABSENT and one is _ABSENT:
+        if total is _ABSENT:
+            write_5m = write_1h = 0
+        else:
+            write_5m, write_1h = total, 0
+            inferred = not legacy
+    elif five is _ABSENT or one is _ABSENT:
+        if total is _ABSENT:
+            return None
+        if five is _ABSENT:
+            if one > total:
+                return None
+            write_5m, write_1h = total - one, one
+        else:
+            if five > total:
+                return None
+            write_5m, write_1h = five, total - five
+        inferred = True
+    else:
+        write_5m, write_1h = five, one
+    return (fixed[0], fixed[1], fixed[2], write_5m, write_1h), inferred
+
+
 @dataclass
 class LogRead:
     """One Claude Code transcript, read whole. `usage` holds one entry per usage-bearing
@@ -941,6 +1010,7 @@ class LogRead:
     usage: list = field(default_factory=list)
     advisor_models: set = field(default_factory=set)
     bad_lines: int = 0
+    malformed_usage: int = 0
     error: str = ""
     agent_type: str = ""
 
@@ -986,14 +1056,20 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
             r.advisor_models.add(str(d["advisorModel"]))
         msg = d.get("message") if isinstance(d.get("message"), dict) else {}
         u = msg.get("usage")
-        if not isinstance(u, dict) or not u:
+        if u is None or u == {}:
             continue
         model = str(msg.get("model") or "<unknown>")
         if model == "<synthetic>":
             continue
+        parsed = run_usage_tuple(u) if isinstance(u, dict) else None
+        if parsed is None:
+            r.malformed_usage += 1
+            continue
+        tokens, split_inferred = parsed
         msg_id = msg.get("id")
         key = (str(msg_id), str(d.get("requestId") or "")) if msg_id else None
-        r.usage.append({"key": key, "model": model, "tokens": claude_usage_tuple(u)})
+        r.usage.append({"key": key, "model": model, "tokens": tokens,
+                        "split_inferred": split_inferred})
     return r
 
 
@@ -1015,7 +1091,34 @@ def select_main_session(root: Path, session_sub: str | None, cwd: str | None) ->
         cands = [p for p in cands if _first_cwd(p) and norm_path(_first_cwd(p)) == want]
     if not cands:
         return None
-    return max(cands, key=lambda p: artifact_activity(str(p), "claude-code"))
+    return max(cands, key=_claude_activity)
+
+
+def _claude_activity(path: Path) -> float:
+    """Newest timestamp in a transcript's tail, read without the default parser. The
+    default parser raises on a non-object line or a non-object usage, and a run report
+    must not crash while choosing its session."""
+    try:
+        with open(path, "rb") as f:
+            size = f.seek(0, os.SEEK_END)
+            f.seek(max(0, size - 131_072))
+            tail = f.read()
+        for raw in reversed(tail.splitlines()):
+            try:
+                d = json.loads(raw.decode("utf-8", errors="replace"))
+            except (ValueError, RecursionError):
+                continue
+            ts = d.get("timestamp") if isinstance(d, dict) else None
+            if isinstance(ts, str) and ts:
+                dt = as_dt(ts)
+                if dt:
+                    return dt.timestamp()
+    except OSError:
+        pass
+    try:
+        return os.path.getmtime(path)
+    except OSError:
+        return 0.0
 
 
 def _first_cwd(path: Path) -> str:
@@ -1198,6 +1301,10 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     for log in readable:
         if log.bad_lines:
             incomplete.append(f"{log.bad_lines} unparsable line(s) in {_report_path(log, main)}")
+        if log.malformed_usage:
+            incomplete.append(f"{log.malformed_usage} usage record(s) with negative, boolean or "
+                              f"non-numeric token counts excluded from totals in "
+                              f"{_report_path(log, main)}")
 
     if billed is None:
         actual = {"usd": None, "reason": "not measured by this tool"}
@@ -1220,6 +1327,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
             "sizeBytes": log.size,
             "mtime": log.mtime,
             "usageRecords": len(log.usage),
+            "malformedUsageRecords": log.malformed_usage,
             "unparsableLines": log.bad_lines,
         }
         if log.kind == "subagent":
@@ -1248,6 +1356,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         "inaccessible": inaccessible,
         "roleMap": role_map_info,
         "dedupe": counts,
+        "malformedUsage": sum(log.malformed_usage for log in readable),
         "measuredTokens": _token_dict(measured),
         "publicRateUsdEquivalent": {
             "usd": round(priced_total, 6),
