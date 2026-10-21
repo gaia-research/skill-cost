@@ -234,6 +234,272 @@ class HermesHarnessTests(unittest.TestCase):
         self.assertEqual(payload["sessions"][0]["session_id"], "latest-session")
 
 
+
+class RunReportTests(unittest.TestCase):
+    """--run-report reads one Claude Code main session plus its subagent transcripts.
+    Every usage call is counted once across all files, roles come only from the
+    model family or an explicit role map, and USD is a public-rate equivalent."""
+
+    SID = "11111111-2222-3333-4444-555555555555"
+    AID = "aaaa00000000bbbb1"      # haiku subagent, mapped as builder
+    BID = "aaaa00000000cccc2"      # haiku subagent, mapped as verifier
+    PRICES = {
+        "claude-sonnet-5-5": {"input": 2e-6, "output": 1e-5, "cache_read": 1e-7,
+                              "cache_write": 2.5e-6, "cache_write_1h": 4e-6},
+        "claude-haiku-5-5": {"input": 1e-6, "output": 5e-6, "cache_read": 1e-8,
+                             "cache_write": 1.25e-6, "cache_write_1h": 2e-6},
+        "_meta": {"source": "test", "source_url": "https://example.invalid/prices",
+                  "fetched_at": "2026-01-01T00:00:00Z", "model_count": 2},
+    }
+    USAGE = {"input_tokens": 10, "output_tokens": 100,
+             "cache_read_input_tokens": 1_000,
+             "cache_creation": {"ephemeral_5m_input_tokens": 50,
+                                "ephemeral_1h_input_tokens": 0}}
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self._tmp.name)
+        self.proj = self.home / ".claude" / "projects" / "-work-repo"
+        self.proj.mkdir(parents=True)
+        self.sub_dir = self.proj / self.SID / "subagents"
+        self.sub_dir.mkdir(parents=True)
+        self._env = mock.patch.dict(os.environ, {"HOME": str(self.home)})
+        self._env.start()
+        self._prices = mock.patch.object(cost, "load_prices", return_value=self.PRICES)
+        self._prices.start()
+
+    def tearDown(self) -> None:
+        self._prices.stop()
+        self._env.stop()
+        self._tmp.cleanup()
+
+    # --- fixtures -------------------------------------------------------------
+
+    def _rec(self, msg_id, req, model, usage=None, sidechain=False, uuid="u", advisor=None):
+        d = {"type": "assistant", "uuid": uuid, "requestId": req,
+             "sessionId": self.SID, "cwd": "/work/repo", "isSidechain": sidechain,
+             "timestamp": "2026-01-01T00:00:01.000Z",
+             "message": {"id": msg_id, "model": model, "usage": usage or self.USAGE}}
+        if advisor:
+            d["advisorModel"] = advisor
+        return json.dumps(d)
+
+    def _write(self, path: Path, lines: list[str]) -> None:
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def _main_file(self, lines: list[str]) -> Path:
+        p = self.proj / f"{self.SID}.jsonl"
+        self._write(p, lines)
+        return p
+
+    def _sub_file(self, agent_id: str, lines: list[str], meta: bool = True) -> Path:
+        p = self.sub_dir / f"agent-{agent_id}.jsonl"
+        self._write(p, lines)
+        if meta:
+            (self.sub_dir / f"agent-{agent_id}.meta.json").write_text(
+                json.dumps({"agentType": "general-purpose", "model": "haiku"}), encoding="utf-8")
+        return p
+
+    def _run(self, *extra: str) -> tuple[int, dict | None, str]:
+        buf = StringIO()
+        err = StringIO()
+        with redirect_stdout(buf), mock.patch("sys.stderr", err):
+            code = cost.main(["--run-report", "--offline", *extra])
+        out = buf.getvalue()
+        try:
+            data = json.loads(out) if "--json" in extra or "--markdown" not in extra else None
+        except ValueError:
+            data = None
+        return code, data, out + err.getvalue()
+
+    def _rows(self, rep: dict) -> dict:
+        return {(r["role"], r["model"]): r for r in rep["rows"]}
+
+    def _standard_fixture(self) -> None:
+        # Main session: lead (sonnet) with a streamed call written twice, plus one call
+        # that is also present in a subagent transcript (must count once).
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5", uuid="b"),
+            self._rec("msg_m2", "req_m2", "claude-sonnet-5-5", uuid="c"),
+            self._rec("msg_shared", "req_shared", "claude-haiku-5-5", uuid="d", sidechain=False),
+        ])
+        self._sub_file(self.AID, [
+            self._rec("msg_s1", "req_s1", "claude-haiku-5-5", sidechain=True, uuid="e"),
+            self._rec("msg_shared", "req_shared", "claude-haiku-5-5", sidechain=True, uuid="f"),
+        ])
+        self._sub_file(self.BID, [
+            self._rec("msg_s2", "req_s2", "claude-haiku-5-5", sidechain=True, uuid="g"),
+        ])
+
+    # --- tests ----------------------------------------------------------------
+
+    def test_duplicate_calls_across_main_and_subagent_count_once(self) -> None:
+        self._standard_fixture()
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        # 4 main lines + 2 + 1 subagent lines = 7 keyed records, 5 distinct API calls
+        # (msg_m1 written twice in main; msg_shared in main and a subagent) -> 2 ignored.
+        self.assertEqual(rep["dedupe"]["keyedRecords"], 7)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 2)
+        # Each call contributes 10 input, 100 output, 1000 cache read, 50 cache write.
+        self.assertEqual(rep["measuredTokens"]["input"], 5 * 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 5 * 100)
+        self.assertEqual(rep["measuredTokens"]["cacheRead"], 5 * 1_000)
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 5 * 50)
+
+    def test_default_roles_are_lead_and_subagent_family_never_builder_or_verifier(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        rows = self._rows(rep)
+        self.assertIn(("lead", "claude-sonnet-5-5"), rows)
+        self.assertEqual(rep["session"]["leadModel"], "claude-sonnet-5-5")
+        self.assertIn(("subagent:claude-haiku-5-5", "claude-haiku-5-5"), rows)
+        self.assertFalse(any(r["role"] in ("builder", "verifier") for r in rep["rows"]))
+
+    def test_role_map_assigns_builder_and_verifier_explicitly(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text(json.dumps({
+            "_comment": "ignored",
+            self.AID: "builder",
+            f"agent-{self.BID}": "verifier",
+        }), encoding="utf-8")
+        _, rep, _ = self._run("--json", "--role-map", str(mapping))
+        self.assertTrue(rep["roleMap"]["provided"])
+        self.assertEqual(rep["roleMap"]["entries"], 2)
+        self.assertEqual(rep["complete"], True)
+        roles = set(rep["byRole"])
+        self.assertTrue({"builder", "verifier", "lead"} <= roles)
+        self.assertNotIn("subagent:claude-haiku-5-5", roles)
+
+    def test_bad_role_map_is_a_usage_error(self) -> None:
+        self._standard_fixture()
+        bad = self.home / "bad.json"
+        bad.write_text(json.dumps(["not", "an", "object"]), encoding="utf-8")
+        code, _, text = self._run("--json", "--role-map", str(bad))
+        self.assertEqual(code, 2)
+        self.assertIn("role map", text)
+
+    def test_unknown_model_is_unpriced_and_never_substituted(self) -> None:
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5"),
+            # A model with no catalog entry, sharing a name fragment with a priced model.
+            self._rec("msg_x", "req_x", "claude-haiku-5-9-preview"),
+        ])
+        _, rep, _ = self._run("--json")
+        unknown = {u["model"]: u for u in rep["unknownPrices"]}
+        self.assertIn("claude-haiku-5-9-preview", unknown)
+        self.assertEqual(unknown["claude-haiku-5-9-preview"]["tokens"], 1_110 + 50)
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        row = self._rows(rep)[("unattributed", "claude-haiku-5-9-preview")]
+        self.assertFalse(row["priced"])
+        self.assertIsNone(row["publicRateUsdEquivalent"])
+        # Only the sonnet call contributes USD.
+        sonnet = cost.Bucket(input=10, output=100, cache_read=1_000, cache_write=50)
+        self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"],
+                               sonnet.cost("claude-sonnet-5-5", self.PRICES))
+
+    def test_missing_referenced_subagent_marks_report_incomplete(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text(json.dumps({"deadbeefdeadbeef0": "verifier"}), encoding="utf-8")
+        code, rep, _ = self._run("--json", "--role-map", str(mapping))
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any(i["id"] == "deadbeefdeadbeef0" for i in rep["inaccessible"]))
+        self.assertTrue(rep["incompleteReasons"])
+
+    def test_strict_exits_3_when_incomplete(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text(json.dumps({"deadbeefdeadbeef0": "verifier"}), encoding="utf-8")
+        code, _, _ = self._run("--json", "--role-map", str(mapping), "--strict")
+        self.assertEqual(code, 3)
+
+    def test_meta_without_transcript_is_inaccessible(self) -> None:
+        self._standard_fixture()
+        (self.sub_dir / "agent-ccccdddd00000001.meta.json").write_text(
+            json.dumps({"agentType": "general-purpose"}), encoding="utf-8")
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any(i["id"] == "ccccdddd00000001" and i["kind"] == "subagent"
+                            for i in rep["inaccessible"]))
+
+    def test_unparsable_line_marks_report_incomplete(self) -> None:
+        p = self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        p.write_text(p.read_text(encoding="utf-8") + "{not json\n", encoding="utf-8")
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any("unparsable" in r for r in rep["incompleteReasons"]))
+
+    def test_billed_spend_is_null_unless_supplied(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertIsNone(rep["actualBilledSpend"]["usd"])
+        self.assertEqual(rep["actualBilledSpend"]["reason"], "not measured by this tool")
+
+    def test_billed_spend_is_echoed_with_provenance(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertEqual(rep["actualBilledSpend"]["usd"], 12.5)
+        self.assertEqual(rep["actualBilledSpend"]["source"], "Anthropic invoice 2026-10")
+        self.assertIn("user-supplied", rep["actualBilledSpend"]["provenance"])
+        # The public-rate figure is untouched by the billed figure.
+        self.assertNotEqual(rep["publicRateUsdEquivalent"]["usd"], 12.5)
+
+    def test_billed_usd_without_source_is_rejected(self) -> None:
+        self._standard_fixture()
+        code, _, text = self._run("--json", "--billed-usd", "3")
+        self.assertEqual(code, 2)
+        self.assertIn("together", text)
+
+    def test_json_schema_keys_are_stable(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["schema"], "skill-cost-run-report-v1")
+        self.assertEqual(rep["tool"]["version"], cost.TOOL_VERSION)
+        for key in ("generatedAt", "complete", "incompleteReasons", "session", "files",
+                    "inaccessible", "roleMap", "dedupe", "measuredTokens",
+                    "publicRateUsdEquivalent", "unknownPrices", "byRole", "rows",
+                    "actualBilledSpend", "disclaimer", "prices", "warnings"):
+            self.assertIn(key, rep)
+        for key in ("sha256", "sourceUrl", "fetchedAt", "modelCount", "file"):
+            self.assertIn(key, rep["prices"])
+        self.assertEqual(rep["publicRateUsdEquivalent"]["kind"],
+                         "public-rate equivalent, not a bill")
+        files = {f["path"].rsplit("/", 1)[-1]: f for f in rep["files"]}
+        self.assertIn(f"{self.SID}.jsonl", files)
+        self.assertIn(f"agent-{self.AID}.jsonl", files)
+        for f in rep["files"]:
+            self.assertFalse(os.path.isabs(f["path"]))
+            self.assertEqual(len(f["sha256"]), 64)
+
+    def test_markdown_rendering_has_table_and_disclaimer(self) -> None:
+        self._standard_fixture()
+        _, _, text = self._run("--markdown")
+        self.assertIn("| Role | Model |", text)
+        self.assertIn("| lead | claude-sonnet-5-5 |", text)
+        self.assertIn("not a bill", text)
+        self.assertIn("Actual billed spend:** null", text)
+
+    def test_session_selection_by_id_and_absent_session(self) -> None:
+        self._standard_fixture()
+        code, rep, _ = self._run("--json", "--session", self.SID[:8])
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["session"]["sessionId"], self.SID)
+        code, _, text = self._run("--json", "--session", "no-such-session")
+        self.assertEqual(code, 1)
+        self.assertIn("no matching", text)
+
+    def test_subagent_files_are_not_candidate_main_sessions(self) -> None:
+        self._standard_fixture()
+        found = cost.select_main_session(self.home / ".claude" / "projects",
+                                        None, None)
+        self.assertEqual(found, self.proj / f"{self.SID}.jsonl")
+
+
 if __name__ == "__main__":
     unittest.main()
 

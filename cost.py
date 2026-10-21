@@ -19,7 +19,9 @@ Zero dependencies. Python 3.8+, stdlib only.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
 import os
 import re
 import sqlite3
@@ -189,6 +191,23 @@ def price_for(model: str, prices: dict) -> dict | None:
     return best[1] if best else None
 
 
+def exact_price_for(model: str, prices: dict) -> dict | None:
+    """Exact-key lookup only (after name normalization), with no substring fallback.
+    Run reports use this so a model is never priced with a different model's rate."""
+    if not model or model == "_meta":
+        return None
+    candidates = [model, model.lower()]
+    for fn in NORMALIZERS:
+        try:
+            candidates.append(fn(model.lower()))
+        except Exception:
+            pass
+    for c in candidates:
+        if c != "_meta" and isinstance(prices.get(c), dict):
+            return prices[c]
+    return None
+
+
 # =============================================================================
 # Aggregation
 # =============================================================================
@@ -213,18 +232,20 @@ class Bucket:
     def total_tokens(self) -> int:
         return self.input + self.output + self.cache_read + self.cache_write + self.cache_write_1h
 
-    def cost(self, model: str, prices: dict) -> float | None:
-        parts = self.cost_parts(model, prices)
+    def cost(self, model: str, prices: dict, lookup: Callable | None = None) -> float | None:
+        parts = self.cost_parts(model, prices, lookup)
         if parts is None:
             return None
         return (parts["input"] + parts["output"] + parts["cache_read"]
                 + parts["cache_write"] + parts["cache_write_1h"])
 
-    def cost_parts(self, model: str, prices: dict) -> dict | None:
+    def cost_parts(self, model: str, prices: dict, lookup: Callable | None = None) -> dict | None:
         """Cost split by billing component, plus what the cache reads would have cost
         at full input price. A total that looks surprising is nearly always volume
-        rather than rate, and the only way to see that is to break it apart."""
-        p = price_for(model, prices)
+        rather than rate, and the only way to see that is to break it apart.
+        `lookup` defaults to price_for; run reports pass exact_price_for so that a
+        model is never priced with another model's rate."""
+        p = (lookup or price_for)(model, prices)
         if not p or p.get("input") is None:
             return None
         inp = float(p["input"])
@@ -376,6 +397,25 @@ def parse_pi(line: str, agg: SessionAgg) -> None:
     _ts_update(agg, d.get("timestamp", ""))
 
 
+def claude_usage_tuple(u: dict) -> tuple[int, int, int, int, int]:
+    """(input, output, cache_read, cache_write_5m, cache_write_1h) from a Claude
+    Code `message.usage` object. Shared by the normal and run-report readers."""
+    cc = u.get("cache_creation") or {}
+    if cc:
+        write_5m = _int(cc.get("ephemeral_5m_input_tokens"))
+        write_1h = _int(cc.get("ephemeral_1h_input_tokens"))
+    else:
+        write_5m = _int(u.get("cache_creation_input_tokens"))
+        write_1h = 0
+    return (
+        _int(u.get("input_tokens")),
+        _int(u.get("output_tokens")),
+        _int(u.get("cache_read_input_tokens")),
+        write_5m,
+        write_1h,
+    )
+
+
 def parse_claude_code(line: str, agg: SessionAgg) -> None:
     try:
         d = json.loads(line)
@@ -402,20 +442,7 @@ def parse_claude_code(line: str, agg: SessionAgg) -> None:
     model = msg.get("model") or "<unknown>"
     if model == "<synthetic>":
         return
-    cc = u.get("cache_creation") or {}
-    if cc:
-        write_5m  = _int(cc.get("ephemeral_5m_input_tokens"))
-        write_1h  = _int(cc.get("ephemeral_1h_input_tokens"))
-    else:
-        write_5m  = _int(u.get("cache_creation_input_tokens"))
-        write_1h  = 0
-    call = (
-        _int(u.get("input_tokens")),
-        _int(u.get("output_tokens")),
-        _int(u.get("cache_read_input_tokens")),
-        write_5m,
-        write_1h,
-    )
+    call = claude_usage_tuple(u)
     # Claude Code writes one jsonl line per content block of a response and
     # repeats the same usage on each. A streaming assistant message also
     # reports a growing output_tokens as the answer is produced. Both cases
@@ -853,6 +880,536 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 
 
 # =============================================================================
+# Run report (Claude Code main session + its subagents)
+# =============================================================================
+
+TOOL_VERSION = "1.2.0"
+RUN_REPORT_SCHEMA = "skill-cost-run-report-v1"
+RUN_DISCLAIMER = (
+    "USD figures are a public-rate equivalent: measured tokens priced at the LiteLLM "
+    "catalog rate. They are not a bill. Claude Code Pro/Max subscription usage is not "
+    "billed per token, so these figures are not an additional API charge."
+)
+UNATTRIBUTED = "unattributed"
+
+
+def claude_projects_root() -> Path:
+    return Path.home() / ".claude" / "projects"
+
+
+def _norm_agent_id(key: str) -> str:
+    """Accept `agent-<id>`, `<id>`, `<id>.jsonl` or a session id; return the bare id."""
+    s = key.strip()
+    if s.startswith("agent-"):
+        s = s[len("agent-"):]
+    if s.endswith(".jsonl"):
+        s = s[: -len(".jsonl")]
+    return s
+
+
+def load_role_map(path: str) -> tuple[dict, str]:
+    """Read a role map: a JSON object of {session-id | agent-id: role}. Keys starting
+    with `_` are comments and ignored. Returns (map, sha256 of the file bytes)."""
+    raw = Path(path).read_bytes()
+    data = json.loads(raw.decode("utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("role map must be a JSON object of {id: role}")
+    out: dict[str, str] = {}
+    for key, role in data.items():
+        if str(key).startswith("_"):
+            continue
+        if not isinstance(role, str) or not role.strip():
+            raise ValueError(f"role for {key!r} must be a non-empty string")
+        out[_norm_agent_id(str(key))] = role.strip()
+    return out, hashlib.sha256(raw).hexdigest()
+
+
+@dataclass
+class LogRead:
+    """One Claude Code transcript, read whole. `usage` holds one entry per usage-bearing
+    line; deduplication happens later, across every file of the run."""
+    path: Path
+    kind: str                        # "main" | "subagent"
+    agent_id: str = ""
+    session_id: str = ""
+    cwd: str = ""
+    sha256: str = ""
+    size: int = 0
+    mtime: str = ""
+    first_ts: str = ""
+    last_ts: str = ""
+    usage: list = field(default_factory=list)
+    advisor_models: set = field(default_factory=set)
+    bad_lines: int = 0
+    error: str = ""
+    agent_type: str = ""
+
+
+def _iso_from_epoch(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
+    r = LogRead(path=path, kind=kind, agent_id=agent_id)
+    try:
+        data = path.read_bytes()
+        st = path.stat()
+    except OSError as e:
+        r.error = e.strerror or str(e)
+        return r
+    r.sha256 = hashlib.sha256(data).hexdigest()
+    r.size = len(data)
+    r.mtime = _iso_from_epoch(st.st_mtime)
+    for raw in data.splitlines():
+        s = raw.strip()
+        if not s:
+            continue
+        try:
+            d = json.loads(s.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            r.bad_lines += 1
+            continue
+        if not isinstance(d, dict):
+            r.bad_lines += 1
+            continue
+        if not r.session_id:
+            r.session_id = str(d.get("sessionId") or "")
+        if not r.cwd:
+            r.cwd = str(d.get("cwd") or "")
+        ts = d.get("timestamp")
+        if isinstance(ts, str) and ts:
+            if not r.first_ts or ts < r.first_ts:
+                r.first_ts = ts
+            if ts > r.last_ts:
+                r.last_ts = ts
+        if d.get("advisorModel"):
+            r.advisor_models.add(str(d["advisorModel"]))
+        msg = d.get("message") if isinstance(d.get("message"), dict) else {}
+        u = msg.get("usage")
+        if not isinstance(u, dict) or not u:
+            continue
+        model = str(msg.get("model") or "<unknown>")
+        if model == "<synthetic>":
+            continue
+        msg_id = msg.get("id")
+        key = (str(msg_id), str(d.get("requestId") or "")) if msg_id else None
+        r.usage.append({"key": key, "model": model, "tokens": claude_usage_tuple(u)})
+    return r
+
+
+def _total(tokens: tuple) -> int:
+    return sum(tokens)
+
+
+def select_main_session(root: Path, session_sub: str | None, cwd: str | None) -> Path | None:
+    """Main transcripts are `<projects>/<project>/<session>.jsonl`. Subagent transcripts
+    live one level deeper and are never candidates here."""
+    if not root.is_dir():
+        return None
+    cands = sorted(p for p in root.glob("*/*.jsonl") if p.is_file())
+    if session_sub:
+        sub = session_sub.lower()
+        cands = [p for p in cands if sub in p.stem.lower()]
+    if cwd:
+        want = norm_path(cwd)
+        cands = [p for p in cands if _first_cwd(p) and norm_path(_first_cwd(p)) == want]
+    if not cands:
+        return None
+    return max(cands, key=lambda p: artifact_activity(str(p), "claude-code"))
+
+
+def _first_cwd(path: Path) -> str:
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for i, line in enumerate(f):
+                if i >= 200:
+                    break
+                try:
+                    cwd = json.loads(line).get("cwd")
+                except Exception:
+                    continue
+                if cwd:
+                    return str(cwd)
+    except OSError:
+        pass
+    return ""
+
+
+def _read_meta_agent_type(path: Path) -> tuple[str, str]:
+    """(agentType, error). Only agentType is kept; the sidecar holds other fields."""
+    try:
+        d = json.loads(path.read_text(encoding="utf-8"))
+        return str(d.get("agentType") or ""), ""
+    except (OSError, ValueError, AttributeError) as e:
+        return "", str(e)
+
+
+def _rel(path: Path, root: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return path.name
+
+
+def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
+                     meta_errors: list[str], role_map: dict, prices: dict,
+                     billed: tuple[float, str] | None, root: Path,
+                     prices_path: Path, role_map_info: dict) -> dict:
+    """Assemble the run-level report. Measured tokens come from the logs; USD is a
+    public-rate equivalent; actual billed spend is only ever the user-supplied figure."""
+    inaccessible: list[dict] = []
+    warnings: list[str] = []
+    main_ids = {main.path.stem, main.session_id} - {""}
+    sub_ids = {s.agent_id for s in subs}
+
+    for agent_id in meta_only:
+        inaccessible.append({"kind": "subagent", "id": agent_id,
+                             "reason": "subagent metadata present but transcript file missing"})
+    for s in subs:
+        if s.error:
+            inaccessible.append({"kind": "subagent", "id": s.agent_id,
+                                 "reason": f"transcript unreadable: {s.error}"})
+    for key in sorted(role_map):
+        if key in main_ids or key in sub_ids or key in meta_only:
+            continue
+        inaccessible.append({"kind": "role-map-reference", "id": key,
+                             "reason": "referenced in --role-map but no matching session "
+                                       "or subagent transcript was found"})
+    for err in meta_errors:
+        warnings.append(f"subagent metadata unreadable (agentType unknown): {err}")
+
+    # Global dedupe: one usage record per API call (message.id + requestId) across the
+    # main transcript and every subagent transcript. Streaming records for the same call
+    # carry a growing output count, so the largest total wins; ties keep the first seen.
+    readable = [main] + [s for s in subs if not s.error]
+    keyed: dict = {}
+    unkeyed: list[tuple[LogRead, dict]] = []
+    counts = {"keyedRecords": 0, "duplicatesIgnored": 0, "unkeyedRecords": 0}
+    for log in readable:
+        for rec in log.usage:
+            if rec["key"] is None:
+                unkeyed.append((log, rec))
+                counts["unkeyedRecords"] += 1
+                continue
+            counts["keyedRecords"] += 1
+            prev = keyed.get(rec["key"])
+            if prev is None:
+                keyed[rec["key"]] = (log, rec)
+            else:
+                counts["duplicatesIgnored"] += 1
+                if _total(rec["tokens"]) > _total(prev[1]["tokens"]):
+                    keyed[rec["key"]] = (log, rec)
+    if counts["unkeyedRecords"]:
+        warnings.append(f"{counts['unkeyedRecords']} usage record(s) had no message id and "
+                        "could not be deduplicated; each was counted once")
+    winners = list(keyed.values()) + unkeyed
+
+    # Lead model: the main session's model with the most output tokens.
+    main_out: dict[str, int] = {}
+    for log, rec in winners:
+        if log is main:
+            main_out[rec["model"]] = main_out.get(rec["model"], 0) + rec["tokens"][1]
+    lead_model = max(main_out, key=lambda m: (main_out[m], m)) if main_out else None
+
+    def role_for(log: LogRead, model: str) -> str:
+        if log is main:
+            mapped = role_map.get(main.path.stem) or role_map.get(main.session_id)
+            if mapped:
+                return mapped
+            if model == "<unknown>":
+                return UNATTRIBUTED
+            return "lead" if model == lead_model else UNATTRIBUTED
+        mapped = role_map.get(log.agent_id)
+        if mapped:
+            return mapped
+        if model == "<unknown>":
+            return UNATTRIBUTED
+        # Family-level default only: builder vs verifier is never guessed without a map.
+        return f"subagent:{model}"
+
+    rows: dict[tuple[str, str], Bucket] = {}
+    roles_for_model: dict[str, set] = {}
+    measured = Bucket()
+    per_file: dict[str, int] = {}
+    for log, rec in winners:
+        model = rec["model"]
+        role = role_for(log, model)
+        t = rec["tokens"]
+        b = Bucket(input=t[0], output=t[1], cache_read=t[2],
+                   cache_write=t[3], cache_write_1h=t[4])
+        rows.setdefault((role, model), Bucket()).add(b)
+        measured.add(b)
+        roles_for_model.setdefault(model, set()).add(role)
+        per_file[_rel(log.path, root)] = per_file.get(_rel(log.path, root), 0) + 1
+
+    row_out = []
+    by_role: dict[str, dict] = {}
+    unknown: dict[str, dict] = {}
+    priced_total = 0.0
+    for (role, model) in sorted(rows):
+        b = rows[(role, model)]
+        usd = b.cost(model, prices, exact_price_for)
+        row_out.append({
+            "role": role,
+            "model": model,
+            "priced": usd is not None,
+            "tokens": _token_dict(b),
+            "publicRateUsdEquivalent": round(usd, 6) if usd is not None else None,
+        })
+        slot = by_role.setdefault(role, {"tokens": Bucket(), "usd": 0.0, "unpricedTokens": 0})
+        slot["tokens"].add(b)
+        if usd is None:
+            slot["unpricedTokens"] += b.total_tokens()
+            info = unknown.setdefault(model, {"model": model, "tokens": 0, "roles": set()})
+            info["tokens"] += b.total_tokens()
+            info["roles"].add(role)
+        else:
+            slot["usd"] += usd
+            priced_total += usd
+
+    if lead_model is None:
+        warnings.append("no usage from the main session was found; no lead model inferred")
+    advisor_seen = set()
+    for log in readable:
+        advisor_seen |= log.advisor_models
+    for adv in sorted(advisor_seen - set(roles_for_model)):
+        warnings.append(f"records declare advisorModel {adv!r} but no usage records for it "
+                        "were found; any advisor tokens are not visible in these logs")
+
+    incomplete = [f"{item['id']}: {item['reason']}" for item in inaccessible]
+    for log in readable:
+        if log.bad_lines:
+            incomplete.append(f"{log.bad_lines} unparsable line(s) in {_rel(log.path, root)}")
+
+    if billed is None:
+        actual = {"usd": None, "reason": "not measured by this tool"}
+    else:
+        actual = {"usd": round(billed[0], 6), "source": billed[1],
+                  "provenance": "user-supplied via --billed-usd/--billed-source; "
+                                "not verified by this tool"}
+
+    meta = prices.get("_meta") or {}
+    prices_sha = hashlib.sha256(prices_path.read_bytes()).hexdigest() if prices_path.exists() else ""
+
+    file_entries = []
+    for log in [main] + subs:
+        if log.error:
+            continue
+        entry = {
+            "path": _rel(log.path, root),
+            "kind": log.kind,
+            "sha256": log.sha256,
+            "sizeBytes": log.size,
+            "mtime": log.mtime,
+            "usageRecords": len(log.usage),
+            "unparsableLines": log.bad_lines,
+        }
+        if log.kind == "subagent":
+            entry["agentId"] = log.agent_id
+            entry["agentType"] = log.agent_type
+        file_entries.append(entry)
+
+    return {
+        "schema": RUN_REPORT_SCHEMA,
+        "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "tool": {"name": "skill-cost", "version": TOOL_VERSION},
+        "complete": not incomplete,
+        "incompleteReasons": incomplete,
+        "session": {
+            "harness": "claude-code",
+            "sessionId": main.session_id or main.path.stem,
+            "cwd": main.cwd,
+            "firstTs": main.first_ts,
+            "lastTs": main.last_ts,
+            "leadModel": lead_model,
+            "logPath": _rel(main.path, root),
+        },
+        "files": file_entries,
+        "inaccessible": inaccessible,
+        "roleMap": role_map_info,
+        "dedupe": counts,
+        "measuredTokens": _token_dict(measured),
+        "publicRateUsdEquivalent": {
+            "usd": round(priced_total, 6),
+            "complete": not unknown,
+            "kind": "public-rate equivalent, not a bill",
+            "pricedRows": sum(1 for r in row_out if r["priced"]),
+            "unpricedRows": sum(1 for r in row_out if not r["priced"]),
+        },
+        "unknownPrices": [
+            {"model": m, "tokens": v["tokens"], "roles": sorted(v["roles"])}
+            for m, v in sorted(unknown.items())
+        ],
+        "byRole": {
+            role: {
+                "tokens": _token_dict(v["tokens"]),
+                "publicRateUsdEquivalent": round(v["usd"], 6),
+                "unpricedTokens": v["unpricedTokens"],
+            } for role, v in sorted(by_role.items())
+        },
+        "rows": row_out,
+        "actualBilledSpend": actual,
+        "disclaimer": RUN_DISCLAIMER,
+        "prices": {
+            "file": prices_path.name,
+            "sha256": prices_sha,
+            "source": meta.get("source", "BerriAI/litellm"),
+            "sourceUrl": meta.get("source_url", LITELLM_URL),
+            "fetchedAt": meta.get("fetched_at"),
+            "modelCount": meta.get("model_count"),
+        },
+        "warnings": warnings,
+    }
+
+
+def _token_dict(b: Bucket) -> dict:
+    return {
+        "input": b.input,
+        "output": b.output,
+        "cacheRead": b.cache_read,
+        "cacheWrite": b.cache_write,
+        "cacheWrite1h": b.cache_write_1h,
+        "total": b.total_tokens(),
+    }
+
+
+def render_run_markdown(rep: dict) -> str:
+    def esc(s: str) -> str:
+        return str(s).replace("|", "\\|")
+
+    s = rep["session"]
+    out = ["## skill-cost run report", ""]
+    if rep["complete"]:
+        out.append("- **Status:** complete")
+    else:
+        out.append("- **Status:** INCOMPLETE — " + "; ".join(rep["incompleteReasons"]))
+    out.append(f"- **Session:** `{s['sessionId']}` · lead model `{s['leadModel'] or 'unknown'}` "
+               f"· cwd `{s['cwd'] or 'unknown'}`")
+    out.append(f"- **Window:** {s['firstTs'] or '?'} → {s['lastTs'] or '?'}")
+    subs = [f for f in rep["files"] if f["kind"] == "subagent"]
+    out.append(f"- **Logs read:** 1 main + {len(subs)} subagent transcript(s)")
+    out.append("")
+    out.append("| Role | Model | Input | Output | Cache read | Cache write (5m+1h) "
+               "| Public-rate USD eq. | Priced |")
+    out.append("|---|---|---:|---:|---:|---:|---:|:---:|")
+    for r in rep["rows"]:
+        t = r["tokens"]
+        usd = f"${r['publicRateUsdEquivalent']:,.4f}" if r["priced"] else "n/a"
+        out.append(f"| {esc(r['role'])} | {esc(r['model'])} | {toks(t['input'])} "
+                   f"| {toks(t['output'])} | {toks(t['cacheRead'])} "
+                   f"| {toks(t['cacheWrite'] + t['cacheWrite1h'])} | {usd} "
+                   f"| {'yes' if r['priced'] else 'no'} |")
+    m = rep["measuredTokens"]
+    pub = rep["publicRateUsdEquivalent"]
+    out.append(f"| **total** | | {toks(m['input'])} | {toks(m['output'])} "
+               f"| {toks(m['cacheRead'])} | {toks(m['cacheWrite'] + m['cacheWrite1h'])} "
+               f"| **${pub['usd']:,.4f}** | |")
+    out.append("")
+    out.append(f"- **Public-rate USD equivalent:** ${pub['usd']:,.4f} "
+               f"({pub['kind']}; complete={str(pub['complete']).lower()})")
+    if rep["unknownPrices"]:
+        parts = [f"`{u['model']}` ({toks(u['tokens'])} tokens, no USD)" for u in rep["unknownPrices"]]
+        out.append("- **Unknown prices (never substituted):** " + ", ".join(parts)
+                   + " — run `python3 cost.py --refresh-prices` if the model is new")
+    b = rep["actualBilledSpend"]
+    if b["usd"] is None:
+        out.append(f"- **Actual billed spend:** null ({b['reason']})")
+    else:
+        out.append(f"- **Actual billed spend:** ${b['usd']:,.4f} "
+                   f"(source: {b['source']}; {b['provenance']})")
+    if rep["inaccessible"]:
+        out.append("- **Inaccessible:**")
+        for item in rep["inaccessible"]:
+            out.append(f"  - {item['kind']} `{item['id']}`: {item['reason']}")
+    for w in rep["warnings"]:
+        out.append(f"- Warning: {w}")
+    out.append("")
+    out.append(f"> {rep['disclaimer']}")
+    out.append("")
+    p = rep["prices"]
+    out.append(f"Prices: {p['modelCount']} models from {p['source']} (fetched {p['fetchedAt']}), "
+               f"prices.json sha256 `{p['sha256'][:12]}`. skill-cost {rep['tool']['version']}, "
+               f"generated {rep['generatedAt']}.")
+    return "\n".join(out) + "\n"
+
+
+def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
+    if args.harness not in ("all", "claude-code"):
+        print("error: --run-report reads Claude Code sessions; use --harness claude-code "
+              "or omit --harness", file=sys.stderr)
+        return 2
+    if args.json and args.markdown:
+        print("error: choose one of --json or --markdown", file=sys.stderr)
+        return 2
+    if (args.billed_usd is None) != (args.billed_source is None):
+        print("error: --billed-usd and --billed-source must be given together", file=sys.stderr)
+        return 2
+    billed = None
+    if args.billed_usd is not None:
+        if not math.isfinite(args.billed_usd) or args.billed_usd < 0:
+            print("error: --billed-usd must be a finite, non-negative number", file=sys.stderr)
+            return 2
+        if not args.billed_source.strip():
+            print("error: --billed-source must not be empty", file=sys.stderr)
+            return 2
+        billed = (args.billed_usd, args.billed_source.strip())
+
+    role_map: dict = {}
+    role_map_info: dict = {"provided": False}
+    if args.role_map:
+        try:
+            role_map, map_sha = load_role_map(args.role_map)
+        except (OSError, ValueError) as e:
+            print(f"error: --role-map {args.role_map}: {e}", file=sys.stderr)
+            return 2
+        role_map_info = {"provided": True, "file": Path(args.role_map).name,
+                         "sha256": map_sha, "entries": len(role_map)}
+
+    root = claude_projects_root()
+    main_path = select_main_session(root, args.session, args.cwd)
+    if main_path is None:
+        print(f"error: no matching Claude Code session under {root}", file=sys.stderr)
+        return 1
+    main = read_claude_log(main_path, "main")
+    if main.error:
+        print(f"error: cannot read main session transcript: {main.error}", file=sys.stderr)
+        return 1
+
+    sub_dir = main_path.with_suffix("") / "subagents"
+    subs: list[LogRead] = []
+    meta_only: list[str] = []
+    meta_errors: list[str] = []
+    if sub_dir.is_dir():
+        sub_ids = set()
+        for path in sorted(sub_dir.glob("agent-*.jsonl")):
+            agent_id = path.stem[len("agent-"):]
+            sub_ids.add(agent_id)
+            log = read_claude_log(path, "subagent", agent_id)
+            meta = sub_dir / f"{path.stem}.meta.json"
+            if meta.is_file():
+                log.agent_type, err = _read_meta_agent_type(meta)
+                if err:
+                    meta_errors.append(f"{agent_id}: {err}")
+            subs.append(log)
+        for meta in sorted(sub_dir.glob("agent-*.meta.json")):
+            agent_id = meta.name[len("agent-"):-len(".meta.json")]
+            if agent_id not in sub_ids:
+                meta_only.append(agent_id)
+
+    rep = build_run_report(main, subs, meta_only, meta_errors, role_map, prices, billed,
+                           root, PRICES_JSON, role_map_info)
+    if args.markdown:
+        sys.stdout.write(render_run_markdown(rep))
+    else:
+        print(json.dumps(rep, indent=2))
+    if not rep["complete"]:
+        print("warning: run report is incomplete; see incompleteReasons", file=sys.stderr)
+        if args.strict:
+            return 3
+    return 0
+
+
+# =============================================================================
 # Main
 # =============================================================================
 
@@ -877,6 +1434,19 @@ def main(argv: list[str]) -> int:
                     help="force-fetch the latest prices from LiteLLM and update prices.json")
     ap.add_argument("--offline", action="store_true",
                     help="skip any network access; use bundled prices.json as-is")
+    ap.add_argument("--run-report", action="store_true",
+                    help="run-level report for one Claude Code session and its subagents, "
+                         "by role (see SKILL.md); with --json or --markdown")
+    ap.add_argument("--markdown", action="store_true",
+                    help="with --run-report: render the report as markdown")
+    ap.add_argument("--role-map", metavar="FILE",
+                    help="with --run-report: JSON {session-id | agent-id: role}")
+    ap.add_argument("--strict", action="store_true",
+                    help="with --run-report: exit 3 when the report is incomplete")
+    ap.add_argument("--billed-usd", metavar="N", type=float,
+                    help="with --run-report: actual billed spend in USD, echoed with provenance")
+    ap.add_argument("--billed-source", metavar="TEXT",
+                    help="with --run-report: where --billed-usd came from (required with it)")
     args = ap.parse_args(argv)
 
     if args.refresh_prices:
@@ -884,6 +1454,9 @@ def main(argv: list[str]) -> int:
         return 0
 
     prices = load_prices(offline=args.offline)
+
+    if args.run_report:
+        return run_report_cmd(args, prices)
 
     # Default view = --current
     if not (args.all or args.today or args.since or args.session
