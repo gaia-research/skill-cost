@@ -313,6 +313,16 @@ class RunReportTests(unittest.TestCase):
             data = None
         return code, data, out + err.getvalue()
 
+    def _capture_main(self, argv: list[str]) -> tuple[int, str, str]:
+        out, err = StringIO(), StringIO()
+        with redirect_stdout(out), mock.patch("sys.stderr", err):
+            code = cost.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
+    def _capture(self, *extra: str) -> tuple[int, str, str]:
+        """Run-report invocation with stdout and stderr kept apart."""
+        return self._capture_main(["--run-report", "--offline", *extra])
+
     def _rows(self, rep: dict) -> dict:
         return {(r["role"], r["model"]): r for r in rep["rows"]}
 
@@ -756,6 +766,111 @@ class RunReportTests(unittest.TestCase):
         _, rep, _ = self._run("--json")
         self.assertEqual(rep["measuredTokens"]["input"], 20)
         self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 0)
+
+    # --- stderr hygiene, failure containment, run-report-only flags -----------
+
+    def test_no_session_error_names_no_host_path(self) -> None:
+        code, out, err = self._capture("--json")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("no matching Claude Code session", err)
+        self.assertNotIn(str(self.home), err)
+        self.assertNotIn("/", err)
+
+    def test_role_map_read_error_names_no_host_path(self) -> None:
+        self._standard_fixture()
+        missing = self.home / "no-such-roles.json"
+        code, out, err = self._capture("--json", "--role-map", str(missing))
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("--role-map", err)
+        self.assertNotIn(str(self.home), err)
+
+    def test_role_map_parse_error_is_static_text(self) -> None:
+        self._standard_fixture()
+        bad = self.home / "bad-roles.json"
+        bad.write_text(json.dumps({self.AID: 7}), encoding="utf-8")
+        code, _, err = self._capture("--json", "--role-map", str(bad))
+        self.assertEqual(code, 2)
+        self.assertIn("role map", err)
+        self.assertNotIn(str(self.home), err)
+        self.assertNotIn(self.AID, err)
+
+    def test_unexpected_failure_is_one_line_without_traceback(self) -> None:
+        self._standard_fixture()
+        boom = RuntimeError(f"boom in {self.home}")
+        with mock.patch.object(cost, "build_run_report", side_effect=boom):
+            code, out, err = self._capture("--json")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "error: run-report failed (RuntimeError)\n")
+
+    def test_run_report_refresh_prices_prints_no_host_path(self) -> None:
+        dest = self.home / "prices.json"
+        fake = mock.MagicMock()
+        fake.__enter__.return_value.read.return_value = json.dumps(
+            {"claude-sonnet-5-5": {"input_cost_per_token": 2e-6,
+                                   "output_cost_per_token": 1e-5}}).encode("utf-8")
+        err = StringIO()
+        with mock.patch.object(cost, "PRICES_JSON", dest), \
+             mock.patch.object(cost.urllib.request, "urlopen", return_value=fake), \
+             mock.patch("sys.stderr", err):
+            code = cost.main(["--run-report", "--refresh-prices"])
+        self.assertEqual(code, 0)
+        self.assertTrue(dest.exists())
+        self.assertNotIn(str(self.home), err.getvalue())
+
+    def test_run_report_only_flags_without_run_report_are_usage_errors(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text("{}", encoding="utf-8")
+        for extra, flag in ((["--strict"], "--strict"),
+                            (["--markdown"], "--markdown"),
+                            (["--role-map", str(mapping)], "--role-map")):
+            with self.subTest(flag=flag):
+                code, out, err = self._capture_main(["--offline", *extra])
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn(flag, err)
+                self.assertIn("--run-report", err)
+
+    def test_deeply_nested_json_line_is_an_unparsable_line(self) -> None:
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        self._append_main("[" * 200_000)
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any("unparsable" in r for r in rep["incompleteReasons"]))
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+
+
+class LoadPricesRedactionTests(unittest.TestCase):
+    """load_prices warnings name no host path when called for a run report."""
+
+    def test_unparsable_bundled_prices_names_no_path_in_run_report_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            bad = Path(d) / "prices.json"
+            bad.write_text("{not json", encoding="utf-8")
+            fallback = {"_meta": {"model_count": 0}}
+            err = StringIO()
+            with mock.patch.object(cost, "PRICES_JSON", bad), \
+                 mock.patch.object(cost, "refresh_prices", return_value=fallback), \
+                 mock.patch("sys.stderr", err):
+                got = cost.load_prices(offline=True, redact=True)
+            self.assertIs(got, fallback)
+            self.assertIn("could not parse", err.getvalue())
+            self.assertNotIn(d, err.getvalue())
+
+    def test_default_mode_warning_is_unchanged(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            bad = Path(d) / "prices.json"
+            bad.write_text("{not json", encoding="utf-8")
+            err = StringIO()
+            with mock.patch.object(cost, "PRICES_JSON", bad), \
+                 mock.patch.object(cost, "refresh_prices", return_value={"_meta": {}}), \
+                 mock.patch("sys.stderr", err):
+                cost.load_prices(offline=True)
+            self.assertIn(str(bad), err.getvalue())
 
 
 if __name__ == "__main__":

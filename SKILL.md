@@ -133,7 +133,18 @@ python3 cost.py --run-report --json --billed-usd 12.50 --billed-source "Anthropi
 
 Flags: `--session` (substring on the session id), `--cwd` (recorded cwd), `--json`,
 `--markdown`, `--role-map FILE`, `--strict`, `--billed-usd N` with `--billed-source TEXT`
-(required together, and only valid with `--run-report`; otherwise exit 2), `--offline`.
+(required together), `--offline`. `--markdown`, `--role-map`, `--strict`, `--billed-usd`
+and `--billed-source` are valid only with `--run-report`; without it they exit 2 with a
+usage message.
+
+Exit codes: `0` report written (complete or not, unless `--strict`); `1` no matching
+session, or an unexpected failure; `2` usage error (bad flag combination, unreadable or
+invalid role map, a harness other than Claude Code); `3` incomplete with `--strict`.
+
+Run-report stderr is safe to paste with the stdout. It never contains an absolute path,
+and it never contains a traceback. An unexpected failure prints one line,
+`error: run-report failed (<ExceptionClassName>)`, and exits 1. Warnings about
+`prices.json` name the error class or errno only.
 
 ### Role map file
 

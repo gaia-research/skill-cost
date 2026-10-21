@@ -65,7 +65,7 @@ def _prices_age_days() -> float:
     return (time.time() - PRICES_JSON.stat().st_mtime) / 86400.0
 
 
-def load_prices(offline: bool = False) -> dict:
+def load_prices(offline: bool = False, redact: bool = False) -> dict:
     """Load bundled prices.json. Silently refresh from LiteLLM if stale.
 
     Refresh is skipped when:
@@ -74,6 +74,9 @@ def load_prices(offline: bool = False) -> dict:
       - the on-disk file is newer than SKILL_COST_MAX_AGE_DAYS (default 7)
     A network failure during auto-refresh is non-fatal: we keep using the
     cached file.
+
+    redact=True is the run-report path: warnings name the error class or errno,
+    never the absolute path of prices.json, because a run report's stderr is pasted.
     """
     stale = _prices_age_days() > _max_age_days()
     if (stale
@@ -82,14 +85,19 @@ def load_prices(offline: bool = False) -> dict:
         try:
             return refresh_prices(write=True, quiet=True)
         except Exception as e:
-            print(f"warning: auto-refresh of prices.json failed ({e}); "
+            detail = _error_text(e) if redact else e
+            print(f"warning: auto-refresh of prices.json failed ({detail}); "
                   f"using cached copy.", file=sys.stderr)
 
     if PRICES_JSON.exists():
         try:
             return json.loads(PRICES_JSON.read_text(encoding="utf-8"))
         except Exception as e:
-            print(f"warning: could not parse {PRICES_JSON}: {e}", file=sys.stderr)
+            if redact:
+                print(f"warning: could not parse the bundled prices.json "
+                      f"({type(e).__name__})", file=sys.stderr)
+            else:
+                print(f"warning: could not parse {PRICES_JSON}: {e}", file=sys.stderr)
     # No cache, no network -> last-resort fetch (will raise on failure)
     return refresh_prices(write=False)
 
@@ -1042,7 +1050,7 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
             continue
         try:
             d = json.loads(s.decode("utf-8"))
-        except (ValueError, UnicodeDecodeError):
+        except (ValueError, RecursionError):      # UnicodeDecodeError is a ValueError
             r.bad_lines += 1
             continue
         if not isinstance(d, dict):
@@ -1586,10 +1594,16 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
     role_map: dict = {}
     role_map_info: dict = {"provided": False}
     if args.role_map:
+        # Static text only: OSError and json messages can carry the absolute path.
         try:
             role_map, map_sha = load_role_map(args.role_map)
-        except (OSError, ValueError) as e:
-            print(f"error: --role-map {args.role_map}: {e}", file=sys.stderr)
+        except OSError as e:
+            print(f"error: --role-map: cannot read the role map file ({_error_text(e)})",
+                  file=sys.stderr)
+            return 2
+        except ValueError:
+            print("error: --role-map: the role map must be a JSON object of {id: role} "
+                  "with non-empty string roles", file=sys.stderr)
             return 2
         role_map_info = {"provided": True, "file": Path(args.role_map).name,
                          "sha256": map_sha, "entries": len(role_map)}
@@ -1597,7 +1611,8 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
     root = claude_projects_root()
     main_path = select_main_session(root, args.session, args.cwd)
     if main_path is None:
-        print(f"error: no matching Claude Code session under {root}", file=sys.stderr)
+        print("error: no matching Claude Code session in the projects directory",
+              file=sys.stderr)
         return 1
     main = read_claude_log(main_path, "main")
     if main.error:
@@ -1642,6 +1657,21 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
 # Main
 # =============================================================================
 
+def run_report_entry(args: argparse.Namespace) -> int:
+    """Entry point for --run-report. Nothing reaches stderr as a traceback: an unexpected
+    exception is reported as one line that names its class only, never its message."""
+    try:
+        if args.refresh_prices:
+            refresh_prices(write=True, quiet=True)
+            print("prices.json refreshed", file=sys.stderr)
+            return 0
+        prices = load_prices(offline=args.offline, redact=True)
+        return run_report_cmd(args, prices)
+    except Exception as e:
+        print(f"error: run-report failed ({type(e).__name__})", file=sys.stderr)
+        return 1
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(
         description="Compute token-usage cost from agent harness session logs.",
@@ -1679,19 +1709,27 @@ def main(argv: list[str]) -> int:
                     help="with --run-report: where --billed-usd came from (required with it)")
     args = ap.parse_args(argv)
 
-    if (args.billed_usd is not None or args.billed_source is not None) and not args.run_report:
-        print("error: --billed-usd and --billed-source are only valid with --run-report",
+    run_only = [flag for flag, given in (
+        ("--billed-usd", args.billed_usd is not None),
+        ("--billed-source", args.billed_source is not None),
+        ("--markdown", args.markdown),
+        ("--role-map", args.role_map is not None),
+        ("--strict", args.strict),
+    ) if given]
+    if run_only and not args.run_report:
+        verb = "is" if len(run_only) == 1 else "are"
+        print(f"error: {', '.join(run_only)} {verb} only valid with --run-report",
               file=sys.stderr)
         return 2
+
+    if args.run_report:
+        return run_report_entry(args)
 
     if args.refresh_prices:
         refresh_prices(write=True)
         return 0
 
     prices = load_prices(offline=args.offline)
-
-    if args.run_report:
-        return run_report_cmd(args, prices)
 
     # Default view = --current
     if not (args.all or args.today or args.since or args.session
