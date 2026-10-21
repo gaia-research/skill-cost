@@ -180,10 +180,12 @@ Rules run in this order. The first match wins.
   counted once across the main and subagent transcripts. Records are keyed by
   `message.id` + `requestId`, and streaming copies of one call collapse to the largest.
   If any copy of a `message.id` has no `requestId`, every copy with that id is one call.
-- **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A usage
-  record with a negative, boolean, non-numeric or non-integral token count, or with a
-  cache-write split that cannot be placed, is excluded from every total. It counts here
-  and sets `complete: false`. Counts are never zero-filled or coerced. A cache-write
+- **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A token
+  count is valid only as a JSON integer from 0 to 10^15 per field and per record. A usage
+  record with any other count (a float, even `2.0`; a boolean; a string; a negative
+  number; a larger integer), or with a cache-write split that cannot be placed, is
+  excluded from every total. It counts here and sets `complete: false`. Counts are never
+  zero-filled or coerced. A cache-write
   total with a missing 5-minute or 1-hour part is split from
   `cache_creation_input_tokens`. A part with no total to split from is malformed.
 - **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
@@ -194,6 +196,8 @@ Rules run in this order. The first match wins.
     `reason: "no-catalog-entry"`, and it is never priced with another model's rate.
   - A model whose entry has no output price is listed with
     `reason: "incomplete-price-entry"`. It is not priced as if output were free.
+  - A row whose price arithmetic overflows a float is listed with `reason: "overflow"`.
+    It is never reported as a finite number.
   - A missing cache price falls back to 10% (cache read), 125% (5-minute cache write)
     or 200% (1-hour cache write) of the input rate. Each fallback, with the tokens it
     covers, is listed in `priceAssumptions[]`. So is a cache-write split that had to be
@@ -244,7 +248,7 @@ Rules run in this order. The first match wins.
 - **The default `/cost` view is not covered by these rules, and it is unchanged.** It
   shares the Claude Code parser, which keeps its earlier behavior so that default output
   stays byte-identical. In that view, a negative or boolean token count is added as
-  is (`true` counts as 1). A cache-write total is dropped when `cache_creation` has no
+  is (`true` counts as 1), and a float count is truncated to an integer. A cache-write total is dropped when `cache_creation` has no
   `ephemeral_5m_input_tokens`. One message id with and without a `requestId` is counted
   twice. A usage value that is not an object, or a non-object JSON line, stops the view
   with an `AttributeError`. Use `--run-report` for a checked total of one session.

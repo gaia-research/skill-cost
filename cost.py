@@ -938,21 +938,23 @@ def load_role_map(path: str) -> tuple[dict, str]:
 
 _ABSENT = object()
 _BAD = object()
+# One record's count for one field may not exceed this. A larger value is malformed:
+# it cannot be a real per-call token count, and it would overflow a float price product.
+TOKEN_COUNT_MAX = 10**15
 
 
 def _count_field(src: dict, key: str):
-    """One token count from untrusted JSON. Absent -> _ABSENT. Negative, boolean,
-    non-numeric, non-integral or non-finite -> _BAD. Used by run reports only: the
-    default view keeps claude_usage_tuple, where True would count as 1 and -3 as -3."""
+    """One token count from untrusted JSON. Absent -> _ABSENT. Only a JSON integer from
+    0 to TOKEN_COUNT_MAX is valid: a float (even 2.0), a boolean, a string, a negative
+    value or an over-bound integer is _BAD. Used by run reports only: the default view
+    keeps claude_usage_tuple, where True would count as 1 and -3 as -3."""
     if key not in src:
         return _ABSENT
     v = src[key]
-    if isinstance(v, bool):
+    if isinstance(v, bool) or not isinstance(v, int):
         return _BAD
-    if isinstance(v, int):
-        return v if v >= 0 else _BAD
-    if isinstance(v, float) and math.isfinite(v) and v.is_integer() and v >= 0:
-        return int(v)
+    if 0 <= v <= TOKEN_COUNT_MAX:
+        return v
     return _BAD
 
 
@@ -1204,6 +1206,7 @@ PRICE_ASSUMPTIONS = {
 UNKNOWN_PRICE_REASONS = {
     "no-catalog-entry": "no exact catalog entry",
     "incomplete-price-entry": "catalog entry has no input or output price",
+    "overflow": "token totals too large to price as a finite number",
 }
 
 
@@ -1218,22 +1221,29 @@ def _run_usd(b: Bucket, model: str, prices: dict) -> tuple[float | None, str, li
         return None, "no-catalog-entry", []
     if p.get("input") is None or p.get("output") is None:
         return None, "incomplete-price-entry", []
-    inp = float(p["input"])
     gaps: list[tuple[str, int]] = []
+    # A large token total can overflow the int-to-float conversion, and a product can
+    # overflow to inf. Either way the row is unpriced, never a crash and never a guess.
+    try:
+        inp = float(p["input"])
 
-    def rate(field_name: str, multiple: float, tokens: int, component: str) -> float:
-        v = p.get(field_name)
-        if v is None:
-            if tokens:
-                gaps.append((component, tokens))
-            return inp * multiple
-        return float(v)
+        def rate(field_name: str, multiple: float, tokens: int, component: str) -> float:
+            v = p.get(field_name)
+            if v is None:
+                if tokens:
+                    gaps.append((component, tokens))
+                return inp * multiple
+            return float(v)
 
-    cache_read = rate("cache_read", 0.10, b.cache_read, "cache_read")
-    cache_write = rate("cache_write", 1.25, b.cache_write, "cache_write")
-    cache_write_1h = rate("cache_write_1h", 2.0, b.cache_write_1h, "cache_write_1h")
-    usd = (b.input * inp + b.output * float(p["output"]) + b.cache_read * cache_read
-           + b.cache_write * cache_write + b.cache_write_1h * cache_write_1h)
+        cache_read = rate("cache_read", 0.10, b.cache_read, "cache_read")
+        cache_write = rate("cache_write", 1.25, b.cache_write, "cache_write")
+        cache_write_1h = rate("cache_write_1h", 2.0, b.cache_write_1h, "cache_write_1h")
+        usd = (b.input * inp + b.output * float(p["output"]) + b.cache_read * cache_read
+               + b.cache_write * cache_write + b.cache_write_1h * cache_write_1h)
+    except OverflowError:
+        return None, "overflow", []
+    if not math.isfinite(usd):
+        return None, "overflow", []
     return usd, "", gaps
 
 

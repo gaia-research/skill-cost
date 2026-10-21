@@ -843,6 +843,88 @@ class RunReportTests(unittest.TestCase):
         self.assertTrue(any("unparsable" in r for r in rep["incompleteReasons"]))
         self.assertEqual(rep["measuredTokens"]["input"], 10)
 
+    # --- token-count validation: JSON integers only, each at most 10**15 -------
+
+    def test_count_at_the_bound_is_accepted_and_one_above_is_malformed(self) -> None:
+        self._main_file([
+            self._rec("msg_at", "req_at", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=10**15)),
+            self._rec("msg_over", "req_over", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=10**15 + 1)),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertFalse(rep["complete"])
+        self.assertEqual(rep["measuredTokens"]["input"], 10**15)
+
+    def test_enormous_integer_count_is_malformed_and_does_not_crash(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_big", "req_big", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=10**400)),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        code, _, text = self._run("--markdown")
+        self.assertEqual(code, 0)
+        self.assertIn("not a bill", text)
+
+    def test_two_counts_of_10_to_the_308_do_not_crash_the_report(self) -> None:
+        huge = 10**308
+        self._main_file([
+            self._rec("msg_h1", "req_h1", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=huge)),
+            self._rec("msg_h2", "req_h2", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=huge)),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        self.assertEqual(rep["measuredTokens"]["input"], 0)
+        self.assertEqual(rep["measuredTokens"]["output"], 0)
+
+    def test_float_counts_are_malformed_even_when_integral(self) -> None:
+        for value in (2.0, 1.5, 3e2, -0.0, 0.0):
+            with self.subTest(value=value):
+                self.assertIsNone(cost.run_usage_tuple(dict(self.USAGE, input_tokens=value)))
+        cc = dict(self.USAGE, cache_creation={"ephemeral_5m_input_tokens": 50.0,
+                                              "ephemeral_1h_input_tokens": 0})
+        self.assertIsNone(cost.run_usage_tuple(cc))
+
+    def test_float_count_is_excluded_from_totals_and_flagged(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_f", "req_f", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, output_tokens=2.0)),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        self.assertFalse(rep["complete"])
+
+    def test_run_usd_overflow_marks_the_row_unpriced_with_reason_overflow(self) -> None:
+        self.assertEqual(cost._run_usd(cost.Bucket(input=10**400), "claude-sonnet-5-5",
+                                       self.PRICES), (None, "overflow", []))
+        # Finite as an int, but the price product is not a finite float.
+        loud = {"claude-sonnet-5-5": {"input": 1e300, "output": 1e300}, "_meta": {}}
+        self.assertEqual(cost._run_usd(cost.Bucket(input=10**15), "claude-sonnet-5-5", loud),
+                         (None, "overflow", []))
+
+    def test_overflowed_row_is_reported_as_unpriced_not_as_a_crash(self) -> None:
+        self._standard_fixture()
+        with mock.patch.object(cost, "_run_usd", return_value=(None, "overflow", [])):
+            code, rep, text = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertEqual({u["reason"] for u in rep["unknownPrices"]}, {"overflow"})
+        with mock.patch.object(cost, "_run_usd", return_value=(None, "overflow", [])):
+            _, _, md = self._run("--markdown")
+        self.assertIn("no USD: token totals too large", md)
+
 
 class LoadPricesRedactionTests(unittest.TestCase):
     """load_prices warnings name no host path when called for a run report."""
