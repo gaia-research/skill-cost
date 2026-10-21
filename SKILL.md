@@ -346,6 +346,10 @@ Rules run in this order. The first match wins.
 
 ### Known limits
 
+- A lone-surrogate escape in a model name or session id makes `--markdown` exit 1 with a class-only message; `--json` is unaffected.
+- A FIFO or other blocking special file at the `prices.json` or role-map path hangs the read, even with `--offline`. It is a hang, not a network call.
+- A `prices.json` whose `_meta` is not an object raises a traceback in the default (non-run-report) view; `--run-report` exits 1 with a class-only message.
+- A NaN price is withheld from USD correctly but is labelled with the reason `overflow`.
 - A call that a main transcript and a subagent transcript both record is attributed to the
   main session, even when the subagent copy is the one with the larger counts. A call that
   really ran in a subagent but also appears in the main transcript therefore takes the
