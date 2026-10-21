@@ -974,8 +974,7 @@ def run_usage_tuple(u: dict):
     if total is _BAD:
         return None
     cc = u.get("cache_creation")
-    legacy = cc is None          # older records carry only the total
-    if legacy:
+    if cc is None:               # legacy records carry only the total
         cc = {}
     elif not isinstance(cc, dict):
         return None
@@ -988,8 +987,10 @@ def run_usage_tuple(u: dict):
         if total is _ABSENT:
             write_5m = write_1h = 0
         else:
+            # No 5m/1h breakdown (legacy records included): the total is treated as
+            # five-minute writes, and that split is an assumption the report lists.
             write_5m, write_1h = total, 0
-            inferred = not legacy
+            inferred = True
     elif five is _ABSENT or one is _ABSENT:
         if total is _ABSENT:
             return None
@@ -1004,6 +1005,8 @@ def run_usage_tuple(u: dict):
         inferred = True
     else:
         write_5m, write_1h = five, one
+    # An inferred split of zero tokens changes nothing, so it is not an assumption.
+    inferred = inferred and write_5m + write_1h > 0
     return (fixed[0], fixed[1], fixed[2], write_5m, write_1h), inferred
 
 
@@ -1201,7 +1204,7 @@ PRICE_ASSUMPTIONS = {
     "cache_write_1h": "1-hour cache writes priced at 200% of the input rate; the catalog has no "
                       "cache_write_1h price",
     "cache_write_split": "cache writes without a full 5m/1h breakdown; the split was inferred "
-                         "from cache_creation_input_tokens",
+                         "from cache_creation_input_tokens (a total-only record counts as 5-minute)",
 }
 UNKNOWN_PRICE_REASONS = {
     "no-catalog-entry": "no exact catalog entry",

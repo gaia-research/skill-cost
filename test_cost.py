@@ -723,11 +723,33 @@ class RunReportTests(unittest.TestCase):
     def test_legacy_total_only_usage_still_counts_as_five_minute_writes(self) -> None:
         legacy = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
                   "cache_creation_input_tokens": 7}
-        self.assertEqual(cost.run_usage_tuple(legacy), ((1, 1, 0, 7, 0), False))
+        self.assertEqual(cost.run_usage_tuple(legacy), ((1, 1, 0, 7, 0), True))
         self._main_file([self._rec("msg_l", "req_l", "claude-sonnet-5-5", usage=legacy)])
         _, rep, _ = self._run("--json")
         self.assertEqual(rep["measuredTokens"]["cacheWrite"], 7)
         self.assertTrue(rep["complete"])
+
+    def test_legacy_total_only_write_is_listed_as_a_split_assumption(self) -> None:
+        legacy = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                  "cache_creation_input_tokens": 7}
+        self._main_file([self._rec("msg_l", "req_l", "claude-sonnet-5-5", usage=legacy)])
+        _, rep, _ = self._run("--json")
+        assumed = {(a["model"], a["component"]): a for a in rep["priceAssumptions"]}
+        split = assumed[("claude-sonnet-5-5", "cache_write_split")]
+        self.assertEqual(split["tokens"], 7)
+        self.assertIn("inferred", split["assumption"])
+        self.assertTrue(rep["complete"])
+
+    def test_zero_legacy_write_and_full_breakdown_are_not_split_assumptions(self) -> None:
+        zero = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                "cache_creation_input_tokens": 0}
+        self._main_file([
+            self._rec("msg_z", "req_z", "claude-sonnet-5-5", usage=zero, uuid="a"),
+            self._rec("msg_f", "req_f", "claude-sonnet-5-5", uuid="b"),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertFalse([a for a in rep["priceAssumptions"]
+                          if a["component"] == "cache_write_split"])
 
     def _rec_without_request_id(self, msg_id: str, usage=None, uuid: str = "x") -> str:
         d = json.loads(self._rec(msg_id, "unused", "claude-sonnet-5-5", usage=usage, uuid=uuid))

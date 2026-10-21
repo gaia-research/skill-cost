@@ -187,7 +187,9 @@ Rules run in this order. The first match wins.
   excluded from every total. It counts here and sets `complete: false`. Counts are never
   zero-filled or coerced. A cache-write
   total with a missing 5-minute or 1-hour part is split from
-  `cache_creation_input_tokens`. A part with no total to split from is malformed.
+  `cache_creation_input_tokens`. A part with no total to split from is malformed. A
+  total with no breakdown at all (an older record that has no `cache_creation` object)
+  counts as 5-minute writes, and that split is recorded as an assumption.
 - **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
   catalog rate. It is an equivalent, not a bill. Pricing uses exact catalog keys (after
   the same name normalization as the normal view), with no substring fallback. Three
@@ -201,7 +203,8 @@ Rules run in this order. The first match wins.
   - A missing cache price falls back to 10% (cache read), 125% (5-minute cache write)
     or 200% (1-hour cache write) of the input rate. Each fallback, with the tokens it
     covers, is listed in `priceAssumptions[]`. So is a cache-write split that had to be
-    inferred. A catalog value of `0` is kept as `0`.
+    inferred, including every total-only record (`component: "cache_write_split"`). A
+    catalog value of `0` is kept as `0`.
   `publicRateUsdEquivalent.complete` is `false` whenever `unknownPrices` is non-empty.
   The markdown status then says `USD partial: N unpriced model(s)`, and the total row
   reads `≥ $X (partial)`, meaning a lower bound.
