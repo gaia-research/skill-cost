@@ -1205,23 +1205,29 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     # main transcript and every subagent transcript. Streaming records for the same call
     # carry a growing output count, so the largest total wins; ties keep the first seen.
     readable = [main] + [s for s in subs if not s.error]
+    records = [(log, rec) for log in readable for rec in log.usage]
+    # A message id that appears without a requestId anywhere in the run is one call:
+    # every copy with that id merges, whether or not it carries a requestId. Ids that
+    # only ever appear with distinct requestIds stay distinct, as before.
+    id_only = {rec["key"][0] for _, rec in records if rec["key"] and not rec["key"][1]}
     keyed: dict = {}
     unkeyed: list[tuple[LogRead, dict]] = []
     counts = {"keyedRecords": 0, "duplicatesIgnored": 0, "unkeyedRecords": 0}
-    for log in readable:
-        for rec in log.usage:
-            if rec["key"] is None:
-                unkeyed.append((log, rec))
-                counts["unkeyedRecords"] += 1
-                continue
-            counts["keyedRecords"] += 1
-            prev = keyed.get(rec["key"])
-            if prev is None:
-                keyed[rec["key"]] = (log, rec)
-            else:
-                counts["duplicatesIgnored"] += 1
-                if _total(rec["tokens"]) > _total(prev[1]["tokens"]):
-                    keyed[rec["key"]] = (log, rec)
+    for log, rec in records:
+        if rec["key"] is None:
+            unkeyed.append((log, rec))
+            counts["unkeyedRecords"] += 1
+            continue
+        msg_id, req = rec["key"]
+        key = (msg_id, "") if msg_id in id_only else (msg_id, req)
+        counts["keyedRecords"] += 1
+        prev = keyed.get(key)
+        if prev is None:
+            keyed[key] = (log, rec)
+        else:
+            counts["duplicatesIgnored"] += 1
+            if _total(rec["tokens"]) > _total(prev[1]["tokens"]):
+                keyed[key] = (log, rec)
     if counts["unkeyedRecords"]:
         warnings.append(f"{counts['unkeyedRecords']} usage record(s) had no message id and "
                         "could not be deduplicated; each was counted once")

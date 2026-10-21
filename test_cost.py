@@ -593,6 +593,44 @@ class RunReportTests(unittest.TestCase):
         self.assertEqual(rep["measuredTokens"]["cacheWrite"], 7)
         self.assertTrue(rep["complete"])
 
+    def _rec_without_request_id(self, msg_id: str, usage=None, uuid: str = "x") -> str:
+        d = json.loads(self._rec(msg_id, "unused", "claude-sonnet-5-5", usage=usage, uuid=uuid))
+        del d["requestId"]
+        return json.dumps(d)
+
+    def test_same_message_with_and_without_request_id_counts_once_main_first(self) -> None:
+        self._main_file([self._rec("msg_d", "req_d", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_d", uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_same_message_with_and_without_request_id_counts_once_id_only_first(self) -> None:
+        self._main_file([self._rec_without_request_id("msg_d", uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_d", "req_d", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_id_only_copy_keeps_the_largest_streamed_total(self) -> None:
+        early = dict(self.USAGE, output_tokens=8)
+        late = dict(self.USAGE, output_tokens=431)
+        self._main_file([self._rec("msg_s", "req_s", "claude-sonnet-5-5", usage=early, uuid="a")])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_s", usage=late, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["output"], 431)
+
+    def test_distinct_request_ids_on_one_message_stay_distinct(self) -> None:
+        # Control: with no id-only copy anywhere, two requestIds are two calls.
+        self._main_file([self._rec("msg_t", "req_1", "claude-sonnet-5-5", uuid="a"),
+                         self._rec("msg_t", "req_2", "claude-sonnet-5-5", uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 20)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
