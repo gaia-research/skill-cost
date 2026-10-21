@@ -1180,6 +1180,51 @@ def _cwd_identity(cwd: str) -> tuple[str, str | None]:
     return (parts[-1] if parts else "/"), digest
 
 
+PRICE_ASSUMPTIONS = {
+    "cache_read": "cache reads priced at 10% of the input rate; the catalog has no cache_read price",
+    "cache_write": "5-minute cache writes priced at 125% of the input rate; the catalog has no "
+                   "cache_write price",
+    "cache_write_1h": "1-hour cache writes priced at 200% of the input rate; the catalog has no "
+                      "cache_write_1h price",
+    "cache_write_split": "cache writes without a full 5m/1h breakdown; the split was inferred "
+                         "from cache_creation_input_tokens",
+}
+UNKNOWN_PRICE_REASONS = {
+    "no-catalog-entry": "no exact catalog entry",
+    "incomplete-price-entry": "catalog entry has no input or output price",
+}
+
+
+def _run_usd(b: Bucket, model: str, prices: dict) -> tuple[float | None, str, list]:
+    """Public-rate USD for one run-report row: (usd, reason, gaps). usd is None when the
+    model cannot be priced exactly, and reason says why. A catalog entry with no output
+    price is never priced as if output were free. A missing cache price falls back to the
+    multiplier in PRICE_ASSUMPTIONS, and gaps lists each (component, tokens) it touched.
+    Unlike Bucket.cost, a catalog value of 0 is kept as 0."""
+    p = exact_price_for(model, prices)
+    if p is None:
+        return None, "no-catalog-entry", []
+    if p.get("input") is None or p.get("output") is None:
+        return None, "incomplete-price-entry", []
+    inp = float(p["input"])
+    gaps: list[tuple[str, int]] = []
+
+    def rate(field_name: str, multiple: float, tokens: int, component: str) -> float:
+        v = p.get(field_name)
+        if v is None:
+            if tokens:
+                gaps.append((component, tokens))
+            return inp * multiple
+        return float(v)
+
+    cache_read = rate("cache_read", 0.10, b.cache_read, "cache_read")
+    cache_write = rate("cache_write", 1.25, b.cache_write, "cache_write")
+    cache_write_1h = rate("cache_write_1h", 2.0, b.cache_write_1h, "cache_write_1h")
+    usd = (b.input * inp + b.output * float(p["output"]) + b.cache_read * cache_read
+           + b.cache_write * cache_write + b.cache_write_1h * cache_write_1h)
+    return usd, "", gaps
+
+
 def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                      meta_errors: list[str], role_map: dict, prices: dict,
                      billed: tuple[float, str] | None,
@@ -1286,10 +1331,11 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     row_out = []
     by_role: dict[str, dict] = {}
     unknown: dict[str, dict] = {}
+    assumed: dict[tuple[str, str], int] = {}
     priced_total = 0.0
     for (role, model) in sorted(rows):
         b = rows[(role, model)]
-        usd = b.cost(model, prices, exact_price_for)
+        usd, reason, gaps = _run_usd(b, model, prices)
         row_out.append({
             "role": role,
             "model": model,
@@ -1301,12 +1347,20 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         slot["tokens"].add(b)
         if usd is None:
             slot["unpricedTokens"] += b.total_tokens()
-            info = unknown.setdefault(model, {"model": model, "tokens": 0, "roles": set()})
+            info = unknown.setdefault(model, {"model": model, "tokens": 0, "roles": set(),
+                                              "reason": reason})
             info["tokens"] += b.total_tokens()
             info["roles"].add(role)
         else:
             slot["usd"] += usd
             priced_total += usd
+            for component, tokens in gaps:
+                assumed[(model, component)] = assumed.get((model, component), 0) + tokens
+    # A cache write whose 5m/1h split was inferred is priced on that inferred split.
+    for log, rec in winners:
+        if rec.get("split_inferred") and rec["model"] not in unknown:
+            key = (rec["model"], "cache_write_split")
+            assumed[key] = assumed.get(key, 0) + rec["tokens"][3] + rec["tokens"][4]
 
     if lead_model is None:
         warnings.append("no usage from the main session was found; no lead model inferred")
@@ -1386,8 +1440,13 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
             "unpricedRows": sum(1 for r in row_out if not r["priced"]),
         },
         "unknownPrices": [
-            {"model": m, "tokens": v["tokens"], "roles": sorted(v["roles"])}
+            {"model": m, "tokens": v["tokens"], "roles": sorted(v["roles"]),
+             "reason": v["reason"]}
             for m, v in sorted(unknown.items())
+        ],
+        "priceAssumptions": [
+            {"model": m, "component": c, "assumption": PRICE_ASSUMPTIONS[c], "tokens": n}
+            for (m, c), n in sorted(assumed.items())
         ],
         "byRole": {
             role: {

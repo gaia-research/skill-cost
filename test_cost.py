@@ -392,6 +392,7 @@ class RunReportTests(unittest.TestCase):
         unknown = {u["model"]: u for u in rep["unknownPrices"]}
         self.assertIn("claude-haiku-5-9-preview", unknown)
         self.assertEqual(unknown["claude-haiku-5-9-preview"]["tokens"], 1_110 + 50)
+        self.assertEqual(unknown["claude-haiku-5-9-preview"]["reason"], "no-catalog-entry")
         self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
         row = self._rows(rep)[("unattributed", "claude-haiku-5-9-preview")]
         self.assertFalse(row["priced"])
@@ -464,7 +465,8 @@ class RunReportTests(unittest.TestCase):
         for key in ("generatedAt", "complete", "incompleteReasons", "session", "files",
                     "inaccessible", "roleMap", "dedupe", "measuredTokens",
                     "publicRateUsdEquivalent", "unknownPrices", "byRole", "rows",
-                    "actualBilledSpend", "disclaimer", "prices", "warnings"):
+                    "actualBilledSpend", "disclaimer", "prices", "warnings",
+                    "malformedUsage", "priceAssumptions"):
             self.assertIn(key, rep)
         for key in ("sha256", "sourceUrl", "fetchedAt", "modelCount", "file"):
             self.assertIn(key, rep["prices"])
@@ -537,6 +539,52 @@ class RunReportTests(unittest.TestCase):
     def _append_main(self, line: str) -> None:
         p = self.proj / f"{self.SID}.jsonl"
         p.write_text(p.read_text(encoding="utf-8") + line + "\n", encoding="utf-8")
+
+    def _priced_with(self, edit) -> dict:
+        prices = {k: (dict(v) if isinstance(v, dict) else v) for k, v in self.PRICES.items()}
+        edit(prices["claude-sonnet-5-5"])
+        return prices
+
+    def test_catalog_entry_without_output_price_is_unpriced_not_free(self) -> None:
+        prices = self._priced_with(lambda e: e.pop("output"))
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        with mock.patch.object(cost, "load_prices", return_value=prices):
+            _, rep, _ = self._run("--json")
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertEqual(rep["publicRateUsdEquivalent"]["usd"], 0.0)
+        unknown = {u["model"]: u for u in rep["unknownPrices"]}
+        self.assertEqual(unknown["claude-sonnet-5-5"]["reason"], "incomplete-price-entry")
+        self.assertFalse(self._rows(rep)[("lead", "claude-sonnet-5-5")]["priced"])
+
+    def test_missing_cache_price_is_priced_with_a_recorded_assumption(self) -> None:
+        prices = self._priced_with(lambda e: e.pop("cache_read"))
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        with mock.patch.object(cost, "load_prices", return_value=prices):
+            _, rep, _ = self._run("--json")
+        self.assertTrue(rep["publicRateUsdEquivalent"]["complete"])
+        assumed = {(a["model"], a["component"]): a for a in rep["priceAssumptions"]}
+        self.assertEqual(assumed[("claude-sonnet-5-5", "cache_read")]["tokens"], 1_000)
+        self.assertIn("10% of the input rate", assumed[("claude-sonnet-5-5", "cache_read")]["assumption"])
+        # cache reads at 10% of input (2e-6 * 0.1), everything else at the catalog rate.
+        expected = 10 * 2e-6 + 100 * 1e-5 + 1_000 * 2e-7 + 50 * 2.5e-6
+        self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"], expected)
+
+    def test_zero_catalog_cache_price_is_kept_as_zero(self) -> None:
+        prices = self._priced_with(lambda e: e.update(cache_read=0.0))
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        with mock.patch.object(cost, "load_prices", return_value=prices):
+            _, rep, _ = self._run("--json")
+        self.assertEqual(rep["priceAssumptions"], [])
+        self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"],
+                               10 * 2e-6 + 100 * 1e-5 + 50 * 2.5e-6)
+
+    def test_inferred_cache_write_split_is_listed_as_an_assumption(self) -> None:
+        partial = dict(self.USAGE, cache_creation_input_tokens=40,
+                       cache_creation={"ephemeral_1h_input_tokens": 8})
+        self._main_file([self._rec("msg_p", "req_p", "claude-sonnet-5-5", usage=partial)])
+        _, rep, _ = self._run("--json")
+        assumed = {(a["model"], a["component"]): a["tokens"] for a in rep["priceAssumptions"]}
+        self.assertEqual(assumed[("claude-sonnet-5-5", "cache_write_split")], 40)
 
     def test_subagent_referenced_by_main_transcript_without_transcript_is_incomplete(self) -> None:
         self._standard_fixture()
