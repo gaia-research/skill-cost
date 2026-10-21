@@ -26,6 +26,7 @@ import os
 import re
 import sqlite3
 import sys
+import unicodedata
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -912,7 +913,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 # Run report (Claude Code main session + its subagents)
 # =============================================================================
 
-TOOL_VERSION = "1.3.1"
+TOOL_VERSION = "1.3.2"
 RUN_REPORT_SCHEMA = "skill-cost-run-report-v1"
 RUN_DISCLAIMER = (
     "USD figures are public-rate equivalents: measured tokens priced at the LiteLLM "
@@ -940,9 +941,15 @@ def _norm_agent_id(key: str) -> str:
     return s
 
 
+class RoleMapConflict(ValueError):
+    """Two role-map keys name one agent (`agent-X`, `X` and `X.jsonl` are the same agent)
+    with different roles. Which role is meant is unknowable, so the map is refused."""
+
+
 def load_role_map(path: str) -> tuple[dict, str]:
     """Read a role map: a JSON object of {session-id | agent-id: role}. Keys starting
-    with `_` are comments and ignored. Returns (map, sha256 of the file bytes)."""
+    with `_` are comments and ignored. Returns (map, sha256 of the file bytes). Two keys
+    that normalise to one id must give it the same role, or RoleMapConflict is raised."""
     raw = Path(path).read_bytes()
     data = json.loads(raw.decode("utf-8"))
     if not isinstance(data, dict):
@@ -953,7 +960,10 @@ def load_role_map(path: str) -> tuple[dict, str]:
             continue
         if not isinstance(role, str) or not role.strip():
             raise ValueError(f"role for {key!r} must be a non-empty string")
-        out[_norm_agent_id(str(key))] = role.strip()
+        norm = _norm_agent_id(str(key))
+        if norm in out and out[norm] != role.strip():
+            raise RoleMapConflict("two keys name the same agent with different roles")
+        out[norm] = role.strip()
     return out, hashlib.sha256(raw).hexdigest()
 
 
@@ -1128,10 +1138,12 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
             continue
         tokens, split_inferred = parsed
         # A usable message.id is a non-empty string. Absent, null, 0, empty or blank ids
-        # cannot be deduplicated, so the record carries no key.
+        # cannot be deduplicated, so the record carries no key. Surrounding whitespace is
+        # not part of an id or a requestId, so it is stripped before keying: 'msg_W ' and
+        # 'msg_W' are the same call.
         msg_id = msg.get("id")
         usable = isinstance(msg_id, str) and bool(msg_id.strip())
-        key = (msg_id, str(d.get("requestId") or "")) if usable else None
+        key = (msg_id.strip(), str(d.get("requestId") or "").strip()) if usable else None
         r.usage.append({"key": key, "model": model, "tokens": tokens,
                         "split_inferred": split_inferred})
     return r
@@ -1272,15 +1284,39 @@ def _is_suspect_snapshot(tokens: tuple) -> bool:
     return tokens[1] <= OUTPUT_SNAPSHOT_MAX and prompt >= PROMPT_NONTRIVIAL_MIN
 
 
-def _undercount_block(suspect: int, total: int) -> dict:
-    """Counts and the flag for one scope. A scope with no records has a null fraction and
-    is never flagged."""
+def _undercount_block(suspect: int, total: int, zero: int = 0) -> dict:
+    """Counts and the flag for one scope. total excludes the all-zero records, which are
+    counted in zero and never enter the denominator. A scope with no counted records has a
+    null fraction and is never flagged."""
     return {
         "suspectRecords": suspect,
         "totalRecords": total,
+        "zeroRecords": zero,
         "fraction": round(suspect / total, 6) if total else None,
         "likelyUndercounted": total > 0 and suspect > UNDERCOUNT_FRACTION_ABOVE * total,
     }
+
+
+def _md_escape(value, pipes: bool = False) -> str:
+    """Text from a run report, safe inside one markdown line or table cell. Control
+    characters (C0, DEL, C1, and the Unicode line and paragraph separators) become visible
+    escapes, so a role name can never start a new line or a heading. Pipes are escaped
+    only when pipes is true, for table cells."""
+    out: list[str] = []
+    for ch in str(value):
+        if pipes and ch == "|":
+            out.append("\\|")
+        elif ch == "\n":
+            out.append("\\n")
+        elif ch == "\r":
+            out.append("\\r")
+        elif ch == "\t":
+            out.append("\\t")
+        elif unicodedata.category(ch) in ("Cc", "Zl", "Zp"):
+            out.append(f"\\u{ord(ch):04x}")
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def _run_usd(b: Bucket, model: str, prices: dict) -> tuple[float | None, str, list]:
@@ -1357,7 +1393,9 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
 
     # Global dedupe: one usage record per API call (message.id + requestId) across the
     # main transcript and every subagent transcript. Streaming records for the same call
-    # carry a growing output count, so the largest total wins; ties keep the first seen.
+    # carry a growing output count, so the largest total wins the counts; ties keep the
+    # first seen. The role of a call comes from its main-session copy when there is one, so
+    # a larger subagent copy never moves the call out of the lead's attribution.
     readable = [main] + [s for s in subs if not s.error]
     records = [(log, rec) for log in readable for rec in log.usage]
     # A message id that appears without a requestId anywhere in the run is one call:
@@ -1377,11 +1415,15 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         counts["keyedRecords"] += 1
         prev = keyed.get(key)
         if prev is None:
-            keyed[key] = (log, rec)
+            keyed[key] = {"log": log, "rec": rec}
         else:
             counts["duplicatesIgnored"] += 1
-            if _total(rec["tokens"]) > _total(prev[1]["tokens"]):
-                keyed[key] = (log, rec)
+            # Attribution: a main-session copy takes the call's role, whatever its size.
+            if log is main:
+                prev["log"] = main
+            # Counts: the largest copy.
+            if _total(rec["tokens"]) > _total(prev["rec"]["tokens"]):
+                prev["rec"] = rec
     if counts["unkeyedRecords"]:
         warnings.append(f"{counts['unkeyedRecords']} usage record(s) had no message id and "
                         "could not be deduplicated; each was counted once")
@@ -1400,7 +1442,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                         "into one call")
         ambiguous_incomplete.append(f"ambiguous-id-only-copy: message id sha256 {digest} merged "
                                     f"{n} distinct requestIds into one call (possible undercount)")
-    winners = list(keyed.values()) + unkeyed
+    winners = [(entry["log"], entry["rec"]) for entry in keyed.values()] + unkeyed
 
     # A role-map key that names a readable transcript whose usage contributes no row has no
     # effect. Say so, rather than let the mapping vanish silently.
@@ -1437,7 +1479,9 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     rows: dict[tuple[str, str], Bucket] = {}
     roles_for_model: dict[str, set] = {}
     measured = Bucket()
-    # role -> [suspect snapshot records, deduplicated records], for the output-undercount rule.
+    # role -> [suspect snapshot records, counted records, all-zero records], for the
+    # output-undercount rule. An all-zero record is valid, adds nothing, and is kept out of
+    # the counted denominator, so it cannot hide a flagged run.
     undercount: dict[str, list] = {}
     for log, rec in winners:
         model = rec["model"]
@@ -1448,7 +1492,10 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         rows.setdefault((role, model), Bucket()).add(b)
         measured.add(b)
         roles_for_model.setdefault(model, set()).add(role)
-        tally = undercount.setdefault(role, [0, 0])
+        tally = undercount.setdefault(role, [0, 0, 0])
+        if not any(t):
+            tally[2] += 1
+            continue
         tally[1] += 1
         if _is_suspect_snapshot(t):
             tally[0] += 1
@@ -1507,6 +1554,15 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                               f"output count, no recognised count field, or a cache-write "
                               f"split that cannot be placed or disagrees with its total) "
                               f"excluded from totals in {_report_path(log, main)}")
+    # A subagent transcript that exists but holds no usage records is not evidence of zero
+    # tokens: its calls may be missing. It is named by the id hash, never by path.
+    empty_subs = [s for s in subs if not s.error and not s.usage]
+    for s in empty_subs:
+        digest = hashlib.sha256(s.agent_id.encode("utf-8", "surrogatepass")).hexdigest()[:8]
+        warnings.append(f"subagent sha256 {digest} has a transcript with no usage records; "
+                        "its calls are not measured")
+        incomplete.append(f"no-usage-records: subagent sha256 {digest} has no usage records, "
+                          "so its calls were not measured")
 
     if counts["unkeyedRecords"]:
         incomplete.append(f"unkeyed-usage-records: {counts['unkeyedRecords']} record(s) have no "
@@ -1518,9 +1574,11 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     # Output undercount. When most records in a scope are early streaming snapshots, that
     # scope's output tokens, and the USD priced from them, are a lower bound. The run is
     # flagged when the overall scope or any role is flagged.
-    overall_uc = _undercount_block(sum(s for s, _ in undercount.values()),
-                                   sum(t for _, t in undercount.values()))
-    role_uc = {role: _undercount_block(s, t) for role, (s, t) in sorted(undercount.items())}
+    overall_uc = _undercount_block(sum(v[0] for v in undercount.values()),
+                                   sum(v[1] for v in undercount.values()),
+                                   sum(v[2] for v in undercount.values()))
+    role_uc = {role: _undercount_block(s, t, z)
+               for role, (s, t, z) in sorted(undercount.items())}
     flagged_roles = [role for role, blk in role_uc.items() if blk["likelyUndercounted"]]
     output_flag = overall_uc["likelyUndercounted"] or bool(flagged_roles)
 
@@ -1555,14 +1613,20 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
             f"{OUTPUT_SNAPSHOT_MAX} or fewer with a non-trivial prompt). That is below the flag "
             "threshold, so the run is not flagged, but output for those calls may still be "
             "short of the final counts.")
+    if overall_uc["zeroRecords"]:
+        warnings.append(
+            f"{overall_uc['zeroRecords']} all-zero usage record(s) (every count is 0) excluded "
+            "from the output-undercount denominator; they are not malformed and add nothing "
+            "to the totals")
 
     # A token that may be missing from, or unverified in, the totals also clears the USD
     # figure, because the priced total then omits or cannot vouch for it: a subagent
-    # transcript that is missing or unreadable, a line that cannot be parsed, a malformed
-    # usage record, a usage record with no usable message.id, an ambiguous id-only merge, or
-    # a main session with no usage records. A role-map key that names no transcript removes
-    # no tokens, so it does not touch the USD figure.
+    # transcript that is missing, unreadable or holds no usage records, a line that cannot be
+    # parsed, a malformed usage record, a usage record with no usable message.id, an
+    # ambiguous id-only merge, or a main session with no usage records. A role-map key that
+    # names no transcript removes no tokens, so it does not touch the USD figure.
     token_gap = (bool(ambiguous_incomplete) or counts["unkeyedRecords"] > 0 or not main.usage
+                 or bool(empty_subs)
                  or any(item["kind"] == "subagent" for item in inaccessible)
                  or any(log.bad_lines or log.malformed_usage for log in [main] + subs))
     usd_complete = not unknown and not output_flag and not token_gap
@@ -1631,7 +1695,8 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                 "outputTokensAtOrBelow": OUTPUT_SNAPSHOT_MAX,
                 "promptTokensAtLeast": PROMPT_NONTRIVIAL_MIN,
                 "fractionAbove": UNDERCOUNT_FRACTION_ABOVE,
-                "counts": "deduplicated usage records (message.id + requestId)",
+                "counts": "deduplicated usage records (message.id + requestId), excluding "
+                          "all-zero records (counted in zeroRecords)",
             },
         },
         "publicRateUsdEquivalent": {
@@ -1685,8 +1750,13 @@ def _token_dict(b: Bucket) -> dict:
 
 
 def render_run_markdown(rep: dict) -> str:
-    def esc(s: str) -> str:
-        return str(s).replace("|", "\\|")
+    # Every value below that came from a log, a role map or a flag is escaped: control
+    # characters become visible escapes, so none of them can start a new line or heading.
+    def esc(s) -> str:
+        return _md_escape(s, pipes=True)
+
+    def txt(s) -> str:
+        return _md_escape(s)
 
     s = rep["session"]
     pub = rep["publicRateUsdEquivalent"]
@@ -1694,7 +1764,7 @@ def render_run_markdown(rep: dict) -> str:
     if rep["complete"]:
         status = "complete (measured tokens)"
     else:
-        status = "INCOMPLETE — " + "; ".join(rep["incompleteReasons"])
+        status = "INCOMPLETE — " + "; ".join(txt(r) for r in rep["incompleteReasons"])
     usd_notes = []
     if rep["unknownPrices"]:
         usd_notes.append(f"USD partial: {len(rep['unknownPrices'])} unpriced model(s)")
@@ -1706,10 +1776,10 @@ def render_run_markdown(rep: dict) -> str:
         usd_notes.append("USD incomplete: measured tokens are not complete (see incompleteReasons)")
     status += "; " + ("; ".join(usd_notes) if usd_notes else "USD complete")
     out.append(f"- **Status:** {status}")
-    cwd_txt = (f"`{s['cwd']}` (cwdSha256 `{s['cwdSha256']}`)" if s["cwd"] else "unknown")
-    out.append(f"- **Session:** `{s['sessionId']}` · lead model `{s['leadModel'] or 'unknown'}` "
-               f"· cwd {cwd_txt}")
-    out.append(f"- **Window:** {s['firstTs'] or '?'} → {s['lastTs'] or '?'}")
+    cwd_txt = (f"`{txt(s['cwd'])}` (cwdSha256 `{s['cwdSha256']}`)" if s["cwd"] else "unknown")
+    out.append(f"- **Session:** `{txt(s['sessionId'])}` · lead model "
+               f"`{txt(s['leadModel'] or 'unknown')}` · cwd {cwd_txt}")
+    out.append(f"- **Window:** {txt(s['firstTs'] or '?')} → {txt(s['lastTs'] or '?')}")
     subs = [f for f in rep["files"] if f["kind"] == "subagent"]
     out.append(f"- **Logs read:** 1 main + {len(subs)} subagent transcript(s)")
     ou = rep["outputUndercount"]
@@ -1719,6 +1789,9 @@ def render_run_markdown(rep: dict) -> str:
                    f"output_tokens <= {OUTPUT_SNAPSHOT_MAX} with a non-trivial prompt; "
                    + ("output likely undercounted (see warning)"
                       if rep["outputLikelyUndercounted"] else "not flagged"))
+    elif ou["zeroRecords"]:
+        out.append(f"- **Output check:** no non-zero usage records ({ou['zeroRecords']} "
+                   "all-zero record(s) excluded)")
     else:
         out.append("- **Output check:** no usage records")
     out.append("")
@@ -1754,13 +1827,13 @@ def render_run_markdown(rep: dict) -> str:
     out.append(f"- **Public-rate USD equivalent:** ${pub['usd']:,.4f} "
                f"({pub['kind']}; complete={str(pub['complete']).lower()})")
     if rep["unknownPrices"]:
-        parts = [f"`{u['model']}` ({toks(u['tokens'])} tokens, no USD: "
+        parts = [f"`{txt(u['model'])}` ({toks(u['tokens'])} tokens, no USD: "
                  f"{UNKNOWN_PRICE_REASONS.get(u['reason'], u['reason'])})"
                  for u in rep["unknownPrices"]]
         out.append("- **Unknown prices (never substituted):** " + ", ".join(parts)
                    + " — run `python3 cost.py --refresh-prices` if the model is new")
     if rep["priceAssumptions"]:
-        parts = [f"`{a['model']}`, {toks(a['tokens'])} tokens: {a['assumption']}"
+        parts = [f"`{txt(a['model'])}`, {toks(a['tokens'])} tokens: {a['assumption']}"
                  for a in rep["priceAssumptions"]]
         out.append("- **Price assumptions (USD only):** " + "; ".join(parts))
     b = rep["actualBilledSpend"]
@@ -1768,13 +1841,13 @@ def render_run_markdown(rep: dict) -> str:
         out.append(f"- **User-supplied billed figure (unverified):** none supplied ({b['reason']})")
     else:
         out.append(f"- **User-supplied billed figure (unverified):** ${b['usd']:,.4f} "
-                   f"(source: {b['source']}; {b['provenance']})")
+                   f"(source: {txt(b['source'])}; {b['provenance']})")
     if rep["inaccessible"]:
         out.append("- **Inaccessible:**")
         for item in rep["inaccessible"]:
-            out.append(f"  - {item['kind']} `{item['id']}`: {item['reason']}")
+            out.append(f"  - {txt(item['kind'])} `{txt(item['id'])}`: {txt(item['reason'])}")
     for w in rep["warnings"]:
-        out.append(f"- Warning: {w}")
+        out.append(f"- Warning: {txt(w)}")
     out.append("")
     out.append(f"> {rep['disclaimer']}")
     out.append("")
@@ -1815,6 +1888,11 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
         except OSError as e:
             print(f"error: --role-map: cannot read the role map file ({_error_text(e)})",
                   file=sys.stderr)
+            return 2
+        except RoleMapConflict:
+            # Static text: the conflicting ids are never echoed.
+            print("error: --role-map: two keys name the same agent with different roles; "
+                  "give each agent one role", file=sys.stderr)
             return 2
         except Exception:
             # ValueError, a RecursionError from a deeply nested file, and any other parse

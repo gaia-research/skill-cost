@@ -6,7 +6,7 @@ description: >-
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.3.1
+version: 1.3.2
 ---
 
 # cost — Multi-Harness Token Cost Report
@@ -124,7 +124,7 @@ python3 cost.py --run-report --json --offline
 # A specific session, as a markdown table
 python3 cost.py --run-report --markdown --session 3f42d4e9 --offline
 
-# Attribute builders and verifiers explicitly, fail (exit 3) if anything is missing
+# Attribute builders and verifiers explicitly; exit 3 only when complete is false
 python3 cost.py --run-report --json --role-map roles.json --strict
 
 # Echo an actual invoice figure with its provenance
@@ -146,7 +146,9 @@ fetching. `--offline` with `--refresh-prices` is a usage error (exit 2) in every
 Exit codes: `0` report written (complete or not, unless `--strict`); `1` no matching
 session, no usable bundled prices under `--offline`, or an unexpected failure; `2` usage
 error (bad flag combination, an unreadable or invalid role map, including one too deeply
-nested to parse, or a harness other than Claude Code); `3` incomplete with `--strict`.
+nested to parse, two role-map keys that name one agent with different roles, or a harness
+other than Claude Code); `3` with `--strict` only when `complete` is false. An unpriced
+model alone, which clears only `usdComplete`, never exits 3.
 
 Run-report stderr is safe to paste with the stdout. It never contains an absolute path,
 and it never contains a traceback. An unexpected failure prints one line,
@@ -158,6 +160,10 @@ and it never contains a traceback. An unexpected failure prints one line,
 A flat JSON object from a session id or agent id to a role name. Keys that start
 with `_` are comments and are ignored. Agent ids may be written bare
 (`ace1f9a8b8a8e5f08`), as `agent-<id>`, or as `<id>.jsonl`.
+
+`agent-<id>`, `<id>` and `<id>.jsonl` name one agent. Two keys that name the same agent
+must give it the same role. Different roles are a usage error (exit 2, static text that
+names no id), because the report cannot tell which one is meant.
 
 A key that names no transcript is listed in `inaccessible[]` with
 `kind: "role-map-reference"`, and the report is incomplete. A key that names a transcript
@@ -180,7 +186,10 @@ Rules run in this order. The first match wins.
 
 1. **Explicit map.** A session or agent id listed in `--role-map` gets that role.
 2. **Lead.** Main-session usage whose model is the main session's dominant model (most
-   output tokens) is role `lead`.
+   output tokens) is role `lead`. A call that both the main transcript and a subagent
+   transcript record is main-session usage, so it takes the main-session role from this
+   rule (`lead`, or `unattributed` for a model other than the lead's), whichever copy is
+   larger. Its counts are the largest copy's.
 3. **Subagent family.** Any other subagent usage is role `subagent:<model>`, for
    example `subagent:claude-haiku-5-5`. Builder and verifier are never guessed from
    the model name, because two Haiku subagents look the same in the logs.
@@ -191,8 +200,11 @@ Rules run in this order. The first match wins.
 
 - **Measured tokens** (`measuredTokens`) are read from the logs. Each API call is
   counted once across the main and subagent transcripts. Records are keyed by
-  `message.id` + `requestId`, and streaming copies of one call collapse to the largest.
-  If any copy of a `message.id` has no `requestId`, every copy with that id is one call.
+  `message.id` + `requestId`, with surrounding whitespace stripped from both first, so
+  `msg_W ` and `msg_W` are one call. Streaming copies of one call collapse to the largest
+  counts. The main-session copy, when there is one, keeps the call's role (see lead
+  attribution below), whatever its size. If any copy of a `message.id` has no `requestId`,
+  every copy with that id is one call.
   When those copies carry two or more distinct `requestId`s, that merge may hide real calls.
   The report then adds a warning `ambiguous-id-only-copy` and an `incompleteReasons` entry
   that says "possible undercount", and sets `complete: false`. Both name the message id only
@@ -249,7 +261,11 @@ Rules run in this order. The first match wins.
   The 100-token floor keeps out records with almost no prompt, which say nothing about
   their output. A scope, the whole run or one role, is **flagged** when more than half of
   its records are suspect (`fraction` strictly above 0.5). `suspectRecords`, `totalRecords`
-  and `fraction` are reported for the run and for each role. `fraction` is `null` for a
+  and `fraction` are reported for the run and for each role. An **all-zero record** has every
+  parsed count at 0 (an absent cache count reads as 0). It is a valid record that adds nothing
+  to the totals. It is counted in `zeroRecords` for the run and for each role, and kept out of
+  `totalRecords`, so it cannot dilute the fraction. It does not make the report incomplete;
+  the run adds the warning `N all-zero usage record(s) ...`. `fraction` is `null` for a
   scope with no records, and such a scope is never flagged. The thresholds are in
   `outputUndercount.rule`. When the run or any role is flagged:
   - `outputLikelyUndercounted` is `true`, and both `complete` and `usdComplete` are `false`.
@@ -290,6 +306,10 @@ Rules run in this order. The first match wins.
   - a usage record is malformed (see above);
   - a usage record has no usable `message.id` (`unkeyed-usage-records:`, see above);
   - the main session has no usage records (`no-usage-records:`), so no lead tokens were measured;
+  - a subagent transcript exists, is readable, and has no usage records. Its calls may be
+    missing, so the entry is `no-usage-records: subagent sha256 <8 hex>` (the first 8 hex
+    characters of the sha256 of the agent id, never the id or a path), with a matching
+    warning. This case is not listed in `inaccessible[]`, because the transcript was read;
   - a message id's copies merge several `requestId`s (`ambiguous-id-only-copy:`, see above);
   - the output undercount flag is set (see above).
   The report is still written. Numbers are never invented to fill a gap.
@@ -298,10 +318,10 @@ Rules run in this order. The first match wins.
   `publicRateUsdEquivalent.complete`, copied to the top level for consumers that read only
   that. It is `false` when any model is unpriced, any row overflows, the output undercount
   flag is set, or a token may be missing from the total: a subagent transcript is missing or
-  unreadable, a line cannot be parsed, a usage record is malformed or has no usable
-  `message.id`, the main session has no usage records, or a message id merges several
-  `requestId`s. A `--role-map` key that names no transcript removes no tokens, so it does not
-  clear `usdComplete`.
+  unreadable or has no usage records, a line cannot be parsed, a usage record is malformed or
+  has no usable `message.id`, the main session has no usage records, or a message id merges
+  several `requestId`s. A `--role-map` key that names no transcript removes no tokens, so it
+  does not clear `usdComplete`.
 
   So a report can read `complete: true` with `usdComplete: false` when only a model is
   unpriced: every token was read, but some USD is missing. When tokens are missing, both are
@@ -319,9 +339,17 @@ Rules run in this order. The first match wins.
   sha256, size, mtime, usage-record count and malformed count. The run also records
   the `prices.json` sha256, source URL and fetch time, the tool version, the generation
   time, and the role-map sha256 when one is given.
+- **Markdown escaping.** Text the markdown takes from logs, role maps or flags (role and model
+  names, cwd basename, session id, reasons, warnings, the billed-figure source) is escaped.
+  Control characters are written as `\n`, `\r`, `\t` or `\uXXXX`, and a pipe in a table
+  cell as `\|`. A role name cannot start a new line, a heading or a table row.
 
-### Limitations
+### Known limits
 
+- A call that a main transcript and a subagent transcript both record is attributed to the
+  main session, even when the subagent copy is the one with the larger counts. A call that
+  really ran in a subagent but also appears in the main transcript therefore takes the
+  lead's role. The totals stay right; the role split does not.
 - `--run-report` reads Claude Code only: the main session and its subagent transcripts.
   Anything outside those files is not measured. Advisor tokens appear only if their
   usage records are in these logs.

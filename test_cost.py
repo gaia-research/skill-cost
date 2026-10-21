@@ -1250,7 +1250,8 @@ class RunReportTests(unittest.TestCase):
             "outputTokensAtOrBelow": 10,
             "promptTokensAtLeast": 100,
             "fractionAbove": 0.5,
-            "counts": "deduplicated usage records (message.id + requestId)",
+            "counts": "deduplicated usage records (message.id + requestId), excluding "
+                      "all-zero records (counted in zeroRecords)",
         })
         for role, block in rep["byRole"].items():
             with self.subTest(role=role):
@@ -1454,6 +1455,167 @@ class RunReportTests(unittest.TestCase):
                 self.assertEqual(out, "")
                 self.assertIn(flag, err)
                 self.assertIn("--run-report", err)
+
+    # --- 1.3.2 review findings: R1 all-zero records, R2 whitespace ids, R3 empty subagent,
+    # R4 lead attribution, R5 role-map conflicts, R6 markdown escaping, R8 SKILL.md example
+
+    ZERO = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0,
+            "cache_creation_input_tokens": 0}
+
+    def _digest(self, value: str) -> str:
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()[:8]
+
+    def test_R1_all_zero_usage_records_do_not_dilute_the_undercount_denominator(self) -> None:
+        # Six early snapshots and four healthy calls: 6 of 10 is over half, so flagged.
+        # Ten explicit all-zero records must not dilute that to 6 of 20.
+        zero_lines = [self._rec(f"msg_z{i}", f"req_z{i}", "claude-sonnet-5-5",
+                                usage=dict(self.ZERO), uuid=f"z{i}") for i in range(10)]
+        self._main_file(self._snapshot_calls([8] * 6 + [400] * 4) + zero_lines)
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"], uc["zeroRecords"]),
+                         (6, 10, 10))
+        self.assertAlmostEqual(uc["fraction"], 0.6)
+        self.assertTrue(uc["likelyUndercounted"])
+        self.assertTrue(rep["outputLikelyUndercounted"])
+        self.assertFalse(rep["usdComplete"])
+        # Zero records add nothing to the totals.
+        self.assertEqual(rep["measuredTokens"]["output"], 6 * 8 + 4 * 400)
+
+    def test_R1_all_zero_records_are_counted_warned_and_not_malformed(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_z", "req_z", "claude-sonnet-5-5", usage=dict(self.ZERO), uuid="b"),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 0)
+        self.assertTrue(rep["complete"])
+        self.assertEqual(rep["outputUndercount"]["zeroRecords"], 1)
+        self.assertEqual(rep["outputUndercount"]["totalRecords"], 1)
+        self.assertEqual(rep["byRole"]["lead"]["outputUndercount"]["zeroRecords"], 1)
+        warned = [w for w in rep["warnings"] if "all-zero usage record" in w]
+        self.assertEqual(len(warned), 1)
+        self.assertIn("1 all-zero usage record(s)", warned[0])
+        self.assertFalse([r for r in rep["incompleteReasons"] if "zero" in r])
+
+    def test_R2_message_id_with_surrounding_whitespace_dedupes_with_its_bare_copy(self) -> None:
+        self._main_file([self._rec("msg_W", "req_W", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_W ", "req_W", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_R2_request_id_with_surrounding_whitespace_dedupes_with_its_bare_copy(self) -> None:
+        self._main_file([self._rec("msg_W", "req_W", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec("\tmsg_W\n", " req_W\n", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_R3_subagent_transcript_with_no_usage_records_is_reported_by_id_hash(self) -> None:
+        self._standard_fixture()
+        empty_id = "cccc1111dddd22223"
+        self._sub_file(empty_id, [json.dumps({"type": "user", "sessionId": self.SID,
+                                              "timestamp": "2026-01-01T00:00:01.000Z"})])
+        code, rep, text = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        digest = self._digest(empty_id)
+        reasons = [r for r in rep["incompleteReasons"]
+                   if r.startswith(f"no-usage-records: subagent sha256 {digest}")]
+        self.assertEqual(len(reasons), 1)
+        self.assertEqual(len([w for w in rep["warnings"] if digest in w]), 1)
+        self.assertNotIn(empty_id, json.dumps([rep["incompleteReasons"], rep["warnings"]]))
+        self.assertNotIn(str(self.home), text)
+        entry = [f for f in rep["files"] if f.get("agentId") == empty_id][0]
+        self.assertEqual(entry["usageRecords"], 0)
+        code, _, _ = self._run("--json", "--strict")
+        self.assertEqual(code, 3)
+
+    def test_R3_subagent_with_usage_records_is_not_reported_as_empty(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse([r for r in rep["incompleteReasons"]
+                          if r.startswith("no-usage-records:")])
+
+    def test_R4_main_copy_keeps_lead_attribution_when_the_subagent_copy_is_larger(self) -> None:
+        # The main transcript holds an early snapshot of a call that the subagent transcript
+        # finishes. The main copy keeps the call's role; the larger counts are the ones kept.
+        self._main_file([self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                   usage=dict(self.USAGE, output_tokens=8), uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                            usage=dict(self.USAGE, output_tokens=431),
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        rows = self._rows(rep)
+        self.assertEqual(rep["session"]["leadModel"], "claude-sonnet-5-5")
+        self.assertIn(("lead", "claude-sonnet-5-5"), rows)
+        self.assertEqual(rows[("lead", "claude-sonnet-5-5")]["tokens"]["output"], 431)
+        self.assertFalse([r for r in rep["rows"] if r["role"].startswith("subagent:")])
+        self.assertEqual(rep["measuredTokens"]["output"], 431)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_R4_no_false_no_main_usage_warning_when_the_main_session_has_records(self) -> None:
+        self._main_file([self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                   usage=dict(self.USAGE, output_tokens=8), uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                            usage=dict(self.USAGE, output_tokens=431),
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertFalse([w for w in rep["warnings"]
+                          if "no usage from the main session" in w])
+
+    def test_R5_role_map_keys_naming_one_agent_with_two_roles_are_a_usage_error(self) -> None:
+        self._standard_fixture()
+        for keys in ({f"agent-{self.AID}": "builder", self.AID: "verifier"},
+                     {f"{self.AID}.jsonl": "builder", f"agent-{self.AID}": "verifier"}):
+            with self.subTest(keys=sorted(keys)):
+                code, out, err = self._capture("--json", "--role-map", self._map(keys))
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn("same agent", err)
+                self.assertNotIn(self.AID, err)
+
+    def test_R5_role_map_keys_naming_one_agent_with_one_role_are_accepted(self) -> None:
+        self._standard_fixture()
+        mapping = self._map({f"agent-{self.AID}": "builder", f"{self.AID}.jsonl": "builder"})
+        code, rep, _ = self._run("--json", "--role-map", mapping)
+        self.assertEqual(code, 0)
+        self.assertIn(("builder", "claude-haiku-5-5"), self._rows(rep))
+        self.assertEqual(rep["roleMap"]["entries"], 1)
+
+    def test_R5_load_role_map_raises_a_conflict_error(self) -> None:
+        mapping = self._map({f"agent-{self.AID}": "builder", self.AID: "verifier"})
+        with self.assertRaises(cost.RoleMapConflict):
+            cost.load_role_map(mapping)
+
+    def test_R6_role_name_with_newline_and_pipe_cannot_break_the_markdown_table(self) -> None:
+        self._standard_fixture()
+        hostile = "builder\n## injected | x\r\t\x1b end"
+        code, _, text = self._run("--markdown", "--role-map", self._map({self.AID: hostile}))
+        self.assertEqual(code, 0)
+        self.assertNotIn("\n## injected", text)
+        for raw in ("\r", "\x1b", " "):
+            self.assertNotIn(raw, text)
+        self.assertIn("| builder\\n## injected \\| x\\r\\t\\u001b\\u2028end | claude-haiku-5-5 |",
+                      text)
+
+    def test_R8_strict_example_comment_matches_the_exit_3_rule(self) -> None:
+        text = Path(cost.__file__).with_name("SKILL.md").read_text(encoding="utf-8")
+        lines = text.splitlines()
+        idx = next(i for i, line in enumerate(lines)
+                   if line.rstrip().endswith("--role-map roles.json --strict"))
+        comment = lines[idx - 1]
+        self.assertTrue(comment.startswith("#"))
+        self.assertIn("exit 3", comment)
+        self.assertIn("complete is false", comment)
+        self.assertNotIn("anything is missing", comment)
 
 
 class LoadPricesRedactionTests(unittest.TestCase):
