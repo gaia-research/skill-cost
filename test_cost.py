@@ -476,7 +476,8 @@ class RunReportTests(unittest.TestCase):
                     "inaccessible", "roleMap", "dedupe", "measuredTokens",
                     "publicRateUsdEquivalent", "unknownPrices", "byRole", "rows",
                     "actualBilledSpend", "disclaimer", "prices", "warnings",
-                    "malformedUsage", "priceAssumptions", "usdComplete"):
+                    "malformedUsage", "priceAssumptions", "usdComplete",
+                    "outputLikelyUndercounted", "outputUndercount"):
             self.assertIn(key, rep)
         for key in ("sha256", "sourceUrl", "fetchedAt", "modelCount", "file"):
             self.assertIn(key, rep["prices"])
@@ -1038,6 +1039,220 @@ class RunReportTests(unittest.TestCase):
         _, rep, _ = self._run("--json")
         self.assertFalse(rep["complete"])
         self.assertTrue(rep["usdComplete"])
+
+    # --- output undercount: early streaming snapshots carry output_tokens <= 10 ----------
+
+    def _snapshot_calls(self, outputs: list[int], model: str = "claude-sonnet-5-5",
+                        prefix: str = "msg_u") -> list[str]:
+        """One main-session call per entry, with that output_tokens and the standard prompt
+        (well above the non-trivial floor)."""
+        return [self._rec(f"{prefix}{i}", f"req_{prefix}{i}", model,
+                          usage=dict(self.USAGE, output_tokens=out), uuid=f"{prefix}{i}")
+                for i, out in enumerate(outputs)]
+
+    def test_snapshot_heavy_run_is_flagged_as_undercounted(self) -> None:
+        # Nine of ten calls carry only an early streaming snapshot.
+        self._main_file(self._snapshot_calls([8] * 9 + [400]))
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertTrue(rep["outputLikelyUndercounted"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertFalse(rep["complete"])
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (9, 10))
+        self.assertAlmostEqual(uc["fraction"], 0.9)
+        self.assertTrue(uc["likelyUndercounted"])
+        reasons = [r for r in rep["incompleteReasons"]
+                   if r.startswith("output-likely-undercounted:")]
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("overall 9 of 10 usage records", reasons[0])
+        self.assertIn("lower bound", reasons[0])
+        warned = [w for w in rep["warnings"] if w.startswith("Output looks undercounted")]
+        self.assertEqual(len(warned), 1)
+        self.assertIn("LOWER BOUND", warned[0])
+        self.assertIn("billing dashboard is authoritative", warned[0])
+        # The USD is still computed from the measured tokens, never invented.
+        self.assertGreater(rep["publicRateUsdEquivalent"]["usd"], 0)
+
+    def test_healthy_run_is_not_flagged(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertTrue(rep["usdComplete"])
+        self.assertTrue(rep["complete"])
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (0, 5))
+        self.assertEqual(uc["fraction"], 0.0)
+        self.assertFalse(uc["likelyUndercounted"])
+        self.assertFalse([r for r in rep["incompleteReasons"]
+                          if r.startswith("output-likely-undercounted:")])
+        self.assertFalse([w for w in rep["warnings"] if "undercount" in w.lower()])
+
+    def test_output_threshold_is_inclusive_at_ten_and_one_half_is_not_flagged(self) -> None:
+        # 10 counts as a snapshot, 11 does not. One suspect of two is exactly one half.
+        self._main_file(self._snapshot_calls([10, 11]))
+        _, rep, _ = self._run("--json")
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 2))
+        self.assertEqual(uc["fraction"], 0.5)
+        self.assertFalse(uc["likelyUndercounted"])
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertTrue(rep["usdComplete"])
+
+    def test_flag_needs_strictly_more_than_half(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 5 + [400] * 5))
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["outputUndercount"]["fraction"], 0.5)
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        # Six of eleven is just over one half.
+        self._main_file(self._snapshot_calls([8] * 6 + [400] * 5))
+        _, rep, _ = self._run("--json")
+        self.assertEqual((rep["outputUndercount"]["suspectRecords"],
+                          rep["outputUndercount"]["totalRecords"]), (6, 11))
+        self.assertTrue(rep["outputLikelyUndercounted"])
+
+    def test_zero_usage_records_have_a_null_fraction_and_no_flag(self) -> None:
+        self._main_file([json.dumps({"type": "user", "sessionId": self.SID,
+                                     "cwd": "/work/repo",
+                                     "timestamp": "2026-01-01T00:00:01.000Z"})])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (0, 0))
+        self.assertIsNone(uc["fraction"])
+        self.assertFalse(uc["likelyUndercounted"])
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertEqual(rep["byRole"], {})
+        _, _, text = self._run("--markdown")
+        self.assertIn("**Output check:** no usage records", text)
+
+    def test_early_and_late_copies_of_one_call_are_not_suspect(self) -> None:
+        # Streaming copies collapse to the largest total, so a call that also has its
+        # final snapshot is not an undercount.
+        self._main_file([self._rec("msg_s", "req_s", "claude-sonnet-5-5",
+                                   usage=dict(self.USAGE, output_tokens=8), uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_s", "req_s", "claude-sonnet-5-5",
+                                            usage=dict(self.USAGE, output_tokens=431),
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (0, 1))
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertEqual(rep["measuredTokens"]["output"], 431)
+
+    def test_repeated_early_copies_of_one_call_count_once(self) -> None:
+        early = dict(self.USAGE, output_tokens=8)
+        self._main_file([self._rec("msg_r", "req_r", "claude-sonnet-5-5", usage=early, uuid=u)
+                         for u in ("a", "b", "c")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 2)
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 1))
+        self.assertTrue(rep["outputLikelyUndercounted"])
+
+    def test_prompt_floor_is_inclusive_at_one_hundred_tokens(self) -> None:
+        below = {"input_tokens": 99, "output_tokens": 8,
+                 "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0}
+        at = {"input_tokens": 0, "output_tokens": 8,
+              "cache_read_input_tokens": 100, "cache_creation_input_tokens": 0}
+        self._main_file([
+            self._rec("msg_below", "req_below", "claude-sonnet-5-5", usage=below, uuid="a"),
+            self._rec("msg_at", "req_at", "claude-sonnet-5-5", usage=at, uuid="b"),
+        ])
+        _, rep, _ = self._run("--json")
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 2))
+
+    def test_one_role_over_half_flags_the_run_even_when_the_overall_is_under(self) -> None:
+        # The builder's two calls are both early snapshots; the lead's ten are healthy.
+        self._main_file(self._snapshot_calls([400] * 10))
+        self._sub_file(self.AID, [
+            self._rec("msg_b1", "req_b1", "claude-haiku-5-5", sidechain=True, uuid="x1",
+                      usage=dict(self.USAGE, output_tokens=8)),
+            self._rec("msg_b2", "req_b2", "claude-haiku-5-5", sidechain=True, uuid="x2",
+                      usage=dict(self.USAGE, output_tokens=8)),
+        ])
+        _, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        overall = rep["outputUndercount"]
+        self.assertEqual((overall["suspectRecords"], overall["totalRecords"]), (2, 12))
+        self.assertFalse(overall["likelyUndercounted"])
+        builder = rep["byRole"]["builder"]["outputUndercount"]
+        self.assertEqual((builder["suspectRecords"], builder["totalRecords"]), (2, 2))
+        self.assertTrue(builder["likelyUndercounted"])
+        self.assertFalse(rep["byRole"]["lead"]["outputUndercount"]["likelyUndercounted"])
+        self.assertTrue(rep["outputLikelyUndercounted"])
+        self.assertFalse(rep["usdComplete"])
+        reasons = rep["incompleteReasons"]
+        self.assertTrue(any(r.startswith("output-likely-undercounted: role builder")
+                            for r in reasons))
+        self.assertFalse(any(r.startswith("output-likely-undercounted: overall")
+                             for r in reasons))
+
+    def test_unpriced_and_undercounted_usd_are_both_named_in_markdown(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 3, model="claude-haiku-5-9-preview"))
+        _, _, text = self._run("--markdown")
+        self.assertIn("USD partial: 1 unpriced model(s); USD lower bound: output likely "
+                      "undercounted", text)
+        self.assertIn("(partial; lower bound: output undercounted)", text)
+        self.assertNotIn("USD complete", text)
+
+    def test_markdown_states_the_lower_bound_and_the_billing_dashboard(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 9 + [400]))
+        _, _, text = self._run("--markdown")
+        self.assertIn("9 of 10 deduplicated usage records (90.0%)", text)
+        self.assertIn("LOWER BOUND", text)
+        self.assertIn("provider or account billing dashboard is authoritative", text)
+        self.assertIn("USD lower bound: output likely undercounted", text)
+        self.assertIn("(lower bound: output undercounted)", text)
+        self.assertNotIn("USD complete", text)
+
+    def test_undercount_prints_a_plain_language_stderr_warning_without_paths(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 4))
+        code, out, err = self._capture("--json")
+        self.assertEqual(code, 0)
+        self.assertIn("warning: output likely undercounted", err)
+        self.assertIn("lower bound", err)
+        self.assertIn("billing dashboard", err)
+        self.assertNotIn(str(self.home), err)
+        self.assertTrue(json.loads(out)["outputLikelyUndercounted"])
+
+    def test_strict_exits_3_when_output_is_undercounted(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 4))
+        code, _, _ = self._run("--json", "--strict")
+        self.assertEqual(code, 3)
+
+    def test_billed_figure_stays_separate_from_an_undercounted_estimate(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 4))
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertEqual(rep["actualBilledSpend"]["usd"], 12.5)
+        self.assertIn("user-supplied", rep["actualBilledSpend"]["provenance"])
+        self.assertNotEqual(rep["publicRateUsdEquivalent"]["usd"], 12.5)
+        self.assertFalse(rep["usdComplete"])
+        self.assertIn("not verified by this tool", rep["disclaimer"])
+        _, _, text = self._run("--markdown", "--billed-usd", "12.5",
+                               "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIn("User-supplied billed figure (unverified):** $12.5000", text)
+
+    def test_json_schema_has_the_output_undercount_fields(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["schema"], "skill-cost-run-report-v1")
+        self.assertIsInstance(rep["outputLikelyUndercounted"], bool)
+        uc = rep["outputUndercount"]
+        for key in ("suspectRecords", "totalRecords", "fraction", "likelyUndercounted", "rule"):
+            self.assertIn(key, uc)
+        self.assertEqual(uc["rule"], {
+            "outputTokensAtOrBelow": 10,
+            "promptTokensAtLeast": 100,
+            "fractionAbove": 0.5,
+            "counts": "deduplicated usage records (message.id + requestId)",
+        })
+        for role, block in rep["byRole"].items():
+            with self.subTest(role=role):
+                for key in ("suspectRecords", "totalRecords", "fraction", "likelyUndercounted"):
+                    self.assertIn(key, block["outputUndercount"])
 
     def test_skill_md_version_matches_the_tool_version(self) -> None:
         import re

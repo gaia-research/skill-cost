@@ -891,7 +891,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 # Run report (Claude Code main session + its subagents)
 # =============================================================================
 
-TOOL_VERSION = "1.2.1"
+TOOL_VERSION = "1.3.0"
 RUN_REPORT_SCHEMA = "skill-cost-run-report-v1"
 RUN_DISCLAIMER = (
     "USD figures are public-rate equivalents: measured tokens priced at the LiteLLM "
@@ -1212,6 +1212,35 @@ UNKNOWN_PRICE_REASONS = {
     "overflow": "token totals too large to price as a finite number",
 }
 
+# Output-undercount rule. Claude Code logs write one API call as several streaming
+# snapshots, and the early ones carry output_tokens of 10 or fewer. After deduplication, a
+# record is a suspect snapshot when its output is at most OUTPUT_SNAPSHOT_MAX and its prompt
+# side (input + cache read + cache writes) is at least PROMPT_NONTRIVIAL_MIN tokens. The
+# floor keeps out records with almost no prompt, which say nothing about their output.
+# A scope (the whole run, or one role) is flagged when the suspect fraction of its
+# deduplicated records is strictly above UNDERCOUNT_FRACTION_ABOVE. A count times 0.5 is
+# exact in binary floating point, so a scope at exactly one half is not flagged.
+OUTPUT_SNAPSHOT_MAX = 10
+PROMPT_NONTRIVIAL_MIN = 100
+UNDERCOUNT_FRACTION_ABOVE = 0.5
+
+
+def _is_suspect_snapshot(tokens: tuple) -> bool:
+    """tokens is (input, output, cache_read, cache_write_5m, cache_write_1h)."""
+    prompt = tokens[0] + tokens[2] + tokens[3] + tokens[4]
+    return tokens[1] <= OUTPUT_SNAPSHOT_MAX and prompt >= PROMPT_NONTRIVIAL_MIN
+
+
+def _undercount_block(suspect: int, total: int) -> dict:
+    """Counts and the flag for one scope. A scope with no records has a null fraction and
+    is never flagged."""
+    return {
+        "suspectRecords": suspect,
+        "totalRecords": total,
+        "fraction": round(suspect / total, 6) if total else None,
+        "likelyUndercounted": total > 0 and suspect > UNDERCOUNT_FRACTION_ABOVE * total,
+    }
+
 
 def _run_usd(b: Bucket, model: str, prices: dict) -> tuple[float | None, str, list]:
     """Public-rate USD for one run-report row: (usd, reason, gaps). usd is None when the
@@ -1367,6 +1396,8 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     rows: dict[tuple[str, str], Bucket] = {}
     roles_for_model: dict[str, set] = {}
     measured = Bucket()
+    # role -> [suspect snapshot records, deduplicated records], for the output-undercount rule.
+    undercount: dict[str, list] = {}
     for log, rec in winners:
         model = rec["model"]
         role = role_for(log, model)
@@ -1376,6 +1407,10 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         rows.setdefault((role, model), Bucket()).add(b)
         measured.add(b)
         roles_for_model.setdefault(model, set()).add(role)
+        tally = undercount.setdefault(role, [0, 0])
+        tally[1] += 1
+        if _is_suspect_snapshot(t):
+            tally[0] += 1
 
     row_out = []
     by_role: dict[str, dict] = {}
@@ -1431,6 +1466,39 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                               f"that cannot be placed) excluded from totals in "
                               f"{_report_path(log, main)}")
 
+    # Output undercount. When most records in a scope are early streaming snapshots, that
+    # scope's output tokens, and the USD priced from them, are a lower bound. The run is
+    # flagged when the overall scope or any role is flagged.
+    overall_uc = _undercount_block(sum(s for s, _ in undercount.values()),
+                                   sum(t for _, t in undercount.values()))
+    role_uc = {role: _undercount_block(s, t) for role, (s, t) in sorted(undercount.items())}
+    flagged_roles = [role for role, blk in role_uc.items() if blk["likelyUndercounted"]]
+    output_flag = overall_uc["likelyUndercounted"] or bool(flagged_roles)
+
+    def undercount_reason(scope: str, blk: dict) -> str:
+        pct = 100 * blk["suspectRecords"] / blk["totalRecords"]
+        return (f"output-likely-undercounted: {scope} {blk['suspectRecords']} of "
+                f"{blk['totalRecords']} usage records ({pct:.1f}%) have output_tokens <= "
+                f"{OUTPUT_SNAPSHOT_MAX}; measured output and USD are a lower bound")
+
+    # One reason names the whole run when it is flagged. Only when the run as a whole is not
+    # flagged does each flagged role get its own reason. Per-role counts are always in byRole.
+    if overall_uc["likelyUndercounted"]:
+        scopes = ["the whole run"]
+        incomplete.append(undercount_reason("overall", overall_uc))
+    else:
+        scopes = [f"role {role}" for role in flagged_roles]
+        for role in flagged_roles:
+            incomplete.append(undercount_reason(f"role {role}", role_uc[role]))
+    if output_flag:
+        warnings.append(
+            f"Output looks undercounted in {', '.join(scopes)}: more than half of the usage "
+            f"records there have output_tokens of {OUTPUT_SNAPSHOT_MAX} or fewer, which is "
+            "consistent with early streaming snapshots. Measured output tokens and the "
+            "public-rate USD are a LOWER BOUND. The provider or account billing dashboard is "
+            "authoritative for billed spend.")
+    usd_complete = not unknown and not output_flag
+
     if billed is None:
         actual = {"usd": None, "reason": "not measured by this tool"}
     else:
@@ -1465,9 +1533,11 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         "schema": RUN_REPORT_SCHEMA,
         "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "tool": {"name": "skill-cost", "version": TOOL_VERSION},
-        # complete: measured tokens are complete. usdComplete: the public-rate USD is.
+        # complete: measured tokens are complete. usdComplete: the public-rate USD is. An
+        # output undercount leaves the measured output short, so it clears both.
         "complete": not incomplete,
-        "usdComplete": not unknown,
+        "usdComplete": usd_complete,
+        "outputLikelyUndercounted": output_flag,
         "incompleteReasons": incomplete,
         "session": {
             "harness": "claude-code",
@@ -1485,9 +1555,18 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         "dedupe": counts,
         "malformedUsage": sum(log.malformed_usage for log in readable),
         "measuredTokens": _token_dict(measured),
+        "outputUndercount": {
+            **overall_uc,
+            "rule": {
+                "outputTokensAtOrBelow": OUTPUT_SNAPSHOT_MAX,
+                "promptTokensAtLeast": PROMPT_NONTRIVIAL_MIN,
+                "fractionAbove": UNDERCOUNT_FRACTION_ABOVE,
+                "counts": "deduplicated usage records (message.id + requestId)",
+            },
+        },
         "publicRateUsdEquivalent": {
             "usd": round(priced_total, 6),
-            "complete": not unknown,
+            "complete": usd_complete,
             "kind": "public-rate equivalent, not a bill",
             "pricedRows": sum(1 for r in row_out if r["priced"]),
             "unpricedRows": sum(1 for r in row_out if not r["priced"]),
@@ -1506,6 +1585,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                 "tokens": _token_dict(v["tokens"]),
                 "publicRateUsdEquivalent": round(v["usd"], 6),
                 "unpricedTokens": v["unpricedTokens"],
+                "outputUndercount": role_uc[role],
             } for role, v in sorted(by_role.items())
         },
         "rows": row_out,
@@ -1545,10 +1625,12 @@ def render_run_markdown(rep: dict) -> str:
         status = "complete (measured tokens)"
     else:
         status = "INCOMPLETE — " + "; ".join(rep["incompleteReasons"])
-    if pub["complete"]:
-        status += "; USD complete"
-    else:
-        status += f"; USD partial: {len(rep['unknownPrices'])} unpriced model(s)"
+    usd_notes = []
+    if rep["unknownPrices"]:
+        usd_notes.append(f"USD partial: {len(rep['unknownPrices'])} unpriced model(s)")
+    if rep["outputLikelyUndercounted"]:
+        usd_notes.append("USD lower bound: output likely undercounted")
+    status += "; " + ("; ".join(usd_notes) if usd_notes else "USD complete")
     out.append(f"- **Status:** {status}")
     cwd_txt = (f"`{s['cwd']}` (cwdSha256 `{s['cwdSha256']}`)" if s["cwd"] else "unknown")
     out.append(f"- **Session:** `{s['sessionId']}` · lead model `{s['leadModel'] or 'unknown'}` "
@@ -1556,6 +1638,15 @@ def render_run_markdown(rep: dict) -> str:
     out.append(f"- **Window:** {s['firstTs'] or '?'} → {s['lastTs'] or '?'}")
     subs = [f for f in rep["files"] if f["kind"] == "subagent"]
     out.append(f"- **Logs read:** 1 main + {len(subs)} subagent transcript(s)")
+    ou = rep["outputUndercount"]
+    if ou["totalRecords"]:
+        out.append(f"- **Output check:** {ou['suspectRecords']} of {ou['totalRecords']} "
+                   f"deduplicated usage records ({100 * ou['fraction']:.1f}%) have "
+                   f"output_tokens <= {OUTPUT_SNAPSHOT_MAX} with a non-trivial prompt; "
+                   + ("output likely undercounted (see warning)"
+                      if rep["outputLikelyUndercounted"] else "not flagged"))
+    else:
+        out.append("- **Output check:** no usage records")
     out.append("")
     out.append("| Role | Model | Input | Output | Cache read | Cache write (5m+1h) "
                "| Public-rate USD eq. | Priced |")
@@ -1571,7 +1662,13 @@ def render_run_markdown(rep: dict) -> str:
     if pub["complete"]:
         total_usd = f"**${pub['usd']:,.4f}**"
     else:
-        total_usd = f"≥ **${pub['usd']:,.4f}** (partial)"
+        if rep["unknownPrices"] and rep["outputLikelyUndercounted"]:
+            note = "partial; lower bound: output undercounted"
+        elif rep["outputLikelyUndercounted"]:
+            note = "lower bound: output undercounted"
+        else:
+            note = "partial"
+        total_usd = f"≥ **${pub['usd']:,.4f}** ({note})"
     out.append(f"| **total** | | {toks(m['input'])} | {toks(m['output'])} "
                f"| {toks(m['cacheRead'])} | {toks(m['cacheWrite'] + m['cacheWrite1h'])} "
                f"| {total_usd} | |")
@@ -1686,6 +1783,10 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
         sys.stdout.write(render_run_markdown(rep))
     else:
         print(json.dumps(rep, indent=2))
+    if rep["outputLikelyUndercounted"]:
+        print("warning: output likely undercounted; measured output and USD are a lower bound. "
+              "The provider or account billing dashboard is authoritative for billed spend.",
+              file=sys.stderr)
     if not rep["complete"]:
         print("warning: run report is incomplete; see incompleteReasons", file=sys.stderr)
         if args.strict:

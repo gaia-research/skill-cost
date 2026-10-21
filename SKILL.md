@@ -6,7 +6,7 @@ description: >-
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.2.1
+version: 1.3.0
 ---
 
 # cost — Multi-Harness Token Cost Report
@@ -217,6 +217,32 @@ Rules run in this order. The first match wins.
   `publicRateUsdEquivalent.complete` is `false` whenever `unknownPrices` is non-empty.
   The markdown status then says `USD partial: N unpriced model(s)`, and the total row
   reads `≥ $X (partial)`, meaning a lower bound.
+- **Output undercount** (`outputLikelyUndercounted`, `outputUndercount`, and
+  `byRole[<role>].outputUndercount`). Claude Code logs can hold early streaming snapshots of
+  one API call, and those carry `output_tokens` of 10 or fewer, so measured output is then
+  short. The check runs on the deduplicated records (after the `message.id` + `requestId`
+  merge above). A record is a **suspect snapshot** when its `output_tokens` is at most 10
+  and its prompt side (`input_tokens` + cache read + cache write) is at least 100 tokens.
+  The 100-token floor keeps out records with almost no prompt, which say nothing about
+  their output. A scope, the whole run or one role, is **flagged** when more than half of
+  its records are suspect (`fraction` strictly above 0.5). `suspectRecords`, `totalRecords`
+  and `fraction` are reported for the run and for each role. `fraction` is `null` for a
+  scope with no records, and such a scope is never flagged. The thresholds are in
+  `outputUndercount.rule`. When the run or any role is flagged:
+  - `outputLikelyUndercounted` is `true`, and both `complete` and `usdComplete` are `false`.
+    An undercount leaves the measured output short, so it clears both.
+  - `incompleteReasons` gains `output-likely-undercounted: overall <S> of <T> usage records
+    (<P>%) ...`. If only roles are flagged, it gains one `output-likely-undercounted: role
+    <role> ...` entry per flagged role. Those entries start with the stable prefix
+    `output-likely-undercounted:`, and their counts are also in the JSON blocks above.
+  - `warnings`, the markdown, and stderr say, in plain language, that measured output and
+    the public-rate USD are a **LOWER BOUND**, and that the provider or account billing
+    dashboard is authoritative for billed spend.
+
+  The flag is a signal, not a correction. The report does not estimate the missing output.
+  The rule cannot tell an early snapshot from a short final reply, so a run of one or two
+  calls can be flagged by a single short reply. Read the counts before taking the flag as
+  proof of undercounting.
 - **User-supplied billed figure** (`actualBilledSpend`) is `null` with
   `reason: "not measured by this tool"`, unless the caller supplies `--billed-usd` and
   `--billed-source`. The markdown labels it `User-supplied billed figure (unverified)`.
@@ -233,15 +259,17 @@ Rules run in this order. The first match wins.
   - a subagent has a metadata sidecar but no transcript, or a `--role-map` key matches
     no session or subagent;
   - a transcript cannot be read, or a JSON line cannot be parsed;
-  - a usage record is malformed (see above).
+  - a usage record is malformed (see above);
+  - the output undercount flag is set (see above).
   The report is still written. Numbers are never invented to fill a gap.
 - **Two completeness flags.** The top-level `complete` means the *measured tokens* are
   complete. It ignores USD. `usdComplete` is the same value as
   `publicRateUsdEquivalent.complete`, copied to the top level for consumers that read only
-  that. It is `false` when any model is unpriced or any row overflows. So a report can read
-  `complete: true` with `usdComplete: false`: every token was read, but some USD is a lower
-  bound. The markdown shows the USD state on its own status line and does not print
-  `usdComplete`.
+  that. It is `false` when any model is unpriced, any row overflows, or the output
+  undercount flag is set. So a report can read `complete: true` with `usdComplete: false`:
+  every token was read, but some USD is a lower bound. The output undercount is the one case
+  where `complete` is also `false`, because the measured output is short. The markdown shows
+  the USD state on its own status line and does not print `usdComplete`.
 - **Advisor.** Records can carry `advisorModel`. That field is metadata, not usage.
   If no usage record for it exists, the report warns that advisor tokens are not
   visible in the logs.
@@ -262,6 +290,10 @@ Rules run in this order. The first match wins.
   usage records are in these logs.
 - Missing, unreadable or malformed data makes the report `complete: false`. It does not
   estimate. A complete report is a checked total for the logs it read, not a bill.
+- An output undercount is detected, not repaired. The report never adds the output that
+  the logs do not hold. A flagged run stays `complete: false` and `usdComplete: false` until
+  the logs hold the final counts for those calls. This report never reads the provider's
+  billing, so the billing dashboard, not this report, settles the billed amount.
 - `--role-map` is the only way to tell two same-model subagents apart. Without it they
   share a `subagent:<model>` role.
 - **The default `/cost` view is not covered by these rules, and it is unchanged.** It
@@ -289,7 +321,10 @@ Do not hand-write the numbers, and do not add a billed figure unless the invoice
 read. If the report says `complete: false`, state that in the comment and list the
 `inaccessible[]` entries and `incompleteReasons`. Do not present the totals as complete.
 If `usdComplete` (the same as `publicRateUsdEquivalent.complete`) is `false`, say that the
-USD total is a lower bound and name the `unknownPrices` models.
+USD total is a lower bound and name the `unknownPrices` models. If
+`outputLikelyUndercounted` is `true`, say that measured output and the USD are lower bounds,
+give the `outputUndercount` counts for the run and any flagged role, and say that the
+provider or account billing dashboard is authoritative for billed spend.
 
 ## Presenting results to the user
 
