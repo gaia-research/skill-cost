@@ -6,7 +6,7 @@ description: >-
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.2.0
+version: 1.2.1
 ---
 
 # cost — Multi-Harness Token Cost Report
@@ -230,6 +230,13 @@ Rules run in this order. The first match wins.
   - a transcript cannot be read, or a JSON line cannot be parsed;
   - a usage record is malformed (see above).
   The report is still written. Numbers are never invented to fill a gap.
+- **Two completeness flags.** The top-level `complete` means the *measured tokens* are
+  complete. It ignores USD. `usdComplete` is the same value as
+  `publicRateUsdEquivalent.complete`, copied to the top level for consumers that read only
+  that. It is `false` when any model is unpriced or any row overflows. So a report can read
+  `complete: true` with `usdComplete: false`: every token was read, but some USD is a lower
+  bound. The markdown shows the USD state on its own status line and does not print
+  `usdComplete`.
 - **Advisor.** Records can carry `advisorModel`. That field is metadata, not usage.
   If no usage record for it exists, the report warns that advisor tokens are not
   visible in the logs.
@@ -276,8 +283,8 @@ Paste the markdown rendering (`--markdown`) into the campaign issue or PR commen
 Do not hand-write the numbers, and do not add a billed figure unless the invoice was
 read. If the report says `complete: false`, state that in the comment and list the
 `inaccessible[]` entries and `incompleteReasons`. Do not present the totals as complete.
-If `publicRateUsdEquivalent.complete` is `false`, say that the USD total is a lower bound
-and name the `unknownPrices` models.
+If `usdComplete` (the same as `publicRateUsdEquivalent.complete`) is `false`, say that the
+USD total is a lower bound and name the `unknownPrices` models.
 
 ## Presenting results to the user
 

@@ -476,7 +476,7 @@ class RunReportTests(unittest.TestCase):
                     "inaccessible", "roleMap", "dedupe", "measuredTokens",
                     "publicRateUsdEquivalent", "unknownPrices", "byRole", "rows",
                     "actualBilledSpend", "disclaimer", "prices", "warnings",
-                    "malformedUsage", "priceAssumptions"):
+                    "malformedUsage", "priceAssumptions", "usdComplete"):
             self.assertIn(key, rep)
         for key in ("sha256", "sourceUrl", "fetchedAt", "modelCount", "file"):
             self.assertIn(key, rep["prices"])
@@ -977,6 +977,41 @@ class RunReportTests(unittest.TestCase):
         _, rep, _ = self._run("--json")
         self.assertTrue(rep["complete"])
         self.assertFalse([w for w in rep["warnings"] if w.startswith("ambiguous")])
+
+    # --- top-level complete is measured-token completeness; usdComplete is the USD one --
+
+    def test_usd_complete_mirrors_the_public_rate_block(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+        self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
+
+    def test_unpriced_model_leaves_complete_true_and_usd_complete_false(self) -> None:
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5"),
+            self._rec("msg_x", "req_x", "claude-haiku-5-9-preview"),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
+
+    def test_malformed_tokens_leave_complete_false_and_usd_complete_true(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_neg", "req_neg", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=-3)),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+
+    def test_skill_md_version_matches_the_tool_version(self) -> None:
+        import re
+        text = Path(cost.__file__).with_name("SKILL.md").read_text(encoding="utf-8")
+        version = re.search(r"^version: (\S+)$", text, re.M).group(1)
+        self.assertEqual(version, cost.TOOL_VERSION)
 
 
 class LoadPricesRedactionTests(unittest.TestCase):

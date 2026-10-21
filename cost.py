@@ -891,7 +891,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 # Run report (Claude Code main session + its subagents)
 # =============================================================================
 
-TOOL_VERSION = "1.2.0"
+TOOL_VERSION = "1.2.1"
 RUN_REPORT_SCHEMA = "skill-cost-run-report-v1"
 RUN_DISCLAIMER = (
     "USD figures are public-rate equivalents: measured tokens priced at the LiteLLM "
@@ -1456,7 +1456,9 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         "schema": RUN_REPORT_SCHEMA,
         "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "tool": {"name": "skill-cost", "version": TOOL_VERSION},
+        # complete: measured tokens are complete. usdComplete: the public-rate USD is.
         "complete": not incomplete,
+        "usdComplete": not unknown,
         "incompleteReasons": incomplete,
         "session": {
             "harness": "claude-code",
