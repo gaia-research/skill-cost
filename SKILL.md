@@ -152,6 +152,12 @@ A flat JSON object from a session id or agent id to a role name. Keys that start
 with `_` are comments and are ignored. Agent ids may be written bare
 (`ace1f9a8b8a8e5f08`), as `agent-<id>`, or as `<id>.jsonl`.
 
+A key that names no transcript is listed in `inaccessible[]` with
+`kind: "role-map-reference"`, and the report is incomplete. A key that names a transcript
+whose usage records contribute no row (for example, every record was a duplicate of a call
+already counted from another transcript) does not change the totals, but it adds the
+warning `role-map-key-has-no-effect: <key>`.
+
 ```json
 {
   "_comment": "Haiku F run, 2026-10-21",

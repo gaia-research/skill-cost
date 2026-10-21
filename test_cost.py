@@ -978,6 +978,38 @@ class RunReportTests(unittest.TestCase):
         self.assertTrue(rep["complete"])
         self.assertFalse([w for w in rep["warnings"] if w.startswith("ambiguous")])
 
+    # --- a role-map key whose records contribute nothing must not vanish silently -----
+
+    def _map(self, data: dict) -> str:
+        path = self.home / "roles.json"
+        path.write_text(json.dumps(data), encoding="utf-8")
+        return str(path)
+
+    def test_role_map_key_whose_records_were_all_deduped_away_warns(self) -> None:
+        # The subagent's only call is also in the main transcript. The main copy wins the
+        # tie, so the subagent mapping attributes nothing.
+        self._main_file([self._rec("msg_d", "req_d", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_d", "req_d", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        code, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        self.assertEqual(code, 0)
+        self.assertIn(f"role-map-key-has-no-effect: {self.AID}", rep["warnings"])
+        self.assertFalse(any(r["role"] == "builder" for r in rep["rows"]))
+        self.assertTrue(rep["complete"])
+
+    def test_role_map_key_for_a_transcript_with_no_usage_warns(self) -> None:
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        self._sub_file(self.AID, [json.dumps({"type": "user", "sessionId": self.SID})])
+        _, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        self.assertIn(f"role-map-key-has-no-effect: {self.AID}", rep["warnings"])
+
+    def test_role_map_key_that_attributes_rows_has_no_such_warning(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        self.assertFalse([w for w in rep["warnings"]
+                          if w.startswith("role-map-key-has-no-effect")])
+        self.assertTrue(any(r["role"] == "builder" for r in rep["rows"]))
+
     # --- top-level complete is measured-token completeness; usdComplete is the USD one --
 
     def test_usd_complete_mirrors_the_public_rate_block(self) -> None:

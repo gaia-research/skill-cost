@@ -1332,6 +1332,15 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                                     f"{n} distinct requestIds into one call (possible undercount)")
     winners = list(keyed.values()) + unkeyed
 
+    # A role-map key that names a readable transcript whose usage contributes no row has no
+    # effect. Say so, rather than let the mapping vanish silently.
+    contributing = {id(log) for log, _ in winners}
+    for key in sorted(role_map):
+        matched = [log for log in readable
+                   if (key in main_ids if log is main else key == log.agent_id)]
+        if matched and not any(id(log) in contributing for log in matched):
+            warnings.append(f"role-map-key-has-no-effect: {key}")
+
     # Lead model: the main session's model with the most output tokens.
     main_out: dict[str, int] = {}
     for log, rec in winners:
