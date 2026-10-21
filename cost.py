@@ -1673,7 +1673,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--strict", action="store_true",
                     help="with --run-report: exit 3 when the report is incomplete")
     ap.add_argument("--billed-usd", metavar="N", type=float,
-                    help="with --run-report: actual billed spend in USD, echoed with provenance")
+                    help="with --run-report: user-supplied billed spend in USD; echoed as "
+                         "unverified, with its source")
     ap.add_argument("--billed-source", metavar="TEXT",
                     help="with --run-report: where --billed-usd came from (required with it)")
     args = ap.parse_args(argv)
