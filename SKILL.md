@@ -180,6 +180,10 @@ Rules run in this order. The first match wins.
   counted once across the main and subagent transcripts. Records are keyed by
   `message.id` + `requestId`, and streaming copies of one call collapse to the largest.
   If any copy of a `message.id` has no `requestId`, every copy with that id is one call.
+  When those copies carry two or more distinct `requestId`s, that merge may hide real calls.
+  The report then adds a warning `ambiguous-id-only-copy` and an `incompleteReasons` entry
+  that says "possible undercount", and sets `complete: false`. Both name the message id only
+  by the first 8 hex characters of its sha256, never the id itself.
 - **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A token
   count is valid only as a JSON integer from 0 to 10^15 per field and per record. A usage
   record with any other count (a float, even `2.0`; a boolean; a string; a negative

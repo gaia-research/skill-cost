@@ -947,6 +947,37 @@ class RunReportTests(unittest.TestCase):
             _, _, md = self._run("--markdown")
         self.assertIn("no USD: token totals too large", md)
 
+    # --- an id-only copy merges every copy of its message id -------------------
+
+    def test_id_only_copy_over_two_request_ids_is_ambiguous_and_incomplete(self) -> None:
+        self._main_file([
+            self._rec("msg_amb", "req_1", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_amb", "req_2", "claude-sonnet-5-5", uuid="b"),
+        ])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_amb", uuid="c")])
+        code, rep, text = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        digest = hashlib.sha256(b"msg_amb").hexdigest()[:8]
+        warned = [w for w in rep["warnings"] if w.startswith("ambiguous-id-only-copy")]
+        self.assertEqual(len(warned), 1)
+        self.assertIn(digest, warned[0])
+        reasons = [r for r in rep["incompleteReasons"]
+                   if r.startswith("ambiguous-id-only-copy")]
+        self.assertEqual(len(reasons), 1)
+        self.assertIn(digest, reasons[0])
+        self.assertIn("possible undercount", reasons[0])
+        self.assertNotIn("msg_amb", text)
+        # The documented rule still holds: every copy of the id is one call.
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+
+    def test_id_only_copy_with_one_request_id_is_not_ambiguous(self) -> None:
+        self._main_file([self._rec("msg_one", "req_1", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_one", uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse([w for w in rep["warnings"] if w.startswith("ambiguous")])
+
 
 class LoadPricesRedactionTests(unittest.TestCase):
     """load_prices warnings name no host path when called for a run report."""

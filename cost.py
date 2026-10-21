@@ -1315,6 +1315,21 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     if counts["unkeyedRecords"]:
         warnings.append(f"{counts['unkeyedRecords']} usage record(s) had no message id and "
                         "could not be deduplicated; each was counted once")
+    # An id-only copy merges every copy of its message id. When those copies carry two or
+    # more distinct requestIds, the merge may hide real calls, so the report says so.
+    req_ids: dict[str, set] = {}
+    for _, rec in records:
+        if rec["key"] and rec["key"][0] in id_only and rec["key"][1]:
+            req_ids.setdefault(rec["key"][0], set()).add(rec["key"][1])
+    ambiguous_incomplete: list[str] = []
+    for msg_id in sorted(m for m, reqs in req_ids.items() if len(reqs) >= 2):
+        digest = hashlib.sha256(msg_id.encode("utf-8", "surrogatepass")).hexdigest()[:8]
+        n = len(req_ids[msg_id])
+        warnings.append(f"ambiguous-id-only-copy: message id sha256 {digest} has {n} distinct "
+                        "requestIds and copies without a requestId; all copies were merged "
+                        "into one call")
+        ambiguous_incomplete.append(f"ambiguous-id-only-copy: message id sha256 {digest} merged "
+                                    f"{n} distinct requestIds into one call (possible undercount)")
     winners = list(keyed.values()) + unkeyed
 
     # Lead model: the main session's model with the most output tokens.
@@ -1397,6 +1412,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                         "were found; any advisor tokens are not visible in these logs")
 
     incomplete = [f"{item['id']}: {item['reason']}" for item in inaccessible]
+    incomplete.extend(ambiguous_incomplete)
     for log in readable:
         if log.bad_lines:
             incomplete.append(f"{log.bad_lines} unparsable line(s) in {_report_path(log, main)}")
