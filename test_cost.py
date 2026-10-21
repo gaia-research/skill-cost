@@ -401,7 +401,7 @@ class RunReportTests(unittest.TestCase):
         self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"],
                                sonnet.cost("claude-sonnet-5-5", self.PRICES))
 
-    def test_missing_referenced_subagent_marks_report_incomplete(self) -> None:
+    def test_role_map_key_with_no_transcript_marks_report_incomplete(self) -> None:
         self._standard_fixture()
         mapping = self.home / "roles.json"
         mapping.write_text(json.dumps({"deadbeefdeadbeef0": "verifier"}), encoding="utf-8")
@@ -533,6 +533,43 @@ class RunReportTests(unittest.TestCase):
             agent_type, err = cost._read_meta_agent_type(meta)
         self.assertEqual((agent_type, err), ("", "Permission denied"))
         self.assertNotIn(str(self.home), err)
+
+    def _append_main(self, line: str) -> None:
+        p = self.proj / f"{self.SID}.jsonl"
+        p.write_text(p.read_text(encoding="utf-8") + line + "\n", encoding="utf-8")
+
+    def test_subagent_referenced_by_main_transcript_without_transcript_is_incomplete(self) -> None:
+        self._standard_fixture()
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": "deadbeef99"}}))
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        entries = [i for i in rep["inaccessible"] if i["id"] == "deadbeef99"]
+        self.assertEqual([i["kind"] for i in entries], ["subagent"])
+        self.assertIn("toolUseResult.agentId", entries[0]["reason"])
+        self.assertTrue(any("deadbeef99" in r for r in rep["incompleteReasons"]))
+        code, _, _ = self._run("--json", "--strict")
+        self.assertEqual(code, 3)
+
+    def test_referenced_subagent_with_a_transcript_keeps_the_report_complete(self) -> None:
+        self._standard_fixture()
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": self.AID}}))
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse(any(i["id"] == self.AID for i in rep["inaccessible"]))
+
+    def test_referenced_subagent_with_only_metadata_is_listed_once(self) -> None:
+        self._standard_fixture()
+        (self.sub_dir / "agent-ccccdddd00000001.meta.json").write_text(
+            json.dumps({"agentType": "general-purpose"}), encoding="utf-8")
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": "ccccdddd00000001"}}))
+        _, rep, _ = self._run("--json")
+        entries = [i for i in rep["inaccessible"] if i["id"] == "ccccdddd00000001"]
+        self.assertEqual(len(entries), 1)
+        self.assertFalse(rep["complete"])
 
     def test_negative_boolean_and_string_counts_are_excluded_and_flagged(self) -> None:
         def usage(**over):

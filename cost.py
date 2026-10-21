@@ -1011,6 +1011,8 @@ class LogRead:
     advisor_models: set = field(default_factory=set)
     bad_lines: int = 0
     malformed_usage: int = 0
+    # agentId values named by toolUseResult records: subagents this transcript ran.
+    referenced_agents: set = field(default_factory=set)
     error: str = ""
     agent_type: str = ""
 
@@ -1054,6 +1056,10 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
                 r.last_ts = ts
         if d.get("advisorModel"):
             r.advisor_models.add(str(d["advisorModel"]))
+        tool_result = d.get("toolUseResult")
+        if isinstance(tool_result, dict) and isinstance(tool_result.get("agentId"), str):
+            if tool_result["agentId"]:
+                r.referenced_agents.add(tool_result["agentId"])
         msg = d.get("message") if isinstance(d.get("message"), dict) else {}
         u = msg.get("usage")
         if u is None or u == {}:
@@ -1192,6 +1198,14 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         if s.error:
             inaccessible.append({"kind": "subagent", "id": s.agent_id,
                                  "reason": f"transcript unreadable: {s.error}"})
+    # A subagent that a transcript says it ran (toolUseResult.agentId) must be in the
+    # run. If no transcript exists for it, the totals are missing its calls.
+    referenced = set().union(*(log.referenced_agents for log in [main] + subs))
+    listed = {item["id"] for item in inaccessible}
+    for agent_id in sorted(referenced - sub_ids - listed):
+        inaccessible.append({"kind": "subagent", "id": agent_id,
+                             "reason": "referenced by a toolUseResult.agentId in a transcript, "
+                                       "but no subagent transcript was found"})
     for key in sorted(role_map):
         if key in main_ids or key in sub_ids or key in meta_only:
             continue
