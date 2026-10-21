@@ -6,7 +6,7 @@ description: >-
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.1.0
+version: 1.2.0
 ---
 
 # cost — Multi-Harness Token Cost Report
@@ -110,6 +110,100 @@ in `--json` as `totals.cache_hit_rate`, `spend_usd`, and `cache_savings_usd`.
 Sessions mixing several models sum each component at that model's own rate. A model the
 catalog cannot price contributes nothing rather than being guessed at, and is still named
 in the `unpriced` note.
+
+## Run report (`--run-report`): one session, attributed by role
+
+`--run-report` reports one Claude Code main session together with every subagent
+transcript that belongs to it, grouped by role. It is the report to paste into a
+GitHub issue or PR comment. Only Claude Code is supported.
+
+```bash
+# Newest main session (subagents are never picked as the main session)
+python3 cost.py --run-report --json --offline
+
+# A specific session, as a markdown table
+python3 cost.py --run-report --markdown --session 3f42d4e9 --offline
+
+# Attribute builders and verifiers explicitly, fail (exit 3) if anything is missing
+python3 cost.py --run-report --json --role-map roles.json --strict
+
+# Echo an actual invoice figure with its provenance
+python3 cost.py --run-report --json --billed-usd 12.50 --billed-source "Anthropic invoice 2026-10"
+```
+
+Flags: `--session` (substring on the session id), `--cwd` (recorded cwd), `--json`,
+`--markdown`, `--role-map FILE`, `--strict`, `--billed-usd N` with `--billed-source TEXT`
+(required together), `--offline`.
+
+### Role map file
+
+A flat JSON object from a session id or agent id to a role name. Keys that start
+with `_` are comments and are ignored. Agent ids may be written bare
+(`ace1f9a8b8a8e5f08`), as `agent-<id>`, or as `<id>.jsonl`.
+
+```json
+{
+  "_comment": "Haiku F run, 2026-10-21",
+  "3f42d4e9-fe78-5e85-9315-ce7984b0b8c9": "lead",
+  "ace1f9a8b8a8e5f08": "builder",
+  "a2a21c231977f5fa7": "verifier"
+}
+```
+
+### How roles are assigned
+
+Rules run in this order. The first match wins.
+
+1. **Explicit map.** A session or agent id listed in `--role-map` gets that role.
+2. **Lead.** Main-session usage whose model is the main session's dominant model (most
+   output tokens) is role `lead`.
+3. **Subagent family.** Any other subagent usage is role `subagent:<model>`, for
+   example `subagent:claude-haiku-5-5`. Builder and verifier are never guessed from
+   the model name, because two Haiku subagents look the same in the logs.
+4. **Unattributed.** Other main-session models and usage with no model name go to
+   `unattributed`.
+
+### Reading the report
+
+- **Measured tokens** (`measuredTokens`) are read from the logs. Each API call is
+  counted once across the main and subagent transcripts. Records are keyed by
+  `message.id` + `requestId`. Streaming copies of one call collapse to the largest.
+- **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
+  catalog rate. It is an equivalent, not a bill. Pricing uses exact catalog keys
+  (after the same name normalization as the normal view), with no substring
+  fallback. A model with no exact entry is listed in `unknownPrices` with its tokens and
+  no USD, and it is never priced with a different model's rate.
+- **Actual billed spend** (`actualBilledSpend`) is always `null` with
+  `reason: "not measured by this tool"`, unless the caller supplies `--billed-usd` and
+  `--billed-source`. Those values are echoed with that provenance and never checked.
+- **Subscriptions.** Claude Code Pro/Max usage is not billed per token. Never present
+  the USD figure as an extra API charge. The `disclaimer` field and the markdown
+  footer say so.
+- **Completeness.** A referenced subagent with no transcript, a role-map key that
+  matches nothing, an unreadable file, or an unparsable JSON line sets
+  `complete: false` and records the reason under `incompleteReasons` and
+  `inaccessible[]`. The report is still written, and the exit code stays 0 unless
+  `--strict` is set, in which case it is 3. Numbers are never invented to fill a gap.
+- **Advisor.** Records can carry `advisorModel`. That field is metadata, not usage.
+  If no usage record for it exists, the report warns that advisor tokens are not
+  visible in the logs.
+- **Provenance.** Each run records `prices.json` sha256, source URL and fetch
+  time, the tool version, the generation time, and the log files read (relative
+  paths with sha256, size and mtime).
+
+### How a Gaia Steward campaign calls it
+
+After a campaign's sessions finish, run it once for the lead session, with a role
+map that names each builder and verifier by agent id:
+
+```bash
+python3 cost.py --run-report --json --offline --session <lead-session-id> --role-map <campaign-roles.json>
+```
+
+Paste the markdown rendering (`--markdown`) into the campaign issue or PR comment.
+Do not hand-write the numbers, and do not add a billed figure unless the invoice was
+read. If the report says `complete: false`, state that in the comment and list the
+`inaccessible[]` entries. Do not present the totals as complete.
 
 ## Presenting results to the user
 

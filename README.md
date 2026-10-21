@@ -75,6 +75,7 @@ As a slash-command inside an agent conversation (once installed as a skill):
 | `/cost --json` | Machine-readable. Pipe to `jq` for scripting or dashboards. |
 | `/cost --refresh-prices` | Force-fetch the latest rate card from LiteLLM right now. Bypasses the 7-day cache. |
 | `/cost --offline` | Skip network entirely. Use the bundled `prices.json` as-is. |
+| `/cost --run-report --markdown` | One Claude Code session and its subagents, by role (lead, builder, verifier), with a paste-ready table. Add `--role-map FILE` to name builders and verifiers. See [SKILL.md](./SKILL.md#run-report---run-report-one-session-attributed-by-role). |
 
 At the shell it is the same commands with `python3 cost.py` in place of `/cost`.
 
@@ -220,6 +221,12 @@ When the LiteLLM catalog carries `cache_read_input_token_cost` and `cache_creati
 ### The reported number is what the vendor *would* have billed
 
 Harnesses like pi that route through a proxy typically emit `cost: 0` in their JSONL because the proxy doesn't price. `cost` deliberately ignores that field and recomputes from token counts against LiteLLM rates — so the number matches what the underlying vendor would have charged for the same call, regardless of whether *you* paid it, your employer's SAP tenancy paid it, or the request was on a free tier.
+
+---
+
+### Run reports separate measured tokens from estimates
+
+`--run-report` covers one Claude Code session and its subagent transcripts. It counts each API call once across all of them and groups usage by role. It keeps four things apart: measured tokens from the logs, a public-rate USD equivalent, models with no price (tokens only, never priced with another model's rate), and actual billed spend, which is `null` unless you pass `--billed-usd` with its source. Missing or unparsable transcripts make the report `complete: false` rather than guessing. Subscription usage is not billed per token, so the USD figure is never an extra API charge. Full rules are in [SKILL.md](./SKILL.md#run-report---run-report-one-session-attributed-by-role).
 
 ---
 
