@@ -6,7 +6,7 @@ description: >-
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.1.0
+version: 1.3.2
 ---
 
 # cost — Multi-Harness Token Cost Report
@@ -61,7 +61,7 @@ python3 cost.py --json
 
 # Prices
 python3 cost.py --refresh-prices    # force a refresh now
-python3 cost.py --offline           # skip any network access
+python3 cost.py --offline           # never fetch: bundled prices.json only (exit 1 if unusable)
 ```
 
 Environment:
@@ -110,6 +110,293 @@ in `--json` as `totals.cache_hit_rate`, `spend_usd`, and `cache_savings_usd`.
 Sessions mixing several models sum each component at that model's own rate. A model the
 catalog cannot price contributes nothing rather than being guessed at, and is still named
 in the `unpriced` note.
+
+## Run report (`--run-report`): one session, attributed by role
+
+`--run-report` reports one Claude Code main session together with every subagent
+transcript that belongs to it, grouped by role. It is the report to paste into a
+GitHub issue or PR comment. Only Claude Code is supported.
+
+```bash
+# Newest main session (subagents are never picked as the main session)
+python3 cost.py --run-report --json --offline
+
+# A specific session, as a markdown table
+python3 cost.py --run-report --markdown --session 3f42d4e9 --offline
+
+# Attribute builders and verifiers explicitly; exit 3 only when complete is false
+python3 cost.py --run-report --json --role-map roles.json --strict
+
+# Echo an actual invoice figure with its provenance
+python3 cost.py --run-report --json --billed-usd 12.50 --billed-source "Anthropic invoice 2026-10"
+```
+
+Flags: `--session` (substring on the session id), `--cwd` (recorded cwd), `--json`,
+`--markdown`, `--role-map FILE`, `--strict`, `--billed-usd N` with `--billed-source TEXT`
+(required together), `--offline`. `--markdown`, `--role-map`, `--strict`, `--billed-usd`
+and `--billed-source` are valid only with `--run-report`; without it they exit 2 with a
+usage message. The reverse also exits 2: `--since`, `--list`, `--all`, `--by-model`,
+`--today`, `--latest` and `--current` select or list many sessions, and a run report covers
+one, so they are refused rather than ignored.
+
+`--offline` never touches the network. When the bundled `prices.json` is missing,
+unparsable or not a JSON object, the command exits 1 with a static message instead of
+fetching. `--offline` with `--refresh-prices` is a usage error (exit 2) in every mode.
+
+Exit codes: `0` report written (complete or not, unless `--strict`); `1` no matching
+session, no usable bundled prices under `--offline`, or an unexpected failure; `2` usage
+error (bad flag combination, an unreadable or invalid role map, including one too deeply
+nested to parse, two role-map keys that name one agent with different roles, or a harness
+other than Claude Code); `3` with `--strict` only when `complete` is false. An unpriced
+model alone, which clears only `usdComplete`, never exits 3.
+
+Run-report stderr is safe to paste with the stdout. It never contains an absolute path,
+and it never contains a traceback. An unexpected failure prints one line,
+`error: run-report failed (<ExceptionClassName>)`, and exits 1. Warnings about
+`prices.json` name the error class or errno only.
+
+### Role map file
+
+A flat JSON object from a session id or agent id to a role name. Keys that start
+with `_` are comments and are ignored. Agent ids may be written bare
+(`ace1f9a8b8a8e5f08`), as `agent-<id>`, or as `<id>.jsonl`.
+
+`agent-<id>`, `<id>` and `<id>.jsonl` name one agent. Two keys that name the same agent
+must give it the same role. Different roles are a usage error (exit 2, static text that
+names no id), because the report cannot tell which one is meant.
+
+A key that names no transcript is listed in `inaccessible[]` with
+`kind: "role-map-reference"`, and the report is incomplete. A key that names a transcript
+whose usage records contribute no row (for example, every record was a duplicate of a call
+already counted from another transcript) does not change the totals, but it adds the
+warning `role-map-key-has-no-effect: <key>`.
+
+```json
+{
+  "_comment": "Haiku F run, 2026-10-21",
+  "3f42d4e9-fe78-5e85-9315-ce7984b0b8c9": "lead",
+  "ace1f9a8b8a8e5f08": "builder",
+  "a2a21c231977f5fa7": "verifier"
+}
+```
+
+### How roles are assigned
+
+Rules run in this order. The first match wins.
+
+1. **Explicit map.** A session or agent id listed in `--role-map` gets that role.
+2. **Lead.** Main-session usage whose model is the main session's dominant model (most
+   output tokens) is role `lead`. A call that both the main transcript and a subagent
+   transcript record is main-session usage, so it takes the main-session role from this
+   rule (`lead`, or `unattributed` for a model other than the lead's), whichever copy is
+   larger. Its counts are the largest copy's.
+3. **Subagent family.** Any other subagent usage is role `subagent:<model>`, for
+   example `subagent:claude-haiku-5-5`. Builder and verifier are never guessed from
+   the model name, because two Haiku subagents look the same in the logs.
+4. **Unattributed.** Other main-session models and usage with no model name go to
+   `unattributed`.
+
+### Reading the report
+
+- **Measured tokens** (`measuredTokens`) are read from the logs. Each API call is
+  counted once across the main and subagent transcripts. Records are keyed by
+  `message.id` + `requestId`, with surrounding whitespace stripped from both first, so
+  `msg_W ` and `msg_W` are one call. Streaming copies of one call collapse to the largest
+  counts. The main-session copy, when there is one, keeps the call's role (see lead
+  attribution below), whatever its size. If any copy of a `message.id` has no `requestId`,
+  every copy with that id is one call.
+  When those copies carry two or more distinct `requestId`s, that merge may hide real calls.
+  The report then adds a warning `ambiguous-id-only-copy` and an `incompleteReasons` entry
+  that says "possible undercount", and sets `complete: false`. Both name the message id only
+  by the first 8 hex characters of its sha256, never the id itself.
+  A usable `message.id` is a non-empty string. A usage record whose id is absent, `null`,
+  `0`, empty, blank or not a string cannot be deduplicated. It is counted once, and the
+  report adds an `incompleteReasons` entry `unkeyed-usage-records: <N> record(s) ...`,
+  which carries the count only, and sets `complete: false` and `usdComplete: false`.
+- **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A usage
+  record is excluded from every total, counted here, and sets `complete: false` and
+  `usdComplete: false`, when any of these holds:
+  - a token count is not a JSON integer from 0 to 10^15 (a float, even `2.0`; a boolean; a
+    string; a negative number; a larger integer). Counts are never coerced;
+  - `input_tokens` or `output_tokens` is absent. A record needs both;
+  - the usage object has none of the recognised count fields (`input_tokens`,
+    `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`,
+    `cache_creation`). So `{}` is malformed. `usage` present but not an object is malformed too;
+  - the cache-write counts cannot be placed: a 5-minute or 1-hour part with no total to
+    split from, a part larger than the total, a `cache_creation` that is not an object, or
+    a total that does not equal the sum of both parts. A mismatch is malformed in either
+    direction; the report never picks the total or the breakdown silently.
+
+  The one zero-fill is an absent `cache_read_input_tokens` or `cache_creation_input_tokens`,
+  which counts as 0. A cache-write total with a missing 5-minute or 1-hour part is split
+  from `cache_creation_input_tokens`, and that split is recorded as an assumption. A total
+  with no breakdown at all (an older record that has no `cache_creation` object) counts as
+  5-minute writes, and that split is recorded as an assumption too.
+- **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
+  catalog rate. It is an equivalent, not a bill. Pricing uses exact catalog keys (after
+  the same name normalization as the normal view), with no substring fallback. Three
+  cases are never filled in silently:
+  - A model with no exact entry is listed in `unknownPrices` with
+    `reason: "no-catalog-entry"`, and it is never priced with another model's rate.
+  - A model whose entry has no output price is listed with
+    `reason: "incomplete-price-entry"`. It is not priced as if output were free.
+  - A row whose price arithmetic overflows a float is listed with `reason: "overflow"`.
+    It is never reported as a finite number.
+  - A missing cache price falls back to 10% (cache read), 125% (5-minute cache write)
+    or 200% (1-hour cache write) of the input rate. Each fallback, with the tokens it
+    covers, is listed in `priceAssumptions[]`. So is a cache-write split that had to be
+    inferred, including every total-only record (`component: "cache_write_split"`). A
+    catalog value of `0` is kept as `0`.
+  `publicRateUsdEquivalent.complete` is `false` whenever `unknownPrices` is non-empty.
+  The markdown status then says `USD partial: N unpriced model(s)`, and the total row
+  reads `≥ $X (partial)`, meaning a lower bound. A token gap with no unpriced model reads
+  `USD incomplete: ...` on the status line and `$X (incomplete)` in the total row, with no
+  `≥`, because the direction of that error is not known.
+- **Output undercount** (`outputLikelyUndercounted`, `outputUndercount`, and
+  `byRole[<role>].outputUndercount`). Claude Code logs can hold early streaming snapshots of
+  one API call, and those carry `output_tokens` of 10 or fewer, so measured output is then
+  short. The check runs on the deduplicated records (after the `message.id` + `requestId`
+  merge above). A record is a **suspect snapshot** when its `output_tokens` is at most 10
+  and its prompt side (`input_tokens` + cache read + cache write) is at least 100 tokens.
+  The 100-token floor keeps out records with almost no prompt, which say nothing about
+  their output. A scope, the whole run or one role, is **flagged** when more than half of
+  its records are suspect (`fraction` strictly above 0.5). `suspectRecords`, `totalRecords`
+  and `fraction` are reported for the run and for each role. An **all-zero record** has every
+  parsed count at 0 (an absent cache count reads as 0). It is a valid record that adds nothing
+  to the totals. It is counted in `zeroRecords` for the run and for each role, and kept out of
+  `totalRecords`, so it cannot dilute the fraction. It does not make the report incomplete;
+  the run adds the warning `N all-zero usage record(s) ...`. `fraction` is `null` for a
+  scope with no records, and such a scope is never flagged. The thresholds are in
+  `outputUndercount.rule`. When the run or any role is flagged:
+  - `outputLikelyUndercounted` is `true`, and both `complete` and `usdComplete` are `false`.
+    An undercount leaves the measured output short, so it clears both.
+  - `incompleteReasons` gains `output-likely-undercounted: overall <S> of <T> usage records
+    (<P>%) ...`. If only roles are flagged, it gains one `output-likely-undercounted: role
+    <role> ...` entry per flagged role. Those entries start with the stable prefix
+    `output-likely-undercounted:`, and their counts are also in the JSON blocks above.
+  - `warnings`, the markdown, and stderr say, in plain language, that measured output and
+    the public-rate USD are a **LOWER BOUND**, and that the provider or account billing
+    dashboard is authoritative for billed spend.
+
+  The flag is a signal, not a correction. The report does not estimate the missing output.
+  The rule cannot tell an early snapshot from a short final reply, so a run of one or two
+  calls can be flagged by a single short reply. Read the counts before taking the flag as
+  proof of undercounting.
+  When the flag is not set but some records are suspect, the report adds a plain warning
+  (`N of M deduplicated usage records (P%) look like early streaming snapshots ...`) to
+  `warnings` and the markdown. It is not an `incompleteReasons` entry, and `complete` and
+  `usdComplete` are unchanged.
+- **User-supplied billed figure** (`actualBilledSpend`) is `null` with
+  `reason: "not measured by this tool"`, unless the caller supplies `--billed-usd` and
+  `--billed-source`. The markdown labels it `User-supplied billed figure (unverified)`.
+  The value is echoed with that provenance. It is never checked against an invoice or
+  against the logs, and the disclaimer says so. `actualBilledSpend.verified` is always
+  `false`, both when the figure is null and when it is supplied.
+- **Subscriptions.** Claude Code Pro/Max usage is not billed per token. Never present
+  the USD figure as an extra API charge. The `disclaimer` field and the markdown
+  footer say so.
+- **Completeness.** `complete` is `false` (exit 0, or exit 3 with `--strict`) when any
+  of these holds. Each is recorded in `incompleteReasons`, and each subagent case also
+  in `inaccessible[]`:
+  - a subagent is named by a `toolUseResult.agentId` in a transcript (the main session or
+    a subagent) and no transcript exists for it;
+  - a subagent has a metadata sidecar but no transcript, or a `--role-map` key matches
+    no session or subagent;
+  - a transcript cannot be read, or a JSON line cannot be parsed;
+  - a usage record is malformed (see above);
+  - a usage record has no usable `message.id` (`unkeyed-usage-records:`, see above);
+  - the main session has no usage records (`no-usage-records:`), so no lead tokens were measured;
+  - a subagent transcript exists, is readable, and has no usage records. Its calls may be
+    missing, so the entry is `no-usage-records: subagent sha256 <8 hex>` (the first 8 hex
+    characters of the sha256 of the agent id, never the id or a path), with a matching
+    warning. This case is not listed in `inaccessible[]`, because the transcript was read;
+  - a message id's copies merge several `requestId`s (`ambiguous-id-only-copy:`, see above);
+  - the output undercount flag is set (see above).
+  The report is still written. Numbers are never invented to fill a gap.
+- **Two completeness flags.** The top-level `complete` means the *measured tokens* are
+  complete. It ignores USD. `usdComplete` is the same value as
+  `publicRateUsdEquivalent.complete`, copied to the top level for consumers that read only
+  that. It is `false` when any model is unpriced, any row overflows, the output undercount
+  flag is set, or a token may be missing from the total: a subagent transcript is missing or
+  unreadable or has no usage records, a line cannot be parsed, a usage record is malformed or
+  has no usable `message.id`, the main session has no usage records, or a message id merges
+  several `requestId`s. A `--role-map` key that names no transcript removes no tokens, so it
+  does not clear `usdComplete`.
+
+  So a report can read `complete: true` with `usdComplete: false` when only a model is
+  unpriced: every token was read, but some USD is missing. When tokens are missing, both are
+  `false`, because the measured tokens and the USD built on them are incomplete. The markdown
+  shows the USD state on its own status line and does not print `usdComplete`.
+- **Advisor.** Records can carry `advisorModel`. That field is metadata, not usage.
+  If no usage record for it exists, the report warns that advisor tokens are not
+  visible in the logs.
+- **Provenance and privacy.** The report contains no absolute paths, so it is safe to
+  paste. `session.cwd` is the directory's basename. `session.cwdSha256` is the first 8
+  hex characters of the sha256 of the full cwd, so two reports from one directory can
+  be correlated. `logPath` and `files[].path` are `<session>.jsonl` or
+  `<session>/subagents/<file>`, relative to the projects root and without the encoded
+  project directory (that directory name spells out the cwd). Each file entry has its
+  sha256, size, mtime, usage-record count and malformed count. The run also records
+  the `prices.json` sha256, source URL and fetch time, the tool version, the generation
+  time, and the role-map sha256 when one is given.
+- **Markdown escaping.** Text the markdown takes from logs, role maps or flags (role and model
+  names, cwd basename, session id, reasons, warnings, the billed-figure source) is escaped.
+  Control characters are written as `\n`, `\r`, `\t` or `\uXXXX`, and a pipe in a table
+  cell as `\|`. A role name cannot start a new line, a heading or a table row.
+
+### Known limits
+
+- A lone-surrogate escape in a model name or session id makes `--markdown` exit 1 with a class-only message; `--json` is unaffected.
+- A FIFO or other blocking special file at the `prices.json` or role-map path hangs the read, even with `--offline`. It is a hang, not a network call.
+- A `prices.json` whose `_meta` is not an object raises a traceback in the default (non-run-report) view; `--run-report` exits 1 with a class-only message.
+- A NaN price is withheld from USD correctly but is labelled with the reason `overflow`.
+- A call that a main transcript and a subagent transcript both record is attributed to the
+  main session, even when the subagent copy is the one with the larger counts. A call that
+  really ran in a subagent but also appears in the main transcript therefore takes the
+  lead's role. The totals stay right; the role split does not.
+- `--run-report` reads Claude Code only: the main session and its subagent transcripts.
+  Anything outside those files is not measured. Advisor tokens appear only if their
+  usage records are in these logs.
+- Missing, unreadable or malformed data makes the report `complete: false`. It does not
+  estimate. A complete report is a checked total for the logs it read, not a bill.
+- An output undercount is detected, not repaired. The report never adds the output that
+  the logs do not hold. A flagged run stays `complete: false` and `usdComplete: false` until
+  the logs hold the final counts for those calls. This report never reads the provider's
+  billing, so the billing dashboard, not this report, settles the billed amount.
+- `--role-map` is the only way to tell two same-model subagents apart. Without it they
+  share a `subagent:<model>` role.
+- **The default `/cost` view is not covered by these rules, and it is unchanged.** It
+  shares the Claude Code parser, which keeps its earlier behavior so that default output
+  stays byte-identical. In that view, a negative or boolean token count is added as
+  is (`true` counts as 1), and a float count is truncated to an integer. A cache-write
+  total is dropped when `cache_creation` has no `ephemeral_5m_input_tokens`. One message id with and without a `requestId` is counted
+  twice. A usage value that is not an object, or a non-object JSON line, stops the view
+  with an `AttributeError`. Use `--run-report` for a checked total of one session.
+- The price catalog is LiteLLM's. A model it does not list is reported under
+  `unknownPrices`, never guessed. Run `python3 cost.py --refresh-prices` if a new model
+  shows up there.
+
+### How a Gaia Steward campaign calls it
+
+After a campaign's sessions finish, run it once for the lead session, with a role
+map that names each builder and verifier by agent id:
+
+```bash
+python3 cost.py --run-report --json --offline --session <lead-session-id> --role-map <campaign-roles.json>
+```
+
+Paste the markdown rendering (`--markdown`) into the campaign issue or PR comment.
+Do not hand-write the numbers, and do not add a billed figure unless the invoice was
+read. If the report says `complete: false`, state that in the comment and list the
+`inaccessible[]` entries and `incompleteReasons`. Do not present the totals as complete.
+If `usdComplete` (the same as `publicRateUsdEquivalent.complete`) is `false`, name its cause.
+Unpriced models are listed in `unknownPrices`, and that makes the USD total a lower bound.
+A token gap (`incompleteReasons`, such as `unkeyed-usage-records:` or `no-usage-records:`)
+makes the USD total incomplete, not a lower bound: an unkeyed record can also be an
+overcount. If
+`outputLikelyUndercounted` is `true`, say that measured output and the USD are lower bounds,
+give the `outputUndercount` counts for the run and any flagged role, and say that the
+provider or account billing dashboard is authoritative for billed spend.
 
 ## Presenting results to the user
 
