@@ -65,6 +65,15 @@ def _prices_age_days() -> float:
     return (time.time() - PRICES_JSON.stat().st_mtime) / 86400.0
 
 
+class PricesUnavailable(Exception):
+    """--offline was given and no usable bundled prices.json exists. Raised instead of
+    fetching: an offline run never touches the network."""
+
+
+OFFLINE_PRICES_MESSAGE = ("error: no usable bundled prices.json, and --offline never fetches "
+                          "one; run once without --offline to fetch the catalog.")
+
+
 def load_prices(offline: bool = False, redact: bool = False) -> dict:
     """Load bundled prices.json. Silently refresh from LiteLLM if stale.
 
@@ -74,6 +83,9 @@ def load_prices(offline: bool = False, redact: bool = False) -> dict:
       - the on-disk file is newer than SKILL_COST_MAX_AGE_DAYS (default 7)
     A network failure during auto-refresh is non-fatal: we keep using the
     cached file.
+
+    offline=True never fetches. A missing, unparsable or non-object prices.json then
+    raises PricesUnavailable.
 
     redact=True is the run-report path: warnings name the error class or errno,
     never the absolute path of prices.json, because a run report's stderr is pasted.
@@ -91,13 +103,22 @@ def load_prices(offline: bool = False, redact: bool = False) -> dict:
 
     if PRICES_JSON.exists():
         try:
-            return json.loads(PRICES_JSON.read_text(encoding="utf-8"))
+            data = json.loads(PRICES_JSON.read_text(encoding="utf-8"))
         except Exception as e:
             if redact:
                 print(f"warning: could not parse the bundled prices.json "
                       f"({type(e).__name__})", file=sys.stderr)
             else:
                 print(f"warning: could not parse {PRICES_JSON}: {e}", file=sys.stderr)
+        else:
+            if isinstance(data, dict):
+                return data
+            if redact:
+                print("warning: the bundled prices.json is not a JSON object", file=sys.stderr)
+            else:
+                print(f"warning: {PRICES_JSON} is not a JSON object", file=sys.stderr)
+    if offline:
+        raise PricesUnavailable("bundled prices.json is missing or unusable")
     # No cache, no network -> last-resort fetch (will raise on failure)
     return refresh_prices(write=False)
 
@@ -891,7 +912,7 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
 # Run report (Claude Code main session + its subagents)
 # =============================================================================
 
-TOOL_VERSION = "1.3.0"
+TOOL_VERSION = "1.3.1"
 RUN_REPORT_SCHEMA = "skill-cost-run-report-v1"
 RUN_DISCLAIMER = (
     "USD figures are public-rate equivalents: measured tokens priced at the LiteLLM "
@@ -958,18 +979,31 @@ def _count_field(src: dict, key: str):
     return _BAD
 
 
+USAGE_COUNT_KEYS = ("input_tokens", "output_tokens", "cache_read_input_tokens",
+                    "cache_creation_input_tokens", "cache_creation")
+
+
 def run_usage_tuple(u: dict):
     """Strict (input, output, cache_read, cache_write_5m, cache_write_1h) from a Claude
     Code `message.usage` object, as (tuple, split_inferred). Returns None when the record
-    is malformed, and the caller excludes it from totals. Never zero-fills a count that
-    cannot be placed: a missing 5m or 1h part is derived from cache_creation_input_tokens,
-    and if that total is absent too the record is malformed."""
-    fixed = []
-    for key in ("input_tokens", "output_tokens", "cache_read_input_tokens"):
-        v = _count_field(u, key)
-        if v is _BAD:
-            return None
-        fixed.append(0 if v is _ABSENT else v)
+    is malformed, and the caller excludes it from totals.
+
+    A record needs at least one recognised count field. input_tokens and output_tokens are
+    required. An absent cache_read_input_tokens reads as 0, the one documented zero-fill.
+    Never zero-fills a write count that cannot be placed: a missing 5m or 1h part is derived
+    from cache_creation_input_tokens, and if that total is absent too the record is
+    malformed. When the total is present with both parts, it must equal their sum."""
+    if not any(key in u for key in USAGE_COUNT_KEYS):
+        return None
+    inp = _count_field(u, "input_tokens")
+    out = _count_field(u, "output_tokens")
+    if inp is _ABSENT or out is _ABSENT or inp is _BAD or out is _BAD:
+        return None
+    cache_read = _count_field(u, "cache_read_input_tokens")
+    if cache_read is _BAD:
+        return None
+    if cache_read is _ABSENT:
+        cache_read = 0
     total = _count_field(u, "cache_creation_input_tokens")
     if total is _BAD:
         return None
@@ -1004,10 +1038,14 @@ def run_usage_tuple(u: dict):
             write_5m, write_1h = five, total - five
         inferred = True
     else:
+        # Both parts present: a total that disagrees with them, in either direction, is
+        # malformed. Neither value is picked silently.
+        if total is not _ABSENT and total != five + one:
+            return None
         write_5m, write_1h = five, one
     # An inferred split of zero tokens changes nothing, so it is not an assumption.
     inferred = inferred and write_5m + write_1h > 0
-    return (fixed[0], fixed[1], fixed[2], write_5m, write_1h), inferred
+    return (inp, out, cache_read, write_5m, write_1h), inferred
 
 
 @dataclass
@@ -1079,7 +1117,7 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
                 r.referenced_agents.add(tool_result["agentId"])
         msg = d.get("message") if isinstance(d.get("message"), dict) else {}
         u = msg.get("usage")
-        if u is None or u == {}:
+        if u is None:                 # not a usage-bearing line
             continue
         model = str(msg.get("model") or "<unknown>")
         if model == "<synthetic>":
@@ -1089,8 +1127,11 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
             r.malformed_usage += 1
             continue
         tokens, split_inferred = parsed
+        # A usable message.id is a non-empty string. Absent, null, 0, empty or blank ids
+        # cannot be deduplicated, so the record carries no key.
         msg_id = msg.get("id")
-        key = (str(msg_id), str(d.get("requestId") or "")) if msg_id else None
+        usable = isinstance(msg_id, str) and bool(msg_id.strip())
+        key = (msg_id, str(d.get("requestId") or "")) if usable else None
         r.usage.append({"key": key, "model": model, "tokens": tokens,
                         "split_inferred": split_inferred})
     return r
@@ -1461,10 +1502,18 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         if log.bad_lines:
             incomplete.append(f"{log.bad_lines} unparsable line(s) in {_report_path(log, main)}")
         if log.malformed_usage:
-            incomplete.append(f"{log.malformed_usage} malformed usage record(s) (negative, "
-                              f"boolean or non-numeric token counts, or a cache-write split "
-                              f"that cannot be placed) excluded from totals in "
-                              f"{_report_path(log, main)}")
+            incomplete.append(f"{log.malformed_usage} malformed usage record(s) (a token count "
+                              f"that is not an integer from 0 to 10^15, a missing input or "
+                              f"output count, no recognised count field, or a cache-write "
+                              f"split that cannot be placed or disagrees with its total) "
+                              f"excluded from totals in {_report_path(log, main)}")
+
+    if counts["unkeyedRecords"]:
+        incomplete.append(f"unkeyed-usage-records: {counts['unkeyedRecords']} record(s) have no "
+                          "usable message.id and cannot be deduplicated; each was counted once")
+    if not main.usage:
+        incomplete.append("no-usage-records: the main session has no usage records, so no lead "
+                          "tokens were measured")
 
     # Output undercount. When most records in a scope are early streaming snapshots, that
     # scope's output tokens, and the USD priced from them, are a lower bound. The run is
@@ -1497,14 +1546,35 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
             "consistent with early streaming snapshots. Measured output tokens and the "
             "public-rate USD are a LOWER BOUND. The provider or account billing dashboard is "
             "authoritative for billed spend.")
-    usd_complete = not unknown and not output_flag
+    if not output_flag and overall_uc["suspectRecords"]:
+        # Below the flag threshold: not incomplete, but the reader should know it is there.
+        share = 100 * overall_uc["suspectRecords"] / overall_uc["totalRecords"]
+        warnings.append(
+            f"{overall_uc['suspectRecords']} of {overall_uc['totalRecords']} deduplicated usage "
+            f"records ({share:.1f}%) look like early streaming snapshots (output_tokens of "
+            f"{OUTPUT_SNAPSHOT_MAX} or fewer with a non-trivial prompt). That is below the flag "
+            "threshold, so the run is not flagged, but output for those calls may still be "
+            "short of the final counts.")
 
+    # A token that may be missing from, or unverified in, the totals also clears the USD
+    # figure, because the priced total then omits or cannot vouch for it: a subagent
+    # transcript that is missing or unreadable, a line that cannot be parsed, a malformed
+    # usage record, a usage record with no usable message.id, an ambiguous id-only merge, or
+    # a main session with no usage records. A role-map key that names no transcript removes
+    # no tokens, so it does not touch the USD figure.
+    token_gap = (bool(ambiguous_incomplete) or counts["unkeyedRecords"] > 0 or not main.usage
+                 or any(item["kind"] == "subagent" for item in inaccessible)
+                 or any(log.bad_lines or log.malformed_usage for log in [main] + subs))
+    usd_complete = not unknown and not output_flag and not token_gap
+
+    # verified is always false: this tool never checks a figure against an invoice.
     if billed is None:
-        actual = {"usd": None, "reason": "not measured by this tool"}
+        actual = {"usd": None, "reason": "not measured by this tool", "verified": False}
     else:
         actual = {"usd": round(billed[0], 6), "source": billed[1],
                   "provenance": "user-supplied via --billed-usd/--billed-source; "
-                                "not verified by this tool"}
+                                "not verified by this tool",
+                  "verified": False}
 
     meta = prices.get("_meta") or {}
     prices_sha = hashlib.sha256(prices_path.read_bytes()).hexdigest() if prices_path.exists() else ""
@@ -1630,6 +1700,10 @@ def render_run_markdown(rep: dict) -> str:
         usd_notes.append(f"USD partial: {len(rep['unknownPrices'])} unpriced model(s)")
     if rep["outputLikelyUndercounted"]:
         usd_notes.append("USD lower bound: output likely undercounted")
+    if not rep["usdComplete"] and not usd_notes:
+        # A token gap with no price problem (malformed or unkeyed records, a missing
+        # transcript, no usage). The reasons are in the status above.
+        usd_notes.append("USD incomplete: measured tokens are not complete (see incompleteReasons)")
     status += "; " + ("; ".join(usd_notes) if usd_notes else "USD complete")
     out.append(f"- **Status:** {status}")
     cwd_txt = (f"`{s['cwd']}` (cwdSha256 `{s['cwdSha256']}`)" if s["cwd"] else "unknown")
@@ -1661,7 +1735,7 @@ def render_run_markdown(rep: dict) -> str:
     m = rep["measuredTokens"]
     if pub["complete"]:
         total_usd = f"**${pub['usd']:,.4f}**"
-    else:
+    elif rep["unknownPrices"] or rep["outputLikelyUndercounted"]:
         if rep["unknownPrices"] and rep["outputLikelyUndercounted"]:
             note = "partial; lower bound: output undercounted"
         elif rep["outputLikelyUndercounted"]:
@@ -1669,6 +1743,10 @@ def render_run_markdown(rep: dict) -> str:
         else:
             note = "partial"
         total_usd = f"≥ **${pub['usd']:,.4f}** ({note})"
+    else:
+        # A token gap only: not a known lower bound (unkeyed records can be overcounted),
+        # so no "≥" symbol.
+        total_usd = f"**${pub['usd']:,.4f}** (incomplete)"
     out.append(f"| **total** | | {toks(m['input'])} | {toks(m['output'])} "
                f"| {toks(m['cacheRead'])} | {toks(m['cacheWrite'] + m['cacheWrite1h'])} "
                f"| {total_usd} | |")
@@ -1738,7 +1816,9 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
             print(f"error: --role-map: cannot read the role map file ({_error_text(e)})",
                   file=sys.stderr)
             return 2
-        except ValueError:
+        except Exception:
+            # ValueError, a RecursionError from a deeply nested file, and any other parse
+            # failure: one static usage error, never a traceback.
             print("error: --role-map: the role map must be a JSON object of {id: role} "
                   "with non-empty string roles", file=sys.stderr)
             return 2
@@ -1808,6 +1888,9 @@ def run_report_entry(args: argparse.Namespace) -> int:
             return 0
         prices = load_prices(offline=args.offline, redact=True)
         return run_report_cmd(args, prices)
+    except PricesUnavailable:
+        print(OFFLINE_PRICES_MESSAGE, file=sys.stderr)
+        return 1
     except Exception as e:
         print(f"error: run-report failed ({type(e).__name__})", file=sys.stderr)
         return 1
@@ -1850,6 +1933,11 @@ def main(argv: list[str]) -> int:
                     help="with --run-report: where --billed-usd came from (required with it)")
     args = ap.parse_args(argv)
 
+    if args.offline and args.refresh_prices:
+        print("error: --offline and --refresh-prices are contradictory: --offline never "
+              "touches the network", file=sys.stderr)
+        return 2
+
     run_only = [flag for flag, given in (
         ("--billed-usd", args.billed_usd is not None),
         ("--billed-source", args.billed_source is not None),
@@ -1864,13 +1952,33 @@ def main(argv: list[str]) -> int:
         return 2
 
     if args.run_report:
+        # A run report covers one session. These flags select or list many, so they would be
+        # silently ignored; refuse them instead.
+        scope_only = [flag for flag, given in (
+            ("--all", args.all),
+            ("--current", args.current),
+            ("--latest", args.latest),
+            ("--today", args.today),
+            ("--since", args.since is not None),
+            ("--list", args.list),
+            ("--by-model", args.by_model),
+        ) if given]
+        if scope_only:
+            verb = "is" if len(scope_only) == 1 else "are"
+            print(f"error: {', '.join(scope_only)} {verb} not valid with --run-report; a run "
+                  "report covers one session (use --session or --cwd)", file=sys.stderr)
+            return 2
         return run_report_entry(args)
 
     if args.refresh_prices:
         refresh_prices(write=True)
         return 0
 
-    prices = load_prices(offline=args.offline)
+    try:
+        prices = load_prices(offline=args.offline)
+    except PricesUnavailable:
+        print(OFFLINE_PRICES_MESSAGE, file=sys.stderr)
+        return 1
 
     # Default view = --current
     if not (args.all or args.today or args.since or args.session

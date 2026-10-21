@@ -6,7 +6,7 @@ description: >-
   auto-refreshed weekly from the LiteLLM catalog. Use when the user asks
   about cost, spend, token usage, "how much did this session cost", or
   invokes /cost.
-version: 1.3.0
+version: 1.3.1
 ---
 
 # cost — Multi-Harness Token Cost Report
@@ -61,7 +61,7 @@ python3 cost.py --json
 
 # Prices
 python3 cost.py --refresh-prices    # force a refresh now
-python3 cost.py --offline           # skip any network access
+python3 cost.py --offline           # never fetch: bundled prices.json only (exit 1 if unusable)
 ```
 
 Environment:
@@ -135,11 +135,18 @@ Flags: `--session` (substring on the session id), `--cwd` (recorded cwd), `--jso
 `--markdown`, `--role-map FILE`, `--strict`, `--billed-usd N` with `--billed-source TEXT`
 (required together), `--offline`. `--markdown`, `--role-map`, `--strict`, `--billed-usd`
 and `--billed-source` are valid only with `--run-report`; without it they exit 2 with a
-usage message.
+usage message. The reverse also exits 2: `--since`, `--list`, `--all`, `--by-model`,
+`--today`, `--latest` and `--current` select or list many sessions, and a run report covers
+one, so they are refused rather than ignored.
+
+`--offline` never touches the network. When the bundled `prices.json` is missing,
+unparsable or not a JSON object, the command exits 1 with a static message instead of
+fetching. `--offline` with `--refresh-prices` is a usage error (exit 2) in every mode.
 
 Exit codes: `0` report written (complete or not, unless `--strict`); `1` no matching
-session, or an unexpected failure; `2` usage error (bad flag combination, unreadable or
-invalid role map, a harness other than Claude Code); `3` incomplete with `--strict`.
+session, no usable bundled prices under `--offline`, or an unexpected failure; `2` usage
+error (bad flag combination, an unreadable or invalid role map, including one too deeply
+nested to parse, or a harness other than Claude Code); `3` incomplete with `--strict`.
 
 Run-report stderr is safe to paste with the stdout. It never contains an absolute path,
 and it never contains a traceback. An unexpected failure prints one line,
@@ -190,15 +197,29 @@ Rules run in this order. The first match wins.
   The report then adds a warning `ambiguous-id-only-copy` and an `incompleteReasons` entry
   that says "possible undercount", and sets `complete: false`. Both name the message id only
   by the first 8 hex characters of its sha256, never the id itself.
-- **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A token
-  count is valid only as a JSON integer from 0 to 10^15 per field and per record. A usage
-  record with any other count (a float, even `2.0`; a boolean; a string; a negative
-  number; a larger integer), or with a cache-write split that cannot be placed, is
-  excluded from every total. It counts here and sets `complete: false`. Counts are never
-  zero-filled or coerced. A cache-write total with a missing 5-minute or 1-hour part is
-  split from `cache_creation_input_tokens`. A part with no total to split from is malformed. A
-  total with no breakdown at all (an older record that has no `cache_creation` object)
-  counts as 5-minute writes, and that split is recorded as an assumption.
+  A usable `message.id` is a non-empty string. A usage record whose id is absent, `null`,
+  `0`, empty, blank or not a string cannot be deduplicated. It is counted once, and the
+  report adds an `incompleteReasons` entry `unkeyed-usage-records: <N> record(s) ...`,
+  which carries the count only, and sets `complete: false` and `usdComplete: false`.
+- **Malformed usage** (`malformedUsage`, and `malformedUsageRecords` per file). A usage
+  record is excluded from every total, counted here, and sets `complete: false` and
+  `usdComplete: false`, when any of these holds:
+  - a token count is not a JSON integer from 0 to 10^15 (a float, even `2.0`; a boolean; a
+    string; a negative number; a larger integer). Counts are never coerced;
+  - `input_tokens` or `output_tokens` is absent. A record needs both;
+  - the usage object has none of the recognised count fields (`input_tokens`,
+    `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`,
+    `cache_creation`). So `{}` is malformed. `usage` present but not an object is malformed too;
+  - the cache-write counts cannot be placed: a 5-minute or 1-hour part with no total to
+    split from, a part larger than the total, a `cache_creation` that is not an object, or
+    a total that does not equal the sum of both parts. A mismatch is malformed in either
+    direction; the report never picks the total or the breakdown silently.
+
+  The one zero-fill is an absent `cache_read_input_tokens` or `cache_creation_input_tokens`,
+  which counts as 0. A cache-write total with a missing 5-minute or 1-hour part is split
+  from `cache_creation_input_tokens`, and that split is recorded as an assumption. A total
+  with no breakdown at all (an older record that has no `cache_creation` object) counts as
+  5-minute writes, and that split is recorded as an assumption too.
 - **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
   catalog rate. It is an equivalent, not a bill. Pricing uses exact catalog keys (after
   the same name normalization as the normal view), with no substring fallback. Three
@@ -216,7 +237,9 @@ Rules run in this order. The first match wins.
     catalog value of `0` is kept as `0`.
   `publicRateUsdEquivalent.complete` is `false` whenever `unknownPrices` is non-empty.
   The markdown status then says `USD partial: N unpriced model(s)`, and the total row
-  reads `≥ $X (partial)`, meaning a lower bound.
+  reads `≥ $X (partial)`, meaning a lower bound. A token gap with no unpriced model reads
+  `USD incomplete: ...` on the status line and `$X (incomplete)` in the total row, with no
+  `≥`, because the direction of that error is not known.
 - **Output undercount** (`outputLikelyUndercounted`, `outputUndercount`, and
   `byRole[<role>].outputUndercount`). Claude Code logs can hold early streaming snapshots of
   one API call, and those carry `output_tokens` of 10 or fewer, so measured output is then
@@ -243,11 +266,16 @@ Rules run in this order. The first match wins.
   The rule cannot tell an early snapshot from a short final reply, so a run of one or two
   calls can be flagged by a single short reply. Read the counts before taking the flag as
   proof of undercounting.
+  When the flag is not set but some records are suspect, the report adds a plain warning
+  (`N of M deduplicated usage records (P%) look like early streaming snapshots ...`) to
+  `warnings` and the markdown. It is not an `incompleteReasons` entry, and `complete` and
+  `usdComplete` are unchanged.
 - **User-supplied billed figure** (`actualBilledSpend`) is `null` with
   `reason: "not measured by this tool"`, unless the caller supplies `--billed-usd` and
   `--billed-source`. The markdown labels it `User-supplied billed figure (unverified)`.
   The value is echoed with that provenance. It is never checked against an invoice or
-  against the logs, and the disclaimer says so.
+  against the logs, and the disclaimer says so. `actualBilledSpend.verified` is always
+  `false`, both when the figure is null and when it is supplied.
 - **Subscriptions.** Claude Code Pro/Max usage is not billed per token. Never present
   the USD figure as an extra API charge. The `disclaimer` field and the markdown
   footer say so.
@@ -260,16 +288,25 @@ Rules run in this order. The first match wins.
     no session or subagent;
   - a transcript cannot be read, or a JSON line cannot be parsed;
   - a usage record is malformed (see above);
+  - a usage record has no usable `message.id` (`unkeyed-usage-records:`, see above);
+  - the main session has no usage records (`no-usage-records:`), so no lead tokens were measured;
+  - a message id's copies merge several `requestId`s (`ambiguous-id-only-copy:`, see above);
   - the output undercount flag is set (see above).
   The report is still written. Numbers are never invented to fill a gap.
 - **Two completeness flags.** The top-level `complete` means the *measured tokens* are
   complete. It ignores USD. `usdComplete` is the same value as
   `publicRateUsdEquivalent.complete`, copied to the top level for consumers that read only
-  that. It is `false` when any model is unpriced, any row overflows, or the output
-  undercount flag is set. So a report can read `complete: true` with `usdComplete: false`:
-  every token was read, but some USD is a lower bound. The output undercount is the one case
-  where `complete` is also `false`, because the measured output is short. The markdown shows
-  the USD state on its own status line and does not print `usdComplete`.
+  that. It is `false` when any model is unpriced, any row overflows, the output undercount
+  flag is set, or a token may be missing from the total: a subagent transcript is missing or
+  unreadable, a line cannot be parsed, a usage record is malformed or has no usable
+  `message.id`, the main session has no usage records, or a message id merges several
+  `requestId`s. A `--role-map` key that names no transcript removes no tokens, so it does not
+  clear `usdComplete`.
+
+  So a report can read `complete: true` with `usdComplete: false` when only a model is
+  unpriced: every token was read, but some USD is missing. When tokens are missing, both are
+  `false`, because the measured tokens and the USD built on them are incomplete. The markdown
+  shows the USD state on its own status line and does not print `usdComplete`.
 - **Advisor.** Records can carry `advisorModel`. That field is metadata, not usage.
   If no usage record for it exists, the report warns that advisor tokens are not
   visible in the logs.
@@ -320,8 +357,11 @@ Paste the markdown rendering (`--markdown`) into the campaign issue or PR commen
 Do not hand-write the numbers, and do not add a billed figure unless the invoice was
 read. If the report says `complete: false`, state that in the comment and list the
 `inaccessible[]` entries and `incompleteReasons`. Do not present the totals as complete.
-If `usdComplete` (the same as `publicRateUsdEquivalent.complete`) is `false`, say that the
-USD total is a lower bound and name the `unknownPrices` models. If
+If `usdComplete` (the same as `publicRateUsdEquivalent.complete`) is `false`, name its cause.
+Unpriced models are listed in `unknownPrices`, and that makes the USD total a lower bound.
+A token gap (`incompleteReasons`, such as `unkeyed-usage-records:` or `no-usage-records:`)
+makes the USD total incomplete, not a lower bound: an unkeyed record can also be an
+overcount. If
 `outputLikelyUndercounted` is `true`, say that measured output and the USD are lower bounds,
 give the `outputUndercount` counts for the run and any flagged role, and say that the
 provider or account billing dashboard is authoritative for billed spend.

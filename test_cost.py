@@ -1030,7 +1030,8 @@ class RunReportTests(unittest.TestCase):
         self.assertFalse(rep["usdComplete"])
         self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
 
-    def test_malformed_tokens_leave_complete_false_and_usd_complete_true(self) -> None:
+    def test_malformed_tokens_leave_complete_false_and_usd_complete_false(self) -> None:
+        # A malformed record is excluded from the priced total, so the USD total is not complete.
         self._main_file([
             self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
             self._rec("msg_neg", "req_neg", "claude-sonnet-5-5",
@@ -1038,7 +1039,9 @@ class RunReportTests(unittest.TestCase):
         ])
         _, rep, _ = self._run("--json")
         self.assertFalse(rep["complete"])
-        self.assertTrue(rep["usdComplete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
 
     # --- output undercount: early streaming snapshots carry output_tokens <= 10 ----------
 
@@ -1260,21 +1263,214 @@ class RunReportTests(unittest.TestCase):
         version = re.search(r"^version: (\S+)$", text, re.M).group(1)
         self.assertEqual(version, cost.TOOL_VERSION)
 
+    # --- review findings: one failing-first regression per defect -------------------------
+
+    _NO_ID = object()
+
+    def _id_less(self, message_id, uuid: str = "x") -> str:
+        """A usage line whose message.id is absent (_NO_ID), or set to message_id. The
+        requestId is kept, so only the message id is unusable."""
+        d = json.loads(self._rec("unused", "req_x", "claude-sonnet-5-5", uuid=uuid))
+        if message_id is self._NO_ID:
+            del d["message"]["id"]
+        else:
+            d["message"]["id"] = message_id
+        return json.dumps(d)
+
+    def test_D1_usage_records_without_a_usable_message_id_make_the_report_incomplete(self) -> None:
+        # Such records cannot be deduplicated, so two identical id-less lines must not read
+        # complete. Each is still counted once, as the documented fallback.
+        for label, value in (("absent", self._NO_ID), ("null", None), ("zero", 0),
+                             ("empty", ""), ("blank", "   "), ("number", 1234)):
+            with self.subTest(message_id=label):
+                line = self._id_less(value)
+                self._main_file([line, line])
+                _, rep, _ = self._run("--json")
+                self.assertFalse(rep["complete"])
+                self.assertFalse(rep["usdComplete"])
+                reasons = [r for r in rep["incompleteReasons"]
+                           if r.startswith("unkeyed-usage-records:")]
+                self.assertEqual(len(reasons), 1)
+                self.assertIn("2", reasons[0])
+                self.assertEqual(rep["dedupe"]["unkeyedRecords"], 2)
+                self.assertEqual(rep["measuredTokens"]["input"], 20)
+
+    def test_D2_cache_total_that_disagrees_with_the_breakdown_is_malformed(self) -> None:
+        # The total and the 5m+1h breakdown must agree. Neither is picked silently.
+        breakdown = {"ephemeral_5m_input_tokens": 10, "ephemeral_1h_input_tokens": 8}
+        for total in (40, 10):
+            with self.subTest(total=total):
+                usage = dict(self.USAGE, cache_creation_input_tokens=total,
+                             cache_creation=breakdown)
+                self.assertIsNone(cost.run_usage_tuple(usage))
+        agree = dict(self.USAGE, cache_creation_input_tokens=18, cache_creation=breakdown)
+        self.assertEqual(cost.run_usage_tuple(agree), ((10, 100, 1000, 10, 8), False))
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_big", "req_big", "claude-sonnet-5-5", uuid="b",
+                      usage=dict(self.USAGE, cache_creation_input_tokens=40,
+                                 cache_creation=breakdown)),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 50)
+
+    def test_D3_usage_missing_input_or_output_is_malformed_not_zero_filled(self) -> None:
+        no_input = {k: v for k, v in self.USAGE.items() if k != "input_tokens"}
+        no_output = {k: v for k, v in self.USAGE.items() if k != "output_tokens"}
+        cache_only = {"cache_read_input_tokens": 5}
+        for label, usage in (("no input_tokens", no_input), ("no output_tokens", no_output),
+                             ("cache fields only", cache_only)):
+            with self.subTest(label):
+                self.assertIsNone(cost.run_usage_tuple(usage))
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_ni", "req_ni", "claude-sonnet-5-5", usage=no_input, uuid="b"),
+            self._rec("msg_no", "req_no", "claude-sonnet-5-5", usage=no_output, uuid="c"),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+
+    def test_D3_absent_cache_fields_read_as_zero_as_documented(self) -> None:
+        # Control: an absent cache count is the one documented zero-fill.
+        self.assertEqual(cost.run_usage_tuple({"input_tokens": 1, "output_tokens": 2}),
+                         ((1, 2, 0, 0, 0), False))
+
+    def test_D4_usage_object_with_no_recognised_count_is_malformed_and_not_in_denominator(
+            self) -> None:
+        self.assertIsNone(cost.run_usage_tuple({"service_tier": "standard"}))
+        self.assertIsNone(cost.run_usage_tuple({}))
+        empty_usage = json.dumps({
+            "type": "assistant", "requestId": "req_e", "sessionId": self.SID,
+            "timestamp": "2026-01-01T00:00:01.000Z",
+            "message": {"id": "msg_e", "model": "claude-sonnet-5-5", "usage": {}}})
+        self._main_file(self._snapshot_calls([8]) + [
+            self._rec("msg_t", "req_t", "claude-sonnet-5-5",
+                      usage={"service_tier": "standard"}, uuid="t"),
+            empty_usage,
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 1))
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+
+    def test_D5_main_session_without_usage_records_is_incomplete(self) -> None:
+        self._main_file([json.dumps({"type": "user", "sessionId": self.SID, "cwd": "/work/repo",
+                                     "timestamp": "2026-01-01T00:00:01.000Z"})])
+        self._sub_file(self.AID, [self._rec("msg_s1", "req_s1", "claude-haiku-5-5",
+                                            sidechain=True)])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertTrue(any(r.startswith("no-usage-records:") for r in rep["incompleteReasons"]))
+        _, _, text = self._run("--markdown")
+        self.assertIn("INCOMPLETE", text)
+        self.assertNotIn("complete (measured tokens)", text)
+        self.assertNotIn("USD complete", text)
+
+    def test_D6_missing_subagent_transcript_leaves_usd_incomplete(self) -> None:
+        # The subagent's calls are absent from the priced total, so USD is not complete.
+        self._standard_fixture()
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": "deadbeef99"}}))
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+
+    def test_D6_unparsable_line_leaves_usd_incomplete(self) -> None:
+        p = self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        p.write_text(p.read_text(encoding="utf-8") + "{not json\n", encoding="utf-8")
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+
+    def test_D6_role_map_key_with_no_transcript_does_not_touch_usd(self) -> None:
+        # Control: a mapping typo removes no tokens, so the USD total stays complete.
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--role-map",
+                              self._map({"deadbeefdeadbeef0": "verifier"}))
+        self.assertFalse(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+
+    def test_D8_deeply_nested_role_map_is_a_usage_error_with_static_text(self) -> None:
+        # A RecursionError from the JSON parser is a parse error: exit 2, static text, no
+        # traceback, no path.
+        self._standard_fixture()
+        deep = self.home / "deep-roles.json"
+        deep.write_text("[" * 200_000, encoding="utf-8")
+        code, out, err = self._capture("--json", "--role-map", str(deep))
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("role map", err)
+        self.assertNotIn("Traceback", err)
+        self.assertNotIn(str(self.home), err)
+
+    def test_D9_actual_billed_spend_is_machine_readably_unverified(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertIs(rep["actualBilledSpend"]["verified"], False)
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIs(rep["actualBilledSpend"]["verified"], False)
+
+    def test_O1_suspect_records_below_the_flag_add_a_non_blocking_warning(self) -> None:
+        # One of three records is a snapshot: below the flag, so not incomplete, but said.
+        self._main_file(self._snapshot_calls([8, 400, 400]))
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertTrue(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+        self.assertFalse([r for r in rep["incompleteReasons"]
+                          if r.startswith("output-likely-undercounted:")])
+        warned = [w for w in rep["warnings"] if "streaming snapshots" in w]
+        self.assertEqual(len(warned), 1)
+        self.assertIn("1 of 3", warned[0])
+        self.assertIn("not flagged", warned[0])
+        _, _, text = self._run("--markdown")
+        self.assertIn("- Warning: 1 of 3", text)
+
+    def test_O2_session_scope_flags_are_usage_errors_with_run_report(self) -> None:
+        self._standard_fixture()
+        for argv, flag in ((["--since", "2026-01-01"], "--since"),
+                           (["--list"], "--list"),
+                           (["--all"], "--all"),
+                           (["--by-model"], "--by-model"),
+                           (["--today"], "--today"),
+                           (["--latest"], "--latest"),
+                           (["--current"], "--current")):
+            with self.subTest(flag=flag):
+                code, out, err = self._capture(*argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn(flag, err)
+                self.assertIn("--run-report", err)
+
 
 class LoadPricesRedactionTests(unittest.TestCase):
     """load_prices warnings name no host path when called for a run report."""
 
     def test_unparsable_bundled_prices_names_no_path_in_run_report_mode(self) -> None:
+        # D7: --offline never refreshes. An unusable bundled file is an error, not a fetch.
         with tempfile.TemporaryDirectory() as d:
             bad = Path(d) / "prices.json"
             bad.write_text("{not json", encoding="utf-8")
-            fallback = {"_meta": {"model_count": 0}}
             err = StringIO()
             with mock.patch.object(cost, "PRICES_JSON", bad), \
-                 mock.patch.object(cost, "refresh_prices", return_value=fallback), \
+                 mock.patch.object(cost, "refresh_prices") as refresh, \
                  mock.patch("sys.stderr", err):
-                got = cost.load_prices(offline=True, redact=True)
-            self.assertIs(got, fallback)
+                with self.assertRaises(cost.PricesUnavailable):
+                    cost.load_prices(offline=True, redact=True)
+            refresh.assert_not_called()
             self.assertIn("could not parse", err.getvalue())
             self.assertNotIn(d, err.getvalue())
 
@@ -1284,10 +1480,88 @@ class LoadPricesRedactionTests(unittest.TestCase):
             bad.write_text("{not json", encoding="utf-8")
             err = StringIO()
             with mock.patch.object(cost, "PRICES_JSON", bad), \
-                 mock.patch.object(cost, "refresh_prices", return_value={"_meta": {}}), \
+                 mock.patch.object(cost, "refresh_prices") as refresh, \
                  mock.patch("sys.stderr", err):
-                cost.load_prices(offline=True)
+                with self.assertRaises(cost.PricesUnavailable):
+                    cost.load_prices(offline=True)
+            refresh.assert_not_called()
             self.assertIn(str(bad), err.getvalue())
+
+
+class OfflineNeverFetchesTests(unittest.TestCase):
+    """--offline never touches the network (D7). A missing or unusable bundled prices.json
+    is an honest failure with static text, never a refresh attempt."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self._tmp.name)
+        self.prices_path = self.dir / "prices.json"
+        self.urlopen = mock.MagicMock(side_effect=AssertionError("network touched"))
+        self._patches = [
+            mock.patch.object(cost, "PRICES_JSON", self.prices_path),
+            mock.patch.object(cost.urllib.request, "urlopen", self.urlopen),
+            mock.patch.dict(os.environ, {"HOME": str(self.dir)}),
+        ]
+        for patch in self._patches:
+            patch.start()
+
+    def tearDown(self) -> None:
+        for patch in reversed(self._patches):
+            patch.stop()
+        self._tmp.cleanup()
+
+    def _capture(self, *argv: str) -> tuple[int, str, str]:
+        out, err = StringIO(), StringIO()
+        with redirect_stdout(out), mock.patch("sys.stderr", err):
+            code = cost.main(list(argv))
+        return code, out.getvalue(), err.getvalue()
+
+    def test_missing_bundled_prices_fail_without_a_fetch_in_run_report_mode(self) -> None:
+        code, out, err = self._capture("--run-report", "--offline", "--json")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("--offline", err)
+        self.assertNotIn("Traceback", err)
+        self.assertNotIn(str(self.dir), err)
+        self.urlopen.assert_not_called()
+
+    def test_unusable_bundled_prices_fail_without_a_fetch_in_run_report_mode(self) -> None:
+        for label, content in (("unparsable", "{not json"), ("not an object", "[]")):
+            with self.subTest(label):
+                self.prices_path.write_text(content, encoding="utf-8")
+                code, out, err = self._capture("--run-report", "--offline", "--json")
+                self.assertEqual(code, 1)
+                self.assertEqual(out, "")
+                self.assertIn("--offline", err)
+                self.assertNotIn("Traceback", err)
+                self.assertNotIn(str(self.dir), err)
+                self.urlopen.assert_not_called()
+
+    def test_missing_bundled_prices_fail_without_a_fetch_in_the_default_view(self) -> None:
+        code, out, err = self._capture("--offline")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("--offline", err)
+        self.assertNotIn(str(self.dir), err)
+        self.urlopen.assert_not_called()
+
+    def test_stale_bundled_prices_are_used_without_a_fetch_when_offline(self) -> None:
+        self.prices_path.write_text(json.dumps({"_meta": {"model_count": 0}}), encoding="utf-8")
+        os.utime(self.prices_path, (946_684_800, 946_684_800))      # 2000-01-01: very stale
+        code, _, err = self._capture("--run-report", "--offline", "--json")
+        self.assertEqual(code, 1)                    # no session under this HOME, nothing else
+        self.assertNotIn(str(self.dir), err)
+        self.urlopen.assert_not_called()
+
+    def test_offline_with_refresh_prices_is_a_usage_error(self) -> None:
+        for argv in (("--offline", "--refresh-prices"),
+                     ("--run-report", "--offline", "--refresh-prices")):
+            with self.subTest(argv=argv):
+                code, out, err = self._capture(*argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn("--offline", err)
+                self.urlopen.assert_not_called()
 
 
 if __name__ == "__main__":
