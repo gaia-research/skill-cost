@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import sqlite3
@@ -498,6 +499,40 @@ class RunReportTests(unittest.TestCase):
         found = cost.select_main_session(self.home / ".claude" / "projects",
                                         None, None)
         self.assertEqual(found, self.proj / f"{self.SID}.jsonl")
+
+    def test_report_never_writes_absolute_paths_or_the_encoded_project_dir(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        text = json.dumps(rep)
+        self.assertNotIn(str(self.home), text)
+        self.assertNotIn("-work-repo", text)
+        self.assertNotIn("/work/repo", text)
+        self.assertEqual(rep["session"]["cwd"], "repo")
+        self.assertEqual(rep["session"]["cwdSha256"],
+                         hashlib.sha256(b"/work/repo").hexdigest()[:8])
+        self.assertEqual(rep["session"]["logPath"], f"{self.SID}.jsonl")
+        paths = {f["path"] for f in rep["files"]}
+        self.assertIn(f"{self.SID}.jsonl", paths)
+        self.assertIn(f"{self.SID}/subagents/agent-{self.AID}.jsonl", paths)
+
+    def test_markdown_report_carries_cwd_basename_and_digest_only(self) -> None:
+        self._standard_fixture()
+        _, _, text = self._run("--markdown")
+        self.assertIn("cwd `repo` (cwdSha256 `", text)
+        self.assertNotIn("/work/repo", text)
+        self.assertNotIn(str(self.home), text)
+
+    def test_read_errors_name_the_errno_not_the_path(self) -> None:
+        missing = self.home / "no-such-dir" / "x.jsonl"
+        log = cost.read_claude_log(missing, "main")
+        self.assertEqual(log.error, "No such file or directory")
+        meta = self.home / "agent-x.meta.json"
+        meta.write_text("{}", encoding="utf-8")
+        with mock.patch.object(cost.Path, "read_text",
+                               side_effect=PermissionError(13, "Permission denied", str(meta))):
+            agent_type, err = cost._read_meta_agent_type(meta)
+        self.assertEqual((agent_type, err), ("", "Permission denied"))
+        self.assertNotIn(str(self.home), err)
 
 
 if __name__ == "__main__":

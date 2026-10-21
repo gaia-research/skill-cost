@@ -955,7 +955,7 @@ def read_claude_log(path: Path, kind: str, agent_id: str = "") -> LogRead:
         data = path.read_bytes()
         st = path.stat()
     except OSError as e:
-        r.error = e.strerror or str(e)
+        r.error = _error_text(e)
         return r
     r.sha256 = hashlib.sha256(data).hexdigest()
     r.size = len(data)
@@ -1035,25 +1035,45 @@ def _first_cwd(path: Path) -> str:
     return ""
 
 
+def _error_text(e: Exception) -> str:
+    """Errno text or exception class only. str(e) on an OSError embeds the file path,
+    and a run report must never carry absolute paths."""
+    if isinstance(e, OSError) and e.strerror:
+        return e.strerror
+    return type(e).__name__
+
+
 def _read_meta_agent_type(path: Path) -> tuple[str, str]:
     """(agentType, error). Only agentType is kept; the sidecar holds other fields."""
     try:
         d = json.loads(path.read_text(encoding="utf-8"))
         return str(d.get("agentType") or ""), ""
     except (OSError, ValueError, AttributeError) as e:
-        return "", str(e)
+        return "", _error_text(e)
 
 
-def _rel(path: Path, root: Path) -> str:
-    try:
-        return path.relative_to(root).as_posix()
-    except ValueError:
-        return path.name
+def _report_path(log: LogRead, main: LogRead) -> str:
+    """Transcript path as written to a report. It never includes the encoded project
+    directory, because that directory name spells out the absolute cwd. Main session:
+    `<session>.jsonl`. Subagent: `<session>/subagents/<file>`."""
+    if log.kind == "main":
+        return log.path.name
+    return f"{main.path.stem}/subagents/{log.path.name}"
+
+
+def _cwd_identity(cwd: str) -> tuple[str, str | None]:
+    """(basename, first 8 hex chars of sha256(cwd)). The basename is for reading; the
+    digest lets two reports from the same directory be correlated without the path."""
+    if not cwd:
+        return "", None
+    parts = [p for p in re.split(r"[\\/]+", cwd) if p]
+    digest = hashlib.sha256(cwd.encode("utf-8", "surrogatepass")).hexdigest()[:8]
+    return (parts[-1] if parts else "/"), digest
 
 
 def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
                      meta_errors: list[str], role_map: dict, prices: dict,
-                     billed: tuple[float, str] | None, root: Path,
+                     billed: tuple[float, str] | None,
                      prices_path: Path, role_map_info: dict) -> dict:
     """Assemble the run-level report. Measured tokens come from the logs; USD is a
     public-rate equivalent; actual billed spend is only ever the user-supplied figure."""
@@ -1130,7 +1150,6 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     rows: dict[tuple[str, str], Bucket] = {}
     roles_for_model: dict[str, set] = {}
     measured = Bucket()
-    per_file: dict[str, int] = {}
     for log, rec in winners:
         model = rec["model"]
         role = role_for(log, model)
@@ -1140,7 +1159,6 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         rows.setdefault((role, model), Bucket()).add(b)
         measured.add(b)
         roles_for_model.setdefault(model, set()).add(role)
-        per_file[_rel(log.path, root)] = per_file.get(_rel(log.path, root), 0) + 1
 
     row_out = []
     by_role: dict[str, dict] = {}
@@ -1179,7 +1197,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
     incomplete = [f"{item['id']}: {item['reason']}" for item in inaccessible]
     for log in readable:
         if log.bad_lines:
-            incomplete.append(f"{log.bad_lines} unparsable line(s) in {_rel(log.path, root)}")
+            incomplete.append(f"{log.bad_lines} unparsable line(s) in {_report_path(log, main)}")
 
     if billed is None:
         actual = {"usd": None, "reason": "not measured by this tool"}
@@ -1196,7 +1214,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         if log.error:
             continue
         entry = {
-            "path": _rel(log.path, root),
+            "path": _report_path(log, main),
             "kind": log.kind,
             "sha256": log.sha256,
             "sizeBytes": log.size,
@@ -1209,6 +1227,7 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
             entry["agentType"] = log.agent_type
         file_entries.append(entry)
 
+    cwd_name, cwd_sha = _cwd_identity(main.cwd)
     return {
         "schema": RUN_REPORT_SCHEMA,
         "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -1218,11 +1237,12 @@ def build_run_report(main: LogRead, subs: list[LogRead], meta_only: list[str],
         "session": {
             "harness": "claude-code",
             "sessionId": main.session_id or main.path.stem,
-            "cwd": main.cwd,
+            "cwd": cwd_name,
+            "cwdSha256": cwd_sha,
             "firstTs": main.first_ts,
             "lastTs": main.last_ts,
             "leadModel": lead_model,
-            "logPath": _rel(main.path, root),
+            "logPath": _report_path(main, main),
         },
         "files": file_entries,
         "inaccessible": inaccessible,
@@ -1283,8 +1303,9 @@ def render_run_markdown(rep: dict) -> str:
         out.append("- **Status:** complete")
     else:
         out.append("- **Status:** INCOMPLETE — " + "; ".join(rep["incompleteReasons"]))
+    cwd_txt = (f"`{s['cwd']}` (cwdSha256 `{s['cwdSha256']}`)" if s["cwd"] else "unknown")
     out.append(f"- **Session:** `{s['sessionId']}` · lead model `{s['leadModel'] or 'unknown'}` "
-               f"· cwd `{s['cwd'] or 'unknown'}`")
+               f"· cwd {cwd_txt}")
     out.append(f"- **Window:** {s['firstTs'] or '?'} → {s['lastTs'] or '?'}")
     subs = [f for f in rep["files"] if f["kind"] == "subagent"]
     out.append(f"- **Logs read:** 1 main + {len(subs)} subagent transcript(s)")
@@ -1397,7 +1418,7 @@ def run_report_cmd(args: argparse.Namespace, prices: dict) -> int:
                 meta_only.append(agent_id)
 
     rep = build_run_report(main, subs, meta_only, meta_errors, role_map, prices, billed,
-                           root, PRICES_JSON, role_map_info)
+                           PRICES_JSON, role_map_info)
     if args.markdown:
         sys.stdout.write(render_run_markdown(rep))
     else:
