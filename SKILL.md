@@ -195,9 +195,8 @@ Rules run in this order. The first match wins.
   record with any other count (a float, even `2.0`; a boolean; a string; a negative
   number; a larger integer), or with a cache-write split that cannot be placed, is
   excluded from every total. It counts here and sets `complete: false`. Counts are never
-  zero-filled or coerced. A cache-write
-  total with a missing 5-minute or 1-hour part is split from
-  `cache_creation_input_tokens`. A part with no total to split from is malformed. A
+  zero-filled or coerced. A cache-write total with a missing 5-minute or 1-hour part is
+  split from `cache_creation_input_tokens`. A part with no total to split from is malformed. A
   total with no breakdown at all (an older record that has no `cache_creation` object)
   counts as 5-minute writes, and that split is recorded as an assumption.
 - **Public-rate USD** (`publicRateUsdEquivalent`) is the same tokens priced at the
@@ -268,8 +267,8 @@ Rules run in this order. The first match wins.
 - **The default `/cost` view is not covered by these rules, and it is unchanged.** It
   shares the Claude Code parser, which keeps its earlier behavior so that default output
   stays byte-identical. In that view, a negative or boolean token count is added as
-  is (`true` counts as 1), and a float count is truncated to an integer. A cache-write total is dropped when `cache_creation` has no
-  `ephemeral_5m_input_tokens`. One message id with and without a `requestId` is counted
+  is (`true` counts as 1), and a float count is truncated to an integer. A cache-write
+  total is dropped when `cache_creation` has no `ephemeral_5m_input_tokens`. One message id with and without a `requestId` is counted
   twice. A usage value that is not an object, or a non-object JSON line, stops the view
   with an `AttributeError`. Use `--run-report` for a checked total of one session.
 - The price catalog is LiteLLM's. A model it does not list is reported under
