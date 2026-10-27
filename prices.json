@@ -1,12 +1,44 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-26T10:13:17Z",
-    "model_count": 3498,
+    "fetched_at": "2026-10-27T09:51:29Z",
+    "model_count": 3513,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
     "source_repo": "https://github.com/BerriAI/litellm",
     "source_url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
+  },
+  "abliteration/abliterated-model": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 3e-06,
+    "provider": "abliteration"
+  },
+  "abliteration/abliterated-model-large": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 5e-06,
+    "provider": "abliteration"
+  },
+  "abliteration/abliterated-model-large-flash": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 2e-06,
+    "provider": "abliteration"
+  },
+  "abliteration/abliterated-model-large-v2": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 5e-06,
+    "provider": "abliteration"
   },
   "ai21.j2-mid-v1": {
     "cache_read": null,
@@ -4790,6 +4822,22 @@
     "cache_write_1h": null,
     "input": 3e-07,
     "output": 1.2e-06,
+    "provider": "baseten"
+  },
+  "baseten/decision-models/baseten-elephant-9b-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "baseten"
+  },
+  "baseten/decision-models/baseten-mammoth-27b-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0,
+    "output": 0.0,
     "provider": "baseten"
   },
   "baseten/deepseek-ai/DeepSeek-V3-0324": {
@@ -14120,6 +14168,14 @@
     "output": 1e-05,
     "provider": "github_copilot"
   },
+  "github_copilot/gpt-6.1-terra": {
+    "cache_read": 5e-08,
+    "cache_write": 1.25e-06,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 5e-06,
+    "provider": "github_copilot"
+  },
   "github_copilot/grok-4.5": {
     "cache_read": 5e-07,
     "cache_write": null,
@@ -14390,6 +14446,14 @@
     "cache_write_1h": null,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "bedrock_converse"
+  },
+  "global.openai.gpt-6.1-terra": {
+    "cache_read": 5e-08,
+    "cache_write": 1.25e-06,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 5e-06,
     "provider": "bedrock_converse"
   },
   "global.twelvelabs.pegasus-1-2-v1:0": {
@@ -15294,6 +15358,14 @@
     "cache_write_1h": null,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "openai"
+  },
+  "gpt-6.1-terra": {
+    "cache_read": 5e-08,
+    "cache_write": 1.25e-06,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 5e-06,
     "provider": "openai"
   },
   "gpt-audio": {
@@ -21960,6 +22032,46 @@
     "output": 2.4e-06,
     "provider": "qwencloud"
   },
+  "refuseless/deepseek-v4.1-flash-abliterated": {
+    "cache_read": 4.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.2e-07,
+    "output": 7.5e-07,
+    "provider": "refuseless"
+  },
+  "refuseless/deepseek-v4.1-flash-fast": {
+    "cache_read": 3e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 1.5e-07,
+    "provider": "refuseless"
+  },
+  "refuseless/glm-5.3-abliterated": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.25e-06,
+    "output": 2.25e-06,
+    "provider": "refuseless"
+  },
+  "refuseless/glm-5.3-flash-abliterated": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 8e-07,
+    "provider": "refuseless"
+  },
+  "refuseless/minimax-m3.1-flash": {
+    "cache_read": 2e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.5e-07,
+    "provider": "refuseless"
+  },
   "replicate/anthropic/claude-3.5-haiku": {
     "cache_read": null,
     "cache_write": null,
@@ -24574,6 +24686,14 @@
     "cache_write_1h": null,
     "input": 2.2e-06,
     "output": 1.1e-05,
+    "provider": "bedrock_converse"
+  },
+  "us.openai.gpt-6.1-terra": {
+    "cache_read": 5.5e-08,
+    "cache_write": 1.375e-06,
+    "cache_write_1h": null,
+    "input": 1.1e-06,
+    "output": 5.5e-06,
     "provider": "bedrock_converse"
   },
   "us.twelvelabs.marengo-embed-2-7-v1:0": {
