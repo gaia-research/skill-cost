@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-28T10:38:10Z",
-    "model_count": 3535,
+    "fetched_at": "2026-10-29T10:56:00Z",
+    "model_count": 3620,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -1512,6 +1512,14 @@
     "output": 1.2e-05,
     "provider": "azure"
   },
+  "azure/apac/gpt-6.1-terra": {
+    "cache_read": 6e-08,
+    "cache_write": 1.5e-06,
+    "cache_write_1h": null,
+    "input": 1.2e-06,
+    "output": 6e-06,
+    "provider": "azure"
+  },
   "azure/chat-latest": {
     "cache_read": 5e-07,
     "cache_write": null,
@@ -1934,6 +1942,14 @@
     "cache_write_1h": null,
     "input": 2.4e-06,
     "output": 1.2e-05,
+    "provider": "azure"
+  },
+  "azure/eu/gpt-6.1-terra": {
+    "cache_read": 6e-08,
+    "cache_write": 1.5e-06,
+    "cache_write_1h": null,
+    "input": 1.2e-06,
+    "output": 6e-06,
     "provider": "azure"
   },
   "azure/eu/o1": {
@@ -2848,6 +2864,14 @@
     "output": 1e-05,
     "provider": "azure"
   },
+  "azure/gpt-6.1-terra": {
+    "cache_read": 5e-08,
+    "cache_write": 1.25e-06,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 5e-06,
+    "provider": "azure"
+  },
   "azure/gpt-audio": {
     "cache_read": null,
     "cache_write": null,
@@ -3696,6 +3720,14 @@
     "output": 1.1e-05,
     "provider": "azure"
   },
+  "azure/us/gpt-6.1-terra": {
+    "cache_read": 5.5e-08,
+    "cache_write": 1.375e-06,
+    "cache_write_1h": null,
+    "input": 1.1e-06,
+    "output": 5.5e-06,
+    "provider": "azure"
+  },
   "azure/us/gpt-chat-latest": {
     "cache_read": 5.5e-07,
     "cache_write": null,
@@ -4385,7 +4417,7 @@
     "provider": "azure_ai"
   },
   "azure_ai/claude-sonnet-5-5": {
-    "cache_read": 2e-07,
+    "cache_read": 1e-07,
     "cache_write": 2.5e-06,
     "cache_write_1h": 4e-06,
     "input": 2e-06,
@@ -4638,6 +4670,14 @@
     "cache_write_1h": null,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "azure_ai"
+  },
+  "azure_ai/gpt-6.1-terra": {
+    "cache_read": 5e-08,
+    "cache_write": 1.25e-06,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 5e-06,
     "provider": "azure_ai"
   },
   "azure_ai/gpt-chat-latest": {
@@ -4932,7 +4972,7 @@
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 0.0,
+    "input": 3.5e-08,
     "output": 0.0,
     "provider": "baseten"
   },
@@ -4940,7 +4980,7 @@
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 0.0,
+    "input": 1e-07,
     "output": 0.0,
     "provider": "baseten"
   },
@@ -5240,6 +5280,22 @@
     "output": 1.44e-06,
     "provider": "bedrock"
   },
+  "bedrock/ap-northeast-1/mistral.voxtral-mini-3b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 5e-08,
+    "provider": "bedrock"
+  },
+  "bedrock/ap-northeast-1/mistral.voxtral-small-24b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.2e-07,
+    "output": 3.6e-07,
+    "provider": "bedrock"
+  },
   "bedrock/ap-northeast-1/moonshotai.kimi-k2-thinking": {
     "cache_read": null,
     "cache_write": null,
@@ -5350,6 +5406,22 @@
     "cache_write_1h": null,
     "input": 3.1e-07,
     "output": 1.24e-06,
+    "provider": "bedrock"
+  },
+  "bedrock/ap-southeast-2/mistral.voxtral-mini-3b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.12e-08,
+    "output": 4.12e-08,
+    "provider": "bedrock"
+  },
+  "bedrock/ap-southeast-2/mistral.voxtral-small-24b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.03e-07,
+    "output": 3.09e-07,
     "provider": "bedrock"
   },
   "bedrock/ap-southeast-2/qwen.qwen3-next-80b-a3b": {
@@ -5710,6 +5782,22 @@
     "cache_write_1h": null,
     "input": 4.7e-07,
     "output": 1.86e-06,
+    "provider": "bedrock"
+  },
+  "bedrock/eu-west-2/mistral.voxtral-mini-3b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-08,
+    "output": 6e-08,
+    "provider": "bedrock"
+  },
+  "bedrock/eu-west-2/mistral.voxtral-small-24b-2507": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.6e-07,
+    "output": 4.7e-07,
     "provider": "bedrock"
   },
   "bedrock/eu-west-2/nvidia.nemotron-super-3-120b": {
@@ -6984,6 +7072,30 @@
     "output": 0.0,
     "provider": "bespoke"
   },
+  "bigmodel/glm-5.3": {
+    "cache_read": 2.857142857142857e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.1428571428571428e-06,
+    "output": 4e-06,
+    "provider": "bigmodel"
+  },
+  "bigmodel/glm-5.3-flash": {
+    "cache_read": 3.2857142857142855e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.142857142857143e-07,
+    "output": 4e-07,
+    "provider": "bigmodel"
+  },
+  "bigmodel/glm-5.3-flashx": {
+    "cache_read": 8.142857142857142e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.857142857142857e-07,
+    "output": 1e-06,
+    "provider": "bigmodel"
+  },
   "c4ai-aya-expanse-32b": {
     "cache_read": null,
     "cache_write": null,
@@ -8106,64 +8218,72 @@
   },
   "databricks/databricks-claude-fable-5": {
     "cache_read": 1.00002e-06,
-    "cache_write": 1.250004e-05,
-    "cache_write_1h": null,
-    "input": 1.000006e-05,
+    "cache_write": 1.249997e-05,
+    "cache_write_1h": 1.999998e-05,
+    "input": 9.99999e-06,
     "output": 5.000002e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-fable-5-1": {
-    "cache_read": 2.5004e-07,
-    "cache_write": 1.250004e-05,
-    "cache_write_1h": null,
-    "input": 1.000006e-05,
+    "cache_read": 2.4997e-07,
+    "cache_write": 1.249997e-05,
+    "cache_write_1h": 1.999998e-05,
+    "input": 9.99999e-06,
     "output": 5.000002e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-haiku-4-5": {
     "cache_read": 1.0003e-07,
     "cache_write": 1.24999e-06,
-    "cache_write_1h": null,
+    "cache_write_1h": 1.99997e-06,
     "input": 1.00002e-06,
     "output": 5.00003e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-claude-haiku-5-5": {
+    "cache_read": 1.001e-08,
+    "cache_write": 1.2502e-07,
+    "cache_write_1h": 1.9999e-07,
+    "input": 1.0003e-07,
+    "output": 5.0001e-07,
     "provider": "databricks"
   },
   "databricks/databricks-claude-opus-4": {
     "cache_read": 1.50003e-06,
     "cache_write": 1.874999e-05,
-    "cache_write_1h": null,
-    "input": 1.5000020000000002e-05,
-    "output": 7.500003000000001e-05,
+    "cache_write_1h": 2.999997e-05,
+    "input": 1.500002e-05,
+    "output": 7.50001e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-opus-4-1": {
     "cache_read": 1.50003e-06,
     "cache_write": 1.874999e-05,
-    "cache_write_1h": null,
-    "input": 1.5000020000000002e-05,
-    "output": 7.500003000000001e-05,
+    "cache_write_1h": 2.999997e-05,
+    "input": 1.500002e-05,
+    "output": 7.50001e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-opus-4-5": {
     "cache_read": 5.0001e-07,
     "cache_write": 6.25002e-06,
-    "cache_write_1h": null,
+    "cache_write_1h": 9.99999e-06,
     "input": 5.00003e-06,
-    "output": 2.5000010000000002e-05,
+    "output": 2.500001e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-opus-4-6": {
     "cache_read": 5.0001e-07,
     "cache_write": 6.25002e-06,
-    "cache_write_1h": null,
+    "cache_write_1h": 9.99999e-06,
     "input": 5.00003e-06,
-    "output": 2.5000010000000002e-05,
+    "output": 2.500001e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-opus-4-7": {
     "cache_read": 5.0001e-07,
     "cache_write": 6.25002e-06,
-    "cache_write_1h": null,
+    "cache_write_1h": 9.99999e-06,
     "input": 5.00003e-06,
     "output": 2.500001e-05,
     "provider": "databricks"
@@ -8171,7 +8291,7 @@
   "databricks/databricks-claude-opus-4-8": {
     "cache_read": 5.0001e-07,
     "cache_write": 6.25002e-06,
-    "cache_write_1h": null,
+    "cache_write_1h": 9.99999e-06,
     "input": 5.00003e-06,
     "output": 2.500001e-05,
     "provider": "databricks"
@@ -8179,7 +8299,7 @@
   "databricks/databricks-claude-opus-5": {
     "cache_read": 5.0001e-07,
     "cache_write": 6.25002e-06,
-    "cache_write_1h": null,
+    "cache_write_1h": 9.99999e-06,
     "input": 5.00003e-06,
     "output": 2.500001e-05,
     "provider": "databricks"
@@ -8211,25 +8331,49 @@
   "databricks/databricks-claude-sonnet-4-5": {
     "cache_read": 3.0002e-07,
     "cache_write": 3.74997e-06,
-    "cache_write_1h": null,
-    "input": 2.9999900000000002e-06,
-    "output": 1.5000020000000002e-05,
+    "cache_write_1h": 5.99998e-06,
+    "input": 2.99999e-06,
+    "output": 1.500002e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-sonnet-4-6": {
     "cache_read": 3.0002e-07,
     "cache_write": 3.74997e-06,
-    "cache_write_1h": null,
-    "input": 2.9999900000000002e-06,
-    "output": 1.5000020000000002e-05,
+    "cache_write_1h": 5.99998e-06,
+    "input": 2.99999e-06,
+    "output": 1.500002e-05,
     "provider": "databricks"
   },
   "databricks/databricks-claude-sonnet-5": {
-    "cache_read": 3.0002e-07,
-    "cache_write": 3.74997e-06,
+    "cache_read": 1.9999e-07,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": 4.00001e-06,
+    "input": 1.99997e-06,
+    "output": 9.99999e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-claude-sonnet-5-5": {
+    "cache_read": 1.0003e-07,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": 4.00001e-06,
+    "input": 1.99997e-06,
+    "output": 9.99999e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-deepseek-v4-1-flash": {
+    "cache_read": 3.003e-08,
+    "cache_write": 3.0002e-07,
     "cache_write_1h": null,
-    "input": 2.99999e-06,
-    "output": 1.500002e-05,
+    "input": 3.0002e-07,
+    "output": 1.20001e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-deepseek-v4-1-flash-1017": {
+    "cache_read": 7e-09,
+    "cache_write": 3.0002e-07,
+    "cache_write_1h": null,
+    "input": 3.0002e-07,
+    "output": 1.20001e-06,
     "provider": "databricks"
   },
   "databricks/databricks-deepseek-v4-flash-0731": {
@@ -8256,6 +8400,14 @@
     "output": 2.49998e-06,
     "provider": "databricks"
   },
+  "databricks/databricks-gemini-2-5-flash-lite": {
+    "cache_read": 1.253e-08,
+    "cache_write": 1.2502e-07,
+    "cache_write_1h": null,
+    "input": 1.2502e-07,
+    "output": 5.0001e-07,
+    "provider": "databricks"
+  },
   "databricks/databricks-gemini-2-5-pro": {
     "cache_read": 1.24999e-07,
     "cache_write": 1.24999e-06,
@@ -8264,8 +8416,24 @@
     "output": 9.999990000000002e-06,
     "provider": "databricks"
   },
+  "databricks/databricks-gemini-3-1-flash-image": {
+    "cache_read": 6.2503e-07,
+    "cache_write": 6.2503e-07,
+    "cache_write_1h": null,
+    "input": 6.2503e-07,
+    "output": 3.74997e-06,
+    "provider": "databricks"
+  },
   "databricks/databricks-gemini-3-1-flash-lite": {
     "cache_read": 3.122e-08,
+    "cache_write": 3.1248e-07,
+    "cache_write_1h": null,
+    "input": 3.1248e-07,
+    "output": 1.87502e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-1-flash-lite-image": {
+    "cache_read": 3.1248e-07,
     "cache_write": 3.1248e-07,
     "cache_write_1h": null,
     "input": 3.1248e-07,
@@ -8297,11 +8465,27 @@
     "provider": "databricks"
   },
   "databricks/databricks-gemini-3-6-flash": {
-    "cache_read": 1.8753e-07,
-    "cache_write": 1.87502e-06,
+    "cache_read": 7.497e-08,
+    "cache_write": 7.4998e-07,
     "cache_write_1h": null,
-    "input": 1.87502e-06,
-    "output": 9.37503e-06,
+    "input": 7.4998e-07,
+    "output": 3.74997e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-7-flash": {
+    "cache_read": 7.497e-08,
+    "cache_write": 7.4998e-07,
+    "cache_write_1h": null,
+    "input": 7.4998e-07,
+    "output": 3.74997e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-8-flash": {
+    "cache_read": 7.497e-08,
+    "cache_write": 7.4998e-07,
+    "cache_write_1h": null,
+    "input": 7.4998e-07,
+    "output": 3.74997e-06,
     "provider": "databricks"
   },
   "databricks/databricks-gemini-3-flash": {
@@ -8318,6 +8502,22 @@
     "cache_write_1h": null,
     "input": 2.49998e-06,
     "output": 1.5000020000000002e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-3-pro-image": {
+    "cache_read": 2.49998e-06,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": null,
+    "input": 2.49998e-06,
+    "output": 1.500002e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gemini-4-argon": {
+    "cache_read": 1.2502e-07,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": null,
+    "input": 2.49998e-06,
+    "output": 1.249997e-05,
     "provider": "databricks"
   },
   "databricks/databricks-gemma-3-12b": {
@@ -8408,6 +8608,14 @@
     "output": 1.24999e-06,
     "provider": "databricks"
   },
+  "databricks/databricks-gpt-5-4-pro": {
+    "cache_read": 2.999997e-05,
+    "cache_write": 2.999997e-05,
+    "cache_write_1h": null,
+    "input": 2.999997e-05,
+    "output": 0.0001800001,
+    "provider": "databricks"
+  },
   "databricks/databricks-gpt-5-5": {
     "cache_read": 5.0001e-07,
     "cache_write": 5.00003e-06,
@@ -8421,15 +8629,15 @@
     "cache_write": 2.999997e-05,
     "cache_write_1h": null,
     "input": 2.999997e-05,
-    "output": 0.00018000003,
+    "output": 0.0001800001,
     "provider": "databricks"
   },
   "databricks/databricks-gpt-5-6-luna": {
-    "cache_read": 1.0003e-07,
-    "cache_write": 1.24999e-06,
+    "cache_read": 2.002e-08,
+    "cache_write": 2.4997e-07,
     "cache_write_1h": null,
-    "input": 1.00002e-06,
-    "output": 5.99998e-06,
+    "input": 1.9999e-07,
+    "output": 1.20001e-06,
     "provider": "databricks"
   },
   "databricks/databricks-gpt-5-6-sol": {
@@ -8441,11 +8649,11 @@
     "provider": "databricks"
   },
   "databricks/databricks-gpt-5-6-terra": {
-    "cache_read": 2.4997e-07,
-    "cache_write": 3.12501e-06,
+    "cache_read": 1.9999e-07,
+    "cache_write": 2.49998e-06,
     "cache_write_1h": null,
-    "input": 2.49998e-06,
-    "output": 1.500002e-05,
+    "input": 1.99997e-06,
+    "output": 1.200003e-05,
     "provider": "databricks"
   },
   "databricks/databricks-gpt-5-mini": {
@@ -8462,6 +8670,78 @@
     "cache_write_1h": null,
     "input": 4.998e-08,
     "output": 3.9998000000000007e-07,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-6-1-sol": {
+    "cache_read": 1.0003e-07,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": null,
+    "input": 1.99997e-06,
+    "output": 9.99999e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-6-1-terra": {
+    "cache_read": 4.998e-08,
+    "cache_write": 1.24999e-06,
+    "cache_write_1h": null,
+    "input": 1.00002e-06,
+    "output": 5.00003e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-6-astra": {
+    "cache_read": 1.00002e-06,
+    "cache_write": 1.249997e-05,
+    "cache_write_1h": null,
+    "input": 9.99999e-06,
+    "output": 5.000002e-05,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-6-luna": {
+    "cache_read": 1.001e-08,
+    "cache_write": 1.2502e-07,
+    "cache_write_1h": null,
+    "input": 1.0003e-07,
+    "output": 5.0001e-07,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-6-sol": {
+    "cache_read": 1.9999e-07,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": null,
+    "input": 1.99997e-06,
+    "output": 9.99999e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-image-1": {
+    "cache_read": 1.24999e-06,
+    "cache_write": 5.00003e-06,
+    "cache_write_1h": null,
+    "input": 5.00003e-06,
+    "output": null,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-image-1-5": {
+    "cache_read": 1.24999e-06,
+    "cache_write": 5.00003e-06,
+    "cache_write_1h": null,
+    "input": 5.00003e-06,
+    "output": 9.99999e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-image-1-mini": {
+    "cache_read": 1.9999e-07,
+    "cache_write": 1.99997e-06,
+    "cache_write_1h": null,
+    "input": 1.99997e-06,
+    "output": null,
+    "provider": "databricks"
+  },
+  "databricks/databricks-gpt-image-2": {
+    "cache_read": 1.24999e-06,
+    "cache_write": 5.00003e-06,
+    "cache_write_1h": null,
+    "input": 5.00003e-06,
+    "output": null,
     "provider": "databricks"
   },
   "databricks/databricks-gpt-oss-120b": {
@@ -8488,6 +8768,14 @@
     "output": 7.50001e-06,
     "provider": "databricks"
   },
+  "databricks/databricks-grok-4-7": {
+    "cache_read": 6.2503e-07,
+    "cache_write": 2.49998e-06,
+    "cache_write_1h": null,
+    "input": 2.49998e-06,
+    "output": 7.50001e-06,
+    "provider": "databricks"
+  },
   "databricks/databricks-gte-large-en": {
     "cache_read": 1.2999e-07,
     "cache_write": 1.2999e-07,
@@ -8502,6 +8790,14 @@
     "cache_write_1h": null,
     "input": 1.00002e-06,
     "output": 4.04999e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-kimi-k2-7": {
+    "cache_read": 1.8998e-07,
+    "cache_write": 9.4997e-07,
+    "cache_write_1h": null,
+    "input": 9.4997e-07,
+    "output": 4.00001e-06,
     "provider": "databricks"
   },
   "databricks/databricks-kimi-k3": {
@@ -8566,6 +8862,14 @@
     "cache_write_1h": null,
     "input": 2.2001e-07,
     "output": 2.20003e-06,
+    "provider": "databricks"
+  },
+  "databricks/databricks-typesafeai-jev-1-14-0": {
+    "cache_read": 4.2e-08,
+    "cache_write": 4.2e-08,
+    "cache_write_1h": null,
+    "input": 4.2e-08,
+    "output": 0.0,
     "provider": "databricks"
   },
   "davinci-002": {
@@ -12424,6 +12728,14 @@
     "output": 2e-07,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/models/rune": {
+    "cache_read": 8.4e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.2e-08,
+    "output": 0.0,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/models/snorkel-mistral-7b-pairrm-dpo": {
     "cache_read": null,
     "cache_write": null,
@@ -12544,6 +12856,22 @@
     "output": 2e-07,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/deepseek-v4p1-flash-1017-spot": {
+    "cache_read": 4.2e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.1e-07,
+    "output": 8.4e-07,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/deepseek-v4p1-flash-spot": {
+    "cache_read": 4.2e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.1e-07,
+    "output": 8.4e-07,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/routers/deepseek-v4p1-flash-us": {
     "cache_read": 9e-09,
     "cache_write": null,
@@ -12592,6 +12920,14 @@
     "output": 7.5e-07,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/glm-5p3-spot": {
+    "cache_read": 1.82e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.8e-07,
+    "output": 3.08e-06,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/routers/glm-5p3-us": {
     "cache_read": 3.9e-07,
     "cache_write": null,
@@ -12624,6 +12960,14 @@
     "output": 2.25e-05,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/kimi-k3-spot": {
+    "cache_read": 2.1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.1e-06,
+    "output": 1.05e-05,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/routers/kimi-k3-us": {
     "cache_read": 4.5e-07,
     "cache_write": null,
@@ -12638,6 +12982,14 @@
     "cache_write_1h": null,
     "input": 4.2e-08,
     "output": 0.0,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/spot-deepseek-v4-flash": {
+    "cache_read": 2.1e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.05e-07,
+    "output": 2.1e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/deepseek-v4-flash": {
@@ -17320,6 +17672,14 @@
     "output": 2.5e-07,
     "provider": "mistral"
   },
+  "mistral/deepseek-v4-1-flash-1017": {
+    "cache_read": 7e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "mistral"
+  },
   "mistral/devstral-latest": {
     "cache_read": 4e-08,
     "cache_write": null,
@@ -17513,19 +17873,19 @@
     "provider": "mistral"
   },
   "mistral/mistral-large-4": {
-    "cache_read": 6.8e-08,
+    "cache_read": 1.4e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 6.8e-07,
-    "output": 2.09e-06,
+    "input": 1.36e-06,
+    "output": 4.18e-06,
     "provider": "mistral"
   },
   "mistral/mistral-large-4-0": {
-    "cache_read": 6.8e-08,
+    "cache_read": 1.4e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 6.8e-07,
-    "output": 2.09e-06,
+    "input": 1.36e-06,
+    "output": 4.18e-06,
     "provider": "mistral"
   },
   "mistral/mistral-large-latest": {
@@ -17754,10 +18114,18 @@
   },
   "moonshot/kimi-k3": {
     "cache_read": 3e-07,
-    "cache_write": null,
-    "cache_write_1h": null,
+    "cache_write": 3e-06,
+    "cache_write_1h": 6e-06,
     "input": 3e-06,
     "output": 1.5e-05,
+    "provider": "moonshot"
+  },
+  "moonshot/kimi-k3.1-pro": {
+    "cache_read": 2e-07,
+    "cache_write": 2e-06,
+    "cache_write_1h": 4e-06,
+    "input": 2e-06,
+    "output": 1e-05,
     "provider": "moonshot"
   },
   "moonshot/moonshot-v1-128k": {
@@ -22209,11 +22577,11 @@
     "provider": "qwencloud"
   },
   "refuseless/deepseek-v4.1-flash-abliterated": {
-    "cache_read": 4.5e-08,
+    "cache_read": 3.5e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2.2e-07,
-    "output": 7.5e-07,
+    "input": 1.4e-07,
+    "output": 5e-07,
     "provider": "refuseless"
   },
   "refuseless/deepseek-v4.1-flash-fast": {
@@ -22225,19 +22593,19 @@
     "provider": "refuseless"
   },
   "refuseless/glm-5.3-abliterated": {
-    "cache_read": 2.5e-07,
-    "cache_write": null,
-    "cache_write_1h": null,
-    "input": 1.25e-06,
-    "output": 2.25e-06,
-    "provider": "refuseless"
-  },
-  "refuseless/glm-5.3-flash-abliterated": {
     "cache_read": 1.5e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2.5e-07,
-    "output": 8e-07,
+    "input": 1e-06,
+    "output": 2e-06,
+    "provider": "refuseless"
+  },
+  "refuseless/glm-5.3-flash-abliterated": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.2e-07,
+    "output": 5e-07,
     "provider": "refuseless"
   },
   "refuseless/minimax-m3.1-flash": {
@@ -23208,6 +23576,214 @@
     "output": 0.0,
     "provider": "strands_decider"
   },
+  "streamlake/DeepSeek-V3": {
+    "cache_read": 1.14e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.86e-07,
+    "output": 1.143e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/DeepSeek-V4-Pro-0813": {
+    "cache_read": 4.4e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/GLM-5.3": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/GLM-5.3-Flash": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 5e-07,
+    "provider": "streamlake"
+  },
+  "streamlake/Kimi-K2-Instruct-0905": {
+    "cache_read": 1.43e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5.71e-07,
+    "output": 2.286e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-r1": {
+    "cache_read": 2.29e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5.71e-07,
+    "output": 2.286e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-v3.1": {
+    "cache_read": 2.29e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5.71e-07,
+    "output": 1.714e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-v4-flash": {
+    "cache_read": 2.8e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-v4-flash-0731": {
+    "cache_read": 1.4e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-v4-pro": {
+    "cache_read": 1.45e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.74e-06,
+    "output": 3.48e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-v4.1-flash-1017": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/deepseek-v4.1-flash-260910": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/glm-5": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 3.2e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/glm-5.1": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/glm-5.2": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/kimi-k2.6": {
+    "cache_read": 1.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/kimi-k2.7-code": {
+    "cache_read": 1.9e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/mimo-v2.6-flash": {
+    "cache_read": 2.8e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "streamlake"
+  },
+  "streamlake/mimo-v2.6-pro": {
+    "cache_read": 3.6e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.35e-07,
+    "output": 8.7e-07,
+    "provider": "streamlake"
+  },
+  "streamlake/minimax-m2.5": {
+    "cache_read": 3e-08,
+    "cache_write": 3.75e-07,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/minimax-m3": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/qwen3.5-397b-a17b": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 3.6e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/qwen3.6-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 3.6e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/qwen3.6-35b-a3b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.75e-07,
+    "output": 2.25e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/qwen3.8-2.4t-a95b": {
+    "cache_read": 2.5e-07,
+    "cache_write": 2.5e-06,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "streamlake"
+  },
+  "streamlake/qwen3.8-27b": {
+    "cache_read": 1e-07,
+    "cache_write": 6.25e-07,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "streamlake"
+  },
   "tencent/deepseek-v4-flash": {
     "cache_read": 2.8e-09,
     "cache_write": 0.0,
@@ -23769,11 +24345,11 @@
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.7-Max": {
-    "cache_read": 3e-07,
+    "cache_read": 5e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1.5e-06,
-    "output": 4.5e-06,
+    "input": 2.5e-06,
+    "output": 7.5e-06,
     "provider": "together_ai"
   },
   "together_ai/Qwen/Qwen3.7-Plus": {
@@ -27457,11 +28033,11 @@
     "provider": "wandb"
   },
   "wandb/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B": {
-    "cache_read": 2e-08,
+    "cache_read": 5e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1.5e-07,
-    "output": 7.5e-07,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
     "provider": "wandb"
   },
   "wandb/openai/gpt-oss-120b": {
@@ -28287,5 +28863,109 @@
     "input": 1.5e-07,
     "output": 5e-07,
     "provider": "zai"
+  },
+  "zerogpu/LFM2.5-1.2B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-08,
+    "output": 5e-08,
+    "provider": "zerogpu"
+  },
+  "zerogpu/LFM2.5-1.2B-Thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-08,
+    "output": 5e-08,
+    "provider": "zerogpu"
+  },
+  "zerogpu/deepseek-v4.1-flash": {
+    "cache_read": 3e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "zerogpu"
+  },
+  "zerogpu/glm-5.3-flash": {
+    "cache_read": 1.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 3.5e-07,
+    "provider": "zerogpu"
+  },
+  "zerogpu/gpt-4.1-mini": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-07,
+    "output": 1.6e-06,
+    "provider": "zerogpu"
+  },
+  "zerogpu/gpt-5.4-nano": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.25e-06,
+    "provider": "zerogpu"
+  },
+  "zerogpu/gpt-5.6-luna": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.2e-06,
+    "provider": "zerogpu"
+  },
+  "zerogpu/gpt-6-luna": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "zerogpu"
+  },
+  "zerogpu/gpt-oss-120b": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "zerogpu"
+  },
+  "zerogpu/llama-3.1-8b-instruct-fast": {
+    "cache_read": 2.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 2.8e-07,
+    "provider": "zerogpu"
+  },
+  "zerogpu/llama-3.2-3b-instruct-fast": {
+    "cache_read": 2.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 3e-07,
+    "provider": "zerogpu"
+  },
+  "zerogpu/qwen3-30b-a3b-fp8": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 4.5e-07,
+    "provider": "zerogpu"
+  },
+  "zerogpu/qwen3.6-35b-a3b": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.5e-06,
+    "provider": "zerogpu"
   }
 }
