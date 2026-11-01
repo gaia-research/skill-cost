@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-10-31T10:25:56Z",
-    "model_count": 3728,
+    "fetched_at": "2026-11-01T11:19:36Z",
+    "model_count": 3729,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -15931,6 +15931,14 @@
   "gpt-6-astra": {
     "cache_read": 1e-06,
     "cache_write": 1.25e-05,
+    "cache_write_1h": null,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "openai"
+  },
+  "gpt-6-astra-law": {
+    "cache_read": 1e-06,
+    "cache_write": null,
     "cache_write_1h": null,
     "input": 1e-05,
     "output": 5e-05,
