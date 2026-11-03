@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-02T12:33:16Z",
-    "model_count": 3729,
+    "fetched_at": "2026-11-03T11:59:38Z",
+    "model_count": 3732,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3048,7 +3048,23 @@
     "output": 2.4e-05,
     "provider": "azure"
   },
+  "azure/gpt-realtime-2.1-2026-07-07": {
+    "cache_read": 4e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-06,
+    "output": 2.4e-05,
+    "provider": "azure"
+  },
   "azure/gpt-realtime-2.1-mini": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 2.4e-06,
+    "provider": "azure"
+  },
+  "azure/gpt-realtime-2.1-mini-2026-07-07": {
     "cache_read": 6e-08,
     "cache_write": null,
     "cache_write_1h": null,
@@ -18721,19 +18737,19 @@
     "provider": "mistral"
   },
   "mistral/mistral-large-4": {
-    "cache_read": 1.4e-07,
+    "cache_read": 7e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1.36e-06,
-    "output": 4.18e-06,
+    "input": 7e-07,
+    "output": 2.1e-06,
     "provider": "mistral"
   },
   "mistral/mistral-large-4-0": {
-    "cache_read": 1.4e-07,
+    "cache_read": 7e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1.36e-06,
-    "output": 4.18e-06,
+    "input": 7e-07,
+    "output": 2.1e-06,
     "provider": "mistral"
   },
   "mistral/mistral-large-latest": {
@@ -22127,6 +22143,14 @@
     "input": 1.9e-07,
     "output": 1.9e-07,
     "provider": "ovhcloud"
+  },
+  "parallel_ai/decision": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0,
+    "output": 0.0,
+    "provider": "parallel_ai"
   },
   "perplexity/anthropic/claude-fable-5": {
     "cache_read": 1e-06,
