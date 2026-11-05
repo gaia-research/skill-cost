@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import sqlite3
@@ -232,6 +233,1497 @@ class HermesHarnessTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         payload = __import__("json").loads(output.getvalue())
         self.assertEqual(payload["sessions"][0]["session_id"], "latest-session")
+
+
+
+class RunReportTests(unittest.TestCase):
+    """--run-report reads one Claude Code main session plus its subagent transcripts.
+    Every usage call is counted once across all files, roles come only from the
+    model family or an explicit role map, and USD is a public-rate equivalent."""
+
+    SID = "11111111-2222-3333-4444-555555555555"
+    AID = "aaaa00000000bbbb1"      # haiku subagent, mapped as builder
+    BID = "aaaa00000000cccc2"      # haiku subagent, mapped as verifier
+    PRICES = {
+        "claude-sonnet-5-5": {"input": 2e-6, "output": 1e-5, "cache_read": 1e-7,
+                              "cache_write": 2.5e-6, "cache_write_1h": 4e-6},
+        "claude-haiku-5-5": {"input": 1e-6, "output": 5e-6, "cache_read": 1e-8,
+                             "cache_write": 1.25e-6, "cache_write_1h": 2e-6},
+        "_meta": {"source": "test", "source_url": "https://example.invalid/prices",
+                  "fetched_at": "2026-01-01T00:00:00Z", "model_count": 2},
+    }
+    USAGE = {"input_tokens": 10, "output_tokens": 100,
+             "cache_read_input_tokens": 1_000,
+             "cache_creation": {"ephemeral_5m_input_tokens": 50,
+                                "ephemeral_1h_input_tokens": 0}}
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self._tmp.name)
+        self.proj = self.home / ".claude" / "projects" / "-work-repo"
+        self.proj.mkdir(parents=True)
+        self.sub_dir = self.proj / self.SID / "subagents"
+        self.sub_dir.mkdir(parents=True)
+        self._env = mock.patch.dict(os.environ, {"HOME": str(self.home)})
+        self._env.start()
+        self._prices = mock.patch.object(cost, "load_prices", return_value=self.PRICES)
+        self._prices.start()
+
+    def tearDown(self) -> None:
+        self._prices.stop()
+        self._env.stop()
+        self._tmp.cleanup()
+
+    # --- fixtures -------------------------------------------------------------
+
+    def _rec(self, msg_id, req, model, usage=None, sidechain=False, uuid="u", advisor=None):
+        d = {"type": "assistant", "uuid": uuid, "requestId": req,
+             "sessionId": self.SID, "cwd": "/work/repo", "isSidechain": sidechain,
+             "timestamp": "2026-01-01T00:00:01.000Z",
+             "message": {"id": msg_id, "model": model, "usage": usage or self.USAGE}}
+        if advisor:
+            d["advisorModel"] = advisor
+        return json.dumps(d)
+
+    def _write(self, path: Path, lines: list[str]) -> None:
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def _main_file(self, lines: list[str]) -> Path:
+        p = self.proj / f"{self.SID}.jsonl"
+        self._write(p, lines)
+        return p
+
+    def _sub_file(self, agent_id: str, lines: list[str], meta: bool = True) -> Path:
+        p = self.sub_dir / f"agent-{agent_id}.jsonl"
+        self._write(p, lines)
+        if meta:
+            (self.sub_dir / f"agent-{agent_id}.meta.json").write_text(
+                json.dumps({"agentType": "general-purpose", "model": "haiku"}), encoding="utf-8")
+        return p
+
+    def _run(self, *extra: str) -> tuple[int, dict | None, str]:
+        buf = StringIO()
+        err = StringIO()
+        with redirect_stdout(buf), mock.patch("sys.stderr", err):
+            code = cost.main(["--run-report", "--offline", *extra])
+        out = buf.getvalue()
+        try:
+            data = json.loads(out) if "--json" in extra or "--markdown" not in extra else None
+        except ValueError:
+            data = None
+        return code, data, out + err.getvalue()
+
+    def _capture_main(self, argv: list[str]) -> tuple[int, str, str]:
+        out, err = StringIO(), StringIO()
+        with redirect_stdout(out), mock.patch("sys.stderr", err):
+            code = cost.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
+    def _capture(self, *extra: str) -> tuple[int, str, str]:
+        """Run-report invocation with stdout and stderr kept apart."""
+        return self._capture_main(["--run-report", "--offline", *extra])
+
+    def _rows(self, rep: dict) -> dict:
+        return {(r["role"], r["model"]): r for r in rep["rows"]}
+
+    def _standard_fixture(self) -> None:
+        # Main session: lead (sonnet) with a streamed call written twice, plus one call
+        # that is also present in a subagent transcript (must count once).
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5", uuid="b"),
+            self._rec("msg_m2", "req_m2", "claude-sonnet-5-5", uuid="c"),
+            self._rec("msg_shared", "req_shared", "claude-haiku-5-5", uuid="d", sidechain=False),
+        ])
+        self._sub_file(self.AID, [
+            self._rec("msg_s1", "req_s1", "claude-haiku-5-5", sidechain=True, uuid="e"),
+            self._rec("msg_shared", "req_shared", "claude-haiku-5-5", sidechain=True, uuid="f"),
+        ])
+        self._sub_file(self.BID, [
+            self._rec("msg_s2", "req_s2", "claude-haiku-5-5", sidechain=True, uuid="g"),
+        ])
+
+    # --- tests ----------------------------------------------------------------
+
+    def test_duplicate_calls_across_main_and_subagent_count_once(self) -> None:
+        self._standard_fixture()
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        # 4 main lines + 2 + 1 subagent lines = 7 keyed records, 5 distinct API calls
+        # (msg_m1 written twice in main; msg_shared in main and a subagent) -> 2 ignored.
+        self.assertEqual(rep["dedupe"]["keyedRecords"], 7)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 2)
+        # Each call contributes 10 input, 100 output, 1000 cache read, 50 cache write.
+        self.assertEqual(rep["measuredTokens"]["input"], 5 * 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 5 * 100)
+        self.assertEqual(rep["measuredTokens"]["cacheRead"], 5 * 1_000)
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 5 * 50)
+
+    def test_default_roles_are_lead_and_subagent_family_never_builder_or_verifier(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        rows = self._rows(rep)
+        self.assertIn(("lead", "claude-sonnet-5-5"), rows)
+        self.assertEqual(rep["session"]["leadModel"], "claude-sonnet-5-5")
+        self.assertIn(("subagent:claude-haiku-5-5", "claude-haiku-5-5"), rows)
+        self.assertFalse(any(r["role"] in ("builder", "verifier") for r in rep["rows"]))
+
+    def test_role_map_assigns_builder_and_verifier_explicitly(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text(json.dumps({
+            "_comment": "ignored",
+            self.AID: "builder",
+            f"agent-{self.BID}": "verifier",
+        }), encoding="utf-8")
+        _, rep, _ = self._run("--json", "--role-map", str(mapping))
+        self.assertTrue(rep["roleMap"]["provided"])
+        self.assertEqual(rep["roleMap"]["entries"], 2)
+        self.assertEqual(rep["complete"], True)
+        roles = set(rep["byRole"])
+        self.assertTrue({"builder", "verifier", "lead"} <= roles)
+        self.assertNotIn("subagent:claude-haiku-5-5", roles)
+
+    def test_bad_role_map_is_a_usage_error(self) -> None:
+        self._standard_fixture()
+        bad = self.home / "bad.json"
+        bad.write_text(json.dumps(["not", "an", "object"]), encoding="utf-8")
+        code, _, text = self._run("--json", "--role-map", str(bad))
+        self.assertEqual(code, 2)
+        self.assertIn("role map", text)
+
+    def test_unknown_model_is_unpriced_and_never_substituted(self) -> None:
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5"),
+            # A model with no catalog entry, sharing a name fragment with a priced model.
+            self._rec("msg_x", "req_x", "claude-haiku-5-9-preview"),
+        ])
+        _, rep, _ = self._run("--json")
+        unknown = {u["model"]: u for u in rep["unknownPrices"]}
+        self.assertIn("claude-haiku-5-9-preview", unknown)
+        self.assertEqual(unknown["claude-haiku-5-9-preview"]["tokens"], 1_110 + 50)
+        self.assertEqual(unknown["claude-haiku-5-9-preview"]["reason"], "no-catalog-entry")
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        row = self._rows(rep)[("unattributed", "claude-haiku-5-9-preview")]
+        self.assertFalse(row["priced"])
+        self.assertIsNone(row["publicRateUsdEquivalent"])
+        # Only the sonnet call contributes USD.
+        sonnet = cost.Bucket(input=10, output=100, cache_read=1_000, cache_write=50)
+        self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"],
+                               sonnet.cost("claude-sonnet-5-5", self.PRICES))
+
+    def test_role_map_key_with_no_transcript_marks_report_incomplete(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text(json.dumps({"deadbeefdeadbeef0": "verifier"}), encoding="utf-8")
+        code, rep, _ = self._run("--json", "--role-map", str(mapping))
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any(i["id"] == "deadbeefdeadbeef0" for i in rep["inaccessible"]))
+        self.assertTrue(rep["incompleteReasons"])
+
+    def test_strict_exits_3_when_incomplete(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text(json.dumps({"deadbeefdeadbeef0": "verifier"}), encoding="utf-8")
+        code, _, _ = self._run("--json", "--role-map", str(mapping), "--strict")
+        self.assertEqual(code, 3)
+
+    def test_meta_without_transcript_is_inaccessible(self) -> None:
+        self._standard_fixture()
+        (self.sub_dir / "agent-ccccdddd00000001.meta.json").write_text(
+            json.dumps({"agentType": "general-purpose"}), encoding="utf-8")
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any(i["id"] == "ccccdddd00000001" and i["kind"] == "subagent"
+                            for i in rep["inaccessible"]))
+
+    def test_unparsable_line_marks_report_incomplete(self) -> None:
+        p = self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        p.write_text(p.read_text(encoding="utf-8") + "{not json\n", encoding="utf-8")
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any("unparsable" in r for r in rep["incompleteReasons"]))
+
+    def test_billed_spend_is_null_unless_supplied(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertIsNone(rep["actualBilledSpend"]["usd"])
+        self.assertEqual(rep["actualBilledSpend"]["reason"], "not measured by this tool")
+
+    def test_billed_spend_is_echoed_with_provenance(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertEqual(rep["actualBilledSpend"]["usd"], 12.5)
+        self.assertEqual(rep["actualBilledSpend"]["source"], "Anthropic invoice 2026-10")
+        self.assertIn("user-supplied", rep["actualBilledSpend"]["provenance"])
+        # The public-rate figure is untouched by the billed figure.
+        self.assertNotEqual(rep["publicRateUsdEquivalent"]["usd"], 12.5)
+
+    def test_billed_usd_without_source_is_rejected(self) -> None:
+        self._standard_fixture()
+        code, _, text = self._run("--json", "--billed-usd", "3")
+        self.assertEqual(code, 2)
+        self.assertIn("together", text)
+
+    def test_json_schema_keys_are_stable(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["schema"], "skill-cost-run-report-v1")
+        self.assertEqual(rep["tool"]["version"], cost.TOOL_VERSION)
+        for key in ("generatedAt", "complete", "incompleteReasons", "session", "files",
+                    "inaccessible", "roleMap", "dedupe", "measuredTokens",
+                    "publicRateUsdEquivalent", "unknownPrices", "byRole", "rows",
+                    "actualBilledSpend", "disclaimer", "prices", "warnings",
+                    "malformedUsage", "priceAssumptions", "usdComplete",
+                    "outputLikelyUndercounted", "outputUndercount"):
+            self.assertIn(key, rep)
+        for key in ("sha256", "sourceUrl", "fetchedAt", "modelCount", "file"):
+            self.assertIn(key, rep["prices"])
+        self.assertEqual(rep["publicRateUsdEquivalent"]["kind"],
+                         "public-rate equivalent, not a bill")
+        files = {f["path"].rsplit("/", 1)[-1]: f for f in rep["files"]}
+        self.assertIn(f"{self.SID}.jsonl", files)
+        self.assertIn(f"agent-{self.AID}.jsonl", files)
+        for f in rep["files"]:
+            self.assertFalse(os.path.isabs(f["path"]))
+            self.assertEqual(len(f["sha256"]), 64)
+
+    def test_markdown_rendering_has_table_and_disclaimer(self) -> None:
+        self._standard_fixture()
+        _, _, text = self._run("--markdown")
+        self.assertIn("| Role | Model |", text)
+        self.assertIn("| lead | claude-sonnet-5-5 |", text)
+        self.assertIn("not a bill", text)
+        self.assertIn("User-supplied billed figure (unverified):** none supplied", text)
+        self.assertNotIn("Actual billed spend", text)
+        self.assertIn("complete (measured tokens); USD complete", text)
+
+    def test_partial_usd_is_marked_in_status_and_total_row(self) -> None:
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5"),
+            self._rec("msg_x", "req_x", "claude-haiku-5-9-preview"),
+        ])
+        _, _, text = self._run("--markdown")
+        self.assertIn("complete (measured tokens); USD partial: 1 unpriced model(s)", text)
+        self.assertIn("≥ **$", text)
+        self.assertIn("(partial)", text)
+        self.assertIn("no USD: no exact catalog entry", text)
+
+    def test_billed_figure_is_labelled_unverified_and_disclaimed(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIn("not verified by this tool", rep["disclaimer"])
+        self.assertIn("user-supplied", rep["disclaimer"])
+        _, _, text = self._run("--markdown", "--billed-usd", "12.5",
+                               "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIn("User-supplied billed figure (unverified):** $12.5000", text)
+        self.assertNotIn("Actual billed spend", text)
+        self.assertIn("not verified by this tool", text)
+
+    def test_unsupplied_billed_figure_has_no_billed_disclaimer(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertNotIn("user-supplied", rep["disclaimer"])
+        self.assertIn("not a bill", rep["disclaimer"])
+
+    def test_billed_flags_without_run_report_are_a_usage_error(self) -> None:
+        self._standard_fixture()
+        err = StringIO()
+        buf = StringIO()
+        with redirect_stdout(buf), mock.patch("sys.stderr", err):
+            code = cost.main(["--offline", "--billed-usd", "3", "--billed-source", "invoice"])
+        self.assertEqual(code, 2)
+        self.assertIn("--run-report", err.getvalue())
+        self.assertEqual(buf.getvalue(), "")
+
+    def test_session_selection_by_id_and_absent_session(self) -> None:
+        self._standard_fixture()
+        code, rep, _ = self._run("--json", "--session", self.SID[:8])
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["session"]["sessionId"], self.SID)
+        code, _, text = self._run("--json", "--session", "no-such-session")
+        self.assertEqual(code, 1)
+        self.assertIn("no matching", text)
+
+    def test_subagent_files_are_not_candidate_main_sessions(self) -> None:
+        self._standard_fixture()
+        found = cost.select_main_session(self.home / ".claude" / "projects",
+                                        None, None)
+        self.assertEqual(found, self.proj / f"{self.SID}.jsonl")
+
+    def test_report_never_writes_absolute_paths_or_the_encoded_project_dir(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        text = json.dumps(rep)
+        self.assertNotIn(str(self.home), text)
+        self.assertNotIn("-work-repo", text)
+        self.assertNotIn("/work/repo", text)
+        self.assertEqual(rep["session"]["cwd"], "repo")
+        self.assertEqual(rep["session"]["cwdSha256"],
+                         hashlib.sha256(b"/work/repo").hexdigest()[:8])
+        self.assertEqual(rep["session"]["logPath"], f"{self.SID}.jsonl")
+        paths = {f["path"] for f in rep["files"]}
+        self.assertIn(f"{self.SID}.jsonl", paths)
+        self.assertIn(f"{self.SID}/subagents/agent-{self.AID}.jsonl", paths)
+
+    def test_markdown_report_carries_cwd_basename_and_digest_only(self) -> None:
+        self._standard_fixture()
+        _, _, text = self._run("--markdown")
+        self.assertIn("cwd `repo` (cwdSha256 `", text)
+        self.assertNotIn("/work/repo", text)
+        self.assertNotIn(str(self.home), text)
+
+    def test_read_errors_name_the_errno_not_the_path(self) -> None:
+        missing = self.home / "no-such-dir" / "x.jsonl"
+        log = cost.read_claude_log(missing, "main")
+        self.assertEqual(log.error, "No such file or directory")
+        meta = self.home / "agent-x.meta.json"
+        meta.write_text("{}", encoding="utf-8")
+        with mock.patch.object(cost.Path, "read_text",
+                               side_effect=PermissionError(13, "Permission denied", str(meta))):
+            agent_type, err = cost._read_meta_agent_type(meta)
+        self.assertEqual((agent_type, err), ("", "Permission denied"))
+        self.assertNotIn(str(self.home), err)
+
+    def _append_main(self, line: str) -> None:
+        p = self.proj / f"{self.SID}.jsonl"
+        p.write_text(p.read_text(encoding="utf-8") + line + "\n", encoding="utf-8")
+
+    def _priced_with(self, edit) -> dict:
+        prices = {k: (dict(v) if isinstance(v, dict) else v) for k, v in self.PRICES.items()}
+        edit(prices["claude-sonnet-5-5"])
+        return prices
+
+    def test_catalog_entry_without_output_price_is_unpriced_not_free(self) -> None:
+        prices = self._priced_with(lambda e: e.pop("output"))
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        with mock.patch.object(cost, "load_prices", return_value=prices):
+            _, rep, _ = self._run("--json")
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertEqual(rep["publicRateUsdEquivalent"]["usd"], 0.0)
+        unknown = {u["model"]: u for u in rep["unknownPrices"]}
+        self.assertEqual(unknown["claude-sonnet-5-5"]["reason"], "incomplete-price-entry")
+        self.assertFalse(self._rows(rep)[("lead", "claude-sonnet-5-5")]["priced"])
+
+    def test_missing_cache_price_is_priced_with_a_recorded_assumption(self) -> None:
+        prices = self._priced_with(lambda e: e.pop("cache_read"))
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        with mock.patch.object(cost, "load_prices", return_value=prices):
+            _, rep, _ = self._run("--json")
+        self.assertTrue(rep["publicRateUsdEquivalent"]["complete"])
+        assumed = {(a["model"], a["component"]): a for a in rep["priceAssumptions"]}
+        self.assertEqual(assumed[("claude-sonnet-5-5", "cache_read")]["tokens"], 1_000)
+        self.assertIn("10% of the input rate", assumed[("claude-sonnet-5-5", "cache_read")]["assumption"])
+        # cache reads at 10% of input (2e-6 * 0.1), everything else at the catalog rate.
+        expected = 10 * 2e-6 + 100 * 1e-5 + 1_000 * 2e-7 + 50 * 2.5e-6
+        self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"], expected)
+
+    def test_zero_catalog_cache_price_is_kept_as_zero(self) -> None:
+        prices = self._priced_with(lambda e: e.update(cache_read=0.0))
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        with mock.patch.object(cost, "load_prices", return_value=prices):
+            _, rep, _ = self._run("--json")
+        self.assertEqual(rep["priceAssumptions"], [])
+        self.assertAlmostEqual(rep["publicRateUsdEquivalent"]["usd"],
+                               10 * 2e-6 + 100 * 1e-5 + 50 * 2.5e-6)
+
+    def test_inferred_cache_write_split_is_listed_as_an_assumption(self) -> None:
+        partial = dict(self.USAGE, cache_creation_input_tokens=40,
+                       cache_creation={"ephemeral_1h_input_tokens": 8})
+        self._main_file([self._rec("msg_p", "req_p", "claude-sonnet-5-5", usage=partial)])
+        _, rep, _ = self._run("--json")
+        assumed = {(a["model"], a["component"]): a["tokens"] for a in rep["priceAssumptions"]}
+        self.assertEqual(assumed[("claude-sonnet-5-5", "cache_write_split")], 40)
+
+    def test_subagent_referenced_by_main_transcript_without_transcript_is_incomplete(self) -> None:
+        self._standard_fixture()
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": "deadbeef99"}}))
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        entries = [i for i in rep["inaccessible"] if i["id"] == "deadbeef99"]
+        self.assertEqual([i["kind"] for i in entries], ["subagent"])
+        self.assertIn("toolUseResult.agentId", entries[0]["reason"])
+        self.assertTrue(any("deadbeef99" in r for r in rep["incompleteReasons"]))
+        code, _, _ = self._run("--json", "--strict")
+        self.assertEqual(code, 3)
+
+    def test_referenced_subagent_with_a_transcript_keeps_the_report_complete(self) -> None:
+        self._standard_fixture()
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": self.AID}}))
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse(any(i["id"] == self.AID for i in rep["inaccessible"]))
+
+    def test_referenced_subagent_with_only_metadata_is_listed_once(self) -> None:
+        self._standard_fixture()
+        (self.sub_dir / "agent-ccccdddd00000001.meta.json").write_text(
+            json.dumps({"agentType": "general-purpose"}), encoding="utf-8")
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": "ccccdddd00000001"}}))
+        _, rep, _ = self._run("--json")
+        entries = [i for i in rep["inaccessible"] if i["id"] == "ccccdddd00000001"]
+        self.assertEqual(len(entries), 1)
+        self.assertFalse(rep["complete"])
+
+    def test_negative_boolean_and_string_counts_are_excluded_and_flagged(self) -> None:
+        def usage(**over):
+            return dict(self.USAGE, **over)
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_neg", "req_neg", "claude-sonnet-5-5", usage=usage(input_tokens=-3)),
+            self._rec("msg_bool", "req_bool", "claude-sonnet-5-5", usage=usage(output_tokens=True)),
+            self._rec("msg_str", "req_str", "claude-sonnet-5-5", usage=usage(output_tokens="12")),
+            json.dumps({"type": "assistant", "requestId": "req_k", "timestamp": "2026-01-01T00:00:01Z",
+                        "message": {"id": "msg_k", "model": "claude-sonnet-5-5", "usage": "oops"}}),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 4)
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any("excluded from totals" in r for r in rep["incompleteReasons"]))
+        # Only the valid record reaches the totals: no -3, no True-as-1, no "12".
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        main_entry = [f for f in rep["files"] if f["kind"] == "main"][0]
+        self.assertEqual(main_entry["malformedUsageRecords"], 4)
+        self.assertEqual(main_entry["usageRecords"], 1)
+
+    def test_missing_cache_write_part_is_derived_from_the_total(self) -> None:
+        partial = dict(self.USAGE, cache_creation_input_tokens=40,
+                       cache_creation={"ephemeral_1h_input_tokens": 8})
+        self._main_file([self._rec("msg_p", "req_p", "claude-sonnet-5-5", usage=partial)])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 32)
+        self.assertEqual(rep["measuredTokens"]["cacheWrite1h"], 8)
+        self.assertEqual(rep["malformedUsage"], 0)
+        self.assertTrue(rep["complete"])
+
+    def test_cache_write_part_that_cannot_be_placed_is_malformed(self) -> None:
+        orphan_5m = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                     "cache_creation": {"ephemeral_5m_input_tokens": 5}}
+        bigger_1h = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                     "cache_creation_input_tokens": 4,
+                     "cache_creation": {"ephemeral_1h_input_tokens": 8}}
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_o", "req_o", "claude-sonnet-5-5", usage=orphan_5m),
+            self._rec("msg_b", "req_b", "claude-sonnet-5-5", usage=bigger_1h),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 50)
+        self.assertEqual(rep["measuredTokens"]["cacheWrite1h"], 0)
+
+    def test_legacy_total_only_usage_still_counts_as_five_minute_writes(self) -> None:
+        legacy = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                  "cache_creation_input_tokens": 7}
+        self.assertEqual(cost.run_usage_tuple(legacy), ((1, 1, 0, 7, 0), True))
+        self._main_file([self._rec("msg_l", "req_l", "claude-sonnet-5-5", usage=legacy)])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 7)
+        self.assertTrue(rep["complete"])
+
+    def test_legacy_total_only_write_is_listed_as_a_split_assumption(self) -> None:
+        legacy = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                  "cache_creation_input_tokens": 7}
+        self._main_file([self._rec("msg_l", "req_l", "claude-sonnet-5-5", usage=legacy)])
+        _, rep, _ = self._run("--json")
+        assumed = {(a["model"], a["component"]): a for a in rep["priceAssumptions"]}
+        split = assumed[("claude-sonnet-5-5", "cache_write_split")]
+        self.assertEqual(split["tokens"], 7)
+        self.assertIn("inferred", split["assumption"])
+        self.assertTrue(rep["complete"])
+
+    def test_zero_legacy_write_and_full_breakdown_are_not_split_assumptions(self) -> None:
+        zero = {"input_tokens": 1, "output_tokens": 1, "cache_read_input_tokens": 0,
+                "cache_creation_input_tokens": 0}
+        self._main_file([
+            self._rec("msg_z", "req_z", "claude-sonnet-5-5", usage=zero, uuid="a"),
+            self._rec("msg_f", "req_f", "claude-sonnet-5-5", uuid="b"),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertFalse([a for a in rep["priceAssumptions"]
+                          if a["component"] == "cache_write_split"])
+
+    def _rec_without_request_id(self, msg_id: str, usage=None, uuid: str = "x") -> str:
+        d = json.loads(self._rec(msg_id, "unused", "claude-sonnet-5-5", usage=usage, uuid=uuid))
+        del d["requestId"]
+        return json.dumps(d)
+
+    def test_same_message_with_and_without_request_id_counts_once_main_first(self) -> None:
+        self._main_file([self._rec("msg_d", "req_d", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_d", uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_same_message_with_and_without_request_id_counts_once_id_only_first(self) -> None:
+        self._main_file([self._rec_without_request_id("msg_d", uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_d", "req_d", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_id_only_copy_keeps_the_largest_streamed_total(self) -> None:
+        early = dict(self.USAGE, output_tokens=8)
+        late = dict(self.USAGE, output_tokens=431)
+        self._main_file([self._rec("msg_s", "req_s", "claude-sonnet-5-5", usage=early, uuid="a")])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_s", usage=late, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["output"], 431)
+
+    def test_distinct_request_ids_on_one_message_stay_distinct(self) -> None:
+        # Control: with no id-only copy anywhere, two requestIds are two calls.
+        self._main_file([self._rec("msg_t", "req_1", "claude-sonnet-5-5", uuid="a"),
+                         self._rec("msg_t", "req_2", "claude-sonnet-5-5", uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 20)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 0)
+
+    # --- stderr hygiene, failure containment, run-report-only flags -----------
+
+    def test_no_session_error_names_no_host_path(self) -> None:
+        code, out, err = self._capture("--json")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("no matching Claude Code session", err)
+        self.assertNotIn(str(self.home), err)
+        self.assertNotIn("/", err)
+
+    def test_role_map_read_error_names_no_host_path(self) -> None:
+        self._standard_fixture()
+        missing = self.home / "no-such-roles.json"
+        code, out, err = self._capture("--json", "--role-map", str(missing))
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("--role-map", err)
+        self.assertNotIn(str(self.home), err)
+
+    def test_role_map_parse_error_is_static_text(self) -> None:
+        self._standard_fixture()
+        bad = self.home / "bad-roles.json"
+        bad.write_text(json.dumps({self.AID: 7}), encoding="utf-8")
+        code, _, err = self._capture("--json", "--role-map", str(bad))
+        self.assertEqual(code, 2)
+        self.assertIn("role map", err)
+        self.assertNotIn(str(self.home), err)
+        self.assertNotIn(self.AID, err)
+
+    def test_unexpected_failure_is_one_line_without_traceback(self) -> None:
+        self._standard_fixture()
+        boom = RuntimeError(f"boom in {self.home}")
+        with mock.patch.object(cost, "build_run_report", side_effect=boom):
+            code, out, err = self._capture("--json")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "error: run-report failed (RuntimeError)\n")
+
+    def test_run_report_refresh_prices_prints_no_host_path(self) -> None:
+        dest = self.home / "prices.json"
+        fake = mock.MagicMock()
+        fake.__enter__.return_value.read.return_value = json.dumps(
+            {"claude-sonnet-5-5": {"input_cost_per_token": 2e-6,
+                                   "output_cost_per_token": 1e-5}}).encode("utf-8")
+        err = StringIO()
+        with mock.patch.object(cost, "PRICES_JSON", dest), \
+             mock.patch.object(cost.urllib.request, "urlopen", return_value=fake), \
+             mock.patch("sys.stderr", err):
+            code = cost.main(["--run-report", "--refresh-prices"])
+        self.assertEqual(code, 0)
+        self.assertTrue(dest.exists())
+        self.assertNotIn(str(self.home), err.getvalue())
+
+    def test_run_report_only_flags_without_run_report_are_usage_errors(self) -> None:
+        self._standard_fixture()
+        mapping = self.home / "roles.json"
+        mapping.write_text("{}", encoding="utf-8")
+        for extra, flag in ((["--strict"], "--strict"),
+                            (["--markdown"], "--markdown"),
+                            (["--role-map", str(mapping)], "--role-map")):
+            with self.subTest(flag=flag):
+                code, out, err = self._capture_main(["--offline", *extra])
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn(flag, err)
+                self.assertIn("--run-report", err)
+
+    def test_deeply_nested_json_line_is_an_unparsable_line(self) -> None:
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        self._append_main("[" * 200_000)
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertTrue(any("unparsable" in r for r in rep["incompleteReasons"]))
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+
+    # --- token-count validation: JSON integers only, each at most 10**15 -------
+
+    def test_count_at_the_bound_is_accepted_and_one_above_is_malformed(self) -> None:
+        self._main_file([
+            self._rec("msg_at", "req_at", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=10**15)),
+            self._rec("msg_over", "req_over", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=10**15 + 1)),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertFalse(rep["complete"])
+        self.assertEqual(rep["measuredTokens"]["input"], 10**15)
+
+    def test_enormous_integer_count_is_malformed_and_does_not_crash(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_big", "req_big", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=10**400)),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        code, _, text = self._run("--markdown")
+        self.assertEqual(code, 0)
+        self.assertIn("not a bill", text)
+
+    def test_two_counts_of_10_to_the_308_do_not_crash_the_report(self) -> None:
+        huge = 10**308
+        self._main_file([
+            self._rec("msg_h1", "req_h1", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=huge)),
+            self._rec("msg_h2", "req_h2", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=huge)),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        self.assertEqual(rep["measuredTokens"]["input"], 0)
+        self.assertEqual(rep["measuredTokens"]["output"], 0)
+
+    def test_float_counts_are_malformed_even_when_integral(self) -> None:
+        for value in (2.0, 1.5, 3e2, -0.0, 0.0):
+            with self.subTest(value=value):
+                self.assertIsNone(cost.run_usage_tuple(dict(self.USAGE, input_tokens=value)))
+        cc = dict(self.USAGE, cache_creation={"ephemeral_5m_input_tokens": 50.0,
+                                              "ephemeral_1h_input_tokens": 0})
+        self.assertIsNone(cost.run_usage_tuple(cc))
+
+    def test_float_count_is_excluded_from_totals_and_flagged(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_f", "req_f", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, output_tokens=2.0)),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+        self.assertFalse(rep["complete"])
+
+    def test_run_usd_overflow_marks_the_row_unpriced_with_reason_overflow(self) -> None:
+        self.assertEqual(cost._run_usd(cost.Bucket(input=10**400), "claude-sonnet-5-5",
+                                       self.PRICES), (None, "overflow", []))
+        # Finite as an int, but the price product is not a finite float.
+        loud = {"claude-sonnet-5-5": {"input": 1e300, "output": 1e300}, "_meta": {}}
+        self.assertEqual(cost._run_usd(cost.Bucket(input=10**15), "claude-sonnet-5-5", loud),
+                         (None, "overflow", []))
+
+    def test_overflowed_row_is_reported_as_unpriced_not_as_a_crash(self) -> None:
+        self._standard_fixture()
+        with mock.patch.object(cost, "_run_usd", return_value=(None, "overflow", [])):
+            code, rep, text = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertEqual({u["reason"] for u in rep["unknownPrices"]}, {"overflow"})
+        with mock.patch.object(cost, "_run_usd", return_value=(None, "overflow", [])):
+            _, _, md = self._run("--markdown")
+        self.assertIn("no USD: token totals too large", md)
+
+    # --- an id-only copy merges every copy of its message id -------------------
+
+    def test_id_only_copy_over_two_request_ids_is_ambiguous_and_incomplete(self) -> None:
+        self._main_file([
+            self._rec("msg_amb", "req_1", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_amb", "req_2", "claude-sonnet-5-5", uuid="b"),
+        ])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_amb", uuid="c")])
+        code, rep, text = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        digest = hashlib.sha256(b"msg_amb").hexdigest()[:8]
+        warned = [w for w in rep["warnings"] if w.startswith("ambiguous-id-only-copy")]
+        self.assertEqual(len(warned), 1)
+        self.assertIn(digest, warned[0])
+        reasons = [r for r in rep["incompleteReasons"]
+                   if r.startswith("ambiguous-id-only-copy")]
+        self.assertEqual(len(reasons), 1)
+        self.assertIn(digest, reasons[0])
+        self.assertIn("possible undercount", reasons[0])
+        self.assertNotIn("msg_amb", text)
+        # The documented rule still holds: every copy of the id is one call.
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+
+    def test_id_only_copy_with_one_request_id_is_not_ambiguous(self) -> None:
+        self._main_file([self._rec("msg_one", "req_1", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec_without_request_id("msg_one", uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse([w for w in rep["warnings"] if w.startswith("ambiguous")])
+
+    # --- a role-map key whose records contribute nothing must not vanish silently -----
+
+    def _map(self, data: dict) -> str:
+        path = self.home / "roles.json"
+        path.write_text(json.dumps(data), encoding="utf-8")
+        return str(path)
+
+    def test_role_map_key_whose_records_were_all_deduped_away_warns(self) -> None:
+        # The subagent's only call is also in the main transcript. The main copy wins the
+        # tie, so the subagent mapping attributes nothing.
+        self._main_file([self._rec("msg_d", "req_d", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_d", "req_d", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        code, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        self.assertEqual(code, 0)
+        self.assertIn(f"role-map-key-has-no-effect: {self.AID}", rep["warnings"])
+        self.assertFalse(any(r["role"] == "builder" for r in rep["rows"]))
+        self.assertTrue(rep["complete"])
+
+    def test_role_map_key_for_a_transcript_with_no_usage_warns(self) -> None:
+        self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        self._sub_file(self.AID, [json.dumps({"type": "user", "sessionId": self.SID})])
+        _, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        self.assertIn(f"role-map-key-has-no-effect: {self.AID}", rep["warnings"])
+
+    def test_role_map_key_that_attributes_rows_has_no_such_warning(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        self.assertFalse([w for w in rep["warnings"]
+                          if w.startswith("role-map-key-has-no-effect")])
+        self.assertTrue(any(r["role"] == "builder" for r in rep["rows"]))
+
+    # --- top-level complete is measured-token completeness; usdComplete is the USD one --
+
+    def test_usd_complete_mirrors_the_public_rate_block(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+        self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
+
+    def test_unpriced_model_leaves_complete_true_and_usd_complete_false(self) -> None:
+        self._main_file([
+            self._rec("msg_m1", "req_m1", "claude-sonnet-5-5"),
+            self._rec("msg_x", "req_x", "claude-haiku-5-9-preview"),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
+
+    def test_malformed_tokens_leave_complete_false_and_usd_complete_false(self) -> None:
+        # A malformed record is excluded from the priced total, so the USD total is not complete.
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5"),
+            self._rec("msg_neg", "req_neg", "claude-sonnet-5-5",
+                      usage=dict(self.USAGE, input_tokens=-3)),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertEqual(rep["usdComplete"], rep["publicRateUsdEquivalent"]["complete"])
+
+    # --- output undercount: early streaming snapshots carry output_tokens <= 10 ----------
+
+    def _snapshot_calls(self, outputs: list[int], model: str = "claude-sonnet-5-5",
+                        prefix: str = "msg_u") -> list[str]:
+        """One main-session call per entry, with that output_tokens and the standard prompt
+        (well above the non-trivial floor)."""
+        return [self._rec(f"{prefix}{i}", f"req_{prefix}{i}", model,
+                          usage=dict(self.USAGE, output_tokens=out), uuid=f"{prefix}{i}")
+                for i, out in enumerate(outputs)]
+
+    def test_snapshot_heavy_run_is_flagged_as_undercounted(self) -> None:
+        # Nine of ten calls carry only an early streaming snapshot.
+        self._main_file(self._snapshot_calls([8] * 9 + [400]))
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertTrue(rep["outputLikelyUndercounted"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertFalse(rep["publicRateUsdEquivalent"]["complete"])
+        self.assertFalse(rep["complete"])
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (9, 10))
+        self.assertAlmostEqual(uc["fraction"], 0.9)
+        self.assertTrue(uc["likelyUndercounted"])
+        reasons = [r for r in rep["incompleteReasons"]
+                   if r.startswith("output-likely-undercounted:")]
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("overall 9 of 10 usage records", reasons[0])
+        self.assertIn("lower bound", reasons[0])
+        warned = [w for w in rep["warnings"] if w.startswith("Output looks undercounted")]
+        self.assertEqual(len(warned), 1)
+        self.assertIn("LOWER BOUND", warned[0])
+        self.assertIn("billing dashboard is authoritative", warned[0])
+        # The USD is still computed from the measured tokens, never invented.
+        self.assertGreater(rep["publicRateUsdEquivalent"]["usd"], 0)
+
+    def test_healthy_run_is_not_flagged(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertTrue(rep["usdComplete"])
+        self.assertTrue(rep["complete"])
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (0, 5))
+        self.assertEqual(uc["fraction"], 0.0)
+        self.assertFalse(uc["likelyUndercounted"])
+        self.assertFalse([r for r in rep["incompleteReasons"]
+                          if r.startswith("output-likely-undercounted:")])
+        self.assertFalse([w for w in rep["warnings"] if "undercount" in w.lower()])
+
+    def test_output_threshold_is_inclusive_at_ten_and_one_half_is_not_flagged(self) -> None:
+        # 10 counts as a snapshot, 11 does not. One suspect of two is exactly one half.
+        self._main_file(self._snapshot_calls([10, 11]))
+        _, rep, _ = self._run("--json")
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 2))
+        self.assertEqual(uc["fraction"], 0.5)
+        self.assertFalse(uc["likelyUndercounted"])
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertTrue(rep["usdComplete"])
+
+    def test_flag_needs_strictly_more_than_half(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 5 + [400] * 5))
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["outputUndercount"]["fraction"], 0.5)
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        # Six of eleven is just over one half.
+        self._main_file(self._snapshot_calls([8] * 6 + [400] * 5))
+        _, rep, _ = self._run("--json")
+        self.assertEqual((rep["outputUndercount"]["suspectRecords"],
+                          rep["outputUndercount"]["totalRecords"]), (6, 11))
+        self.assertTrue(rep["outputLikelyUndercounted"])
+
+    def test_zero_usage_records_have_a_null_fraction_and_no_flag(self) -> None:
+        self._main_file([json.dumps({"type": "user", "sessionId": self.SID,
+                                     "cwd": "/work/repo",
+                                     "timestamp": "2026-01-01T00:00:01.000Z"})])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (0, 0))
+        self.assertIsNone(uc["fraction"])
+        self.assertFalse(uc["likelyUndercounted"])
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertEqual(rep["byRole"], {})
+        _, _, text = self._run("--markdown")
+        self.assertIn("**Output check:** no usage records", text)
+
+    def test_early_and_late_copies_of_one_call_are_not_suspect(self) -> None:
+        # Streaming copies collapse to the largest total, so a call that also has its
+        # final snapshot is not an undercount.
+        self._main_file([self._rec("msg_s", "req_s", "claude-sonnet-5-5",
+                                   usage=dict(self.USAGE, output_tokens=8), uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_s", "req_s", "claude-sonnet-5-5",
+                                            usage=dict(self.USAGE, output_tokens=431),
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (0, 1))
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertEqual(rep["measuredTokens"]["output"], 431)
+
+    def test_repeated_early_copies_of_one_call_count_once(self) -> None:
+        early = dict(self.USAGE, output_tokens=8)
+        self._main_file([self._rec("msg_r", "req_r", "claude-sonnet-5-5", usage=early, uuid=u)
+                         for u in ("a", "b", "c")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 2)
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 1))
+        self.assertTrue(rep["outputLikelyUndercounted"])
+
+    def test_prompt_floor_is_inclusive_at_one_hundred_tokens(self) -> None:
+        below = {"input_tokens": 99, "output_tokens": 8,
+                 "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0}
+        at = {"input_tokens": 0, "output_tokens": 8,
+              "cache_read_input_tokens": 100, "cache_creation_input_tokens": 0}
+        self._main_file([
+            self._rec("msg_below", "req_below", "claude-sonnet-5-5", usage=below, uuid="a"),
+            self._rec("msg_at", "req_at", "claude-sonnet-5-5", usage=at, uuid="b"),
+        ])
+        _, rep, _ = self._run("--json")
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 2))
+
+    def test_one_role_over_half_flags_the_run_even_when_the_overall_is_under(self) -> None:
+        # The builder's two calls are both early snapshots; the lead's ten are healthy.
+        self._main_file(self._snapshot_calls([400] * 10))
+        self._sub_file(self.AID, [
+            self._rec("msg_b1", "req_b1", "claude-haiku-5-5", sidechain=True, uuid="x1",
+                      usage=dict(self.USAGE, output_tokens=8)),
+            self._rec("msg_b2", "req_b2", "claude-haiku-5-5", sidechain=True, uuid="x2",
+                      usage=dict(self.USAGE, output_tokens=8)),
+        ])
+        _, rep, _ = self._run("--json", "--role-map", self._map({self.AID: "builder"}))
+        overall = rep["outputUndercount"]
+        self.assertEqual((overall["suspectRecords"], overall["totalRecords"]), (2, 12))
+        self.assertFalse(overall["likelyUndercounted"])
+        builder = rep["byRole"]["builder"]["outputUndercount"]
+        self.assertEqual((builder["suspectRecords"], builder["totalRecords"]), (2, 2))
+        self.assertTrue(builder["likelyUndercounted"])
+        self.assertFalse(rep["byRole"]["lead"]["outputUndercount"]["likelyUndercounted"])
+        self.assertTrue(rep["outputLikelyUndercounted"])
+        self.assertFalse(rep["usdComplete"])
+        reasons = rep["incompleteReasons"]
+        self.assertTrue(any(r.startswith("output-likely-undercounted: role builder")
+                            for r in reasons))
+        self.assertFalse(any(r.startswith("output-likely-undercounted: overall")
+                             for r in reasons))
+
+    def test_unpriced_and_undercounted_usd_are_both_named_in_markdown(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 3, model="claude-haiku-5-9-preview"))
+        _, _, text = self._run("--markdown")
+        self.assertIn("USD partial: 1 unpriced model(s); USD lower bound: output likely "
+                      "undercounted", text)
+        self.assertIn("(partial; lower bound: output undercounted)", text)
+        self.assertNotIn("USD complete", text)
+
+    def test_markdown_states_the_lower_bound_and_the_billing_dashboard(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 9 + [400]))
+        _, _, text = self._run("--markdown")
+        self.assertIn("9 of 10 deduplicated usage records (90.0%)", text)
+        self.assertIn("LOWER BOUND", text)
+        self.assertIn("provider or account billing dashboard is authoritative", text)
+        self.assertIn("USD lower bound: output likely undercounted", text)
+        self.assertIn("(lower bound: output undercounted)", text)
+        self.assertNotIn("USD complete", text)
+
+    def test_undercount_prints_a_plain_language_stderr_warning_without_paths(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 4))
+        code, out, err = self._capture("--json")
+        self.assertEqual(code, 0)
+        self.assertIn("warning: output likely undercounted", err)
+        self.assertIn("lower bound", err)
+        self.assertIn("billing dashboard", err)
+        self.assertNotIn(str(self.home), err)
+        self.assertTrue(json.loads(out)["outputLikelyUndercounted"])
+
+    def test_strict_exits_3_when_output_is_undercounted(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 4))
+        code, _, _ = self._run("--json", "--strict")
+        self.assertEqual(code, 3)
+
+    def test_billed_figure_stays_separate_from_an_undercounted_estimate(self) -> None:
+        self._main_file(self._snapshot_calls([8] * 4))
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertEqual(rep["actualBilledSpend"]["usd"], 12.5)
+        self.assertIn("user-supplied", rep["actualBilledSpend"]["provenance"])
+        self.assertNotEqual(rep["publicRateUsdEquivalent"]["usd"], 12.5)
+        self.assertFalse(rep["usdComplete"])
+        self.assertIn("not verified by this tool", rep["disclaimer"])
+        _, _, text = self._run("--markdown", "--billed-usd", "12.5",
+                               "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIn("User-supplied billed figure (unverified):** $12.5000", text)
+
+    def test_json_schema_has_the_output_undercount_fields(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["schema"], "skill-cost-run-report-v1")
+        self.assertIsInstance(rep["outputLikelyUndercounted"], bool)
+        uc = rep["outputUndercount"]
+        for key in ("suspectRecords", "totalRecords", "fraction", "likelyUndercounted", "rule"):
+            self.assertIn(key, uc)
+        self.assertEqual(uc["rule"], {
+            "outputTokensAtOrBelow": 10,
+            "promptTokensAtLeast": 100,
+            "fractionAbove": 0.5,
+            "counts": "deduplicated usage records (message.id + requestId), excluding "
+                      "all-zero records (counted in zeroRecords)",
+        })
+        for role, block in rep["byRole"].items():
+            with self.subTest(role=role):
+                for key in ("suspectRecords", "totalRecords", "fraction", "likelyUndercounted"):
+                    self.assertIn(key, block["outputUndercount"])
+
+    def test_skill_md_version_matches_the_tool_version(self) -> None:
+        import re
+        text = Path(cost.__file__).with_name("SKILL.md").read_text(encoding="utf-8")
+        version = re.search(r"^version: (\S+)$", text, re.M).group(1)
+        self.assertEqual(version, cost.TOOL_VERSION)
+
+    # --- review findings: one failing-first regression per defect -------------------------
+
+    _NO_ID = object()
+
+    def _id_less(self, message_id, uuid: str = "x") -> str:
+        """A usage line whose message.id is absent (_NO_ID), or set to message_id. The
+        requestId is kept, so only the message id is unusable."""
+        d = json.loads(self._rec("unused", "req_x", "claude-sonnet-5-5", uuid=uuid))
+        if message_id is self._NO_ID:
+            del d["message"]["id"]
+        else:
+            d["message"]["id"] = message_id
+        return json.dumps(d)
+
+    def test_D1_usage_records_without_a_usable_message_id_make_the_report_incomplete(self) -> None:
+        # Such records cannot be deduplicated, so two identical id-less lines must not read
+        # complete. Each is still counted once, as the documented fallback.
+        for label, value in (("absent", self._NO_ID), ("null", None), ("zero", 0),
+                             ("empty", ""), ("blank", "   "), ("number", 1234)):
+            with self.subTest(message_id=label):
+                line = self._id_less(value)
+                self._main_file([line, line])
+                _, rep, _ = self._run("--json")
+                self.assertFalse(rep["complete"])
+                self.assertFalse(rep["usdComplete"])
+                reasons = [r for r in rep["incompleteReasons"]
+                           if r.startswith("unkeyed-usage-records:")]
+                self.assertEqual(len(reasons), 1)
+                self.assertIn("2", reasons[0])
+                self.assertEqual(rep["dedupe"]["unkeyedRecords"], 2)
+                self.assertEqual(rep["measuredTokens"]["input"], 20)
+
+    def test_D2_cache_total_that_disagrees_with_the_breakdown_is_malformed(self) -> None:
+        # The total and the 5m+1h breakdown must agree. Neither is picked silently.
+        breakdown = {"ephemeral_5m_input_tokens": 10, "ephemeral_1h_input_tokens": 8}
+        for total in (40, 10):
+            with self.subTest(total=total):
+                usage = dict(self.USAGE, cache_creation_input_tokens=total,
+                             cache_creation=breakdown)
+                self.assertIsNone(cost.run_usage_tuple(usage))
+        agree = dict(self.USAGE, cache_creation_input_tokens=18, cache_creation=breakdown)
+        self.assertEqual(cost.run_usage_tuple(agree), ((10, 100, 1000, 10, 8), False))
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_big", "req_big", "claude-sonnet-5-5", uuid="b",
+                      usage=dict(self.USAGE, cache_creation_input_tokens=40,
+                                 cache_creation=breakdown)),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 1)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertEqual(rep["measuredTokens"]["cacheWrite"], 50)
+
+    def test_D3_usage_missing_input_or_output_is_malformed_not_zero_filled(self) -> None:
+        no_input = {k: v for k, v in self.USAGE.items() if k != "input_tokens"}
+        no_output = {k: v for k, v in self.USAGE.items() if k != "output_tokens"}
+        cache_only = {"cache_read_input_tokens": 5}
+        for label, usage in (("no input_tokens", no_input), ("no output_tokens", no_output),
+                             ("cache fields only", cache_only)):
+            with self.subTest(label):
+                self.assertIsNone(cost.run_usage_tuple(usage))
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_ni", "req_ni", "claude-sonnet-5-5", usage=no_input, uuid="b"),
+            self._rec("msg_no", "req_no", "claude-sonnet-5-5", usage=no_output, uuid="c"),
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["measuredTokens"]["output"], 100)
+
+    def test_D3_absent_cache_fields_read_as_zero_as_documented(self) -> None:
+        # Control: an absent cache count is the one documented zero-fill.
+        self.assertEqual(cost.run_usage_tuple({"input_tokens": 1, "output_tokens": 2}),
+                         ((1, 2, 0, 0, 0), False))
+
+    def test_D4_usage_object_with_no_recognised_count_is_malformed_and_not_in_denominator(
+            self) -> None:
+        self.assertIsNone(cost.run_usage_tuple({"service_tier": "standard"}))
+        self.assertIsNone(cost.run_usage_tuple({}))
+        empty_usage = json.dumps({
+            "type": "assistant", "requestId": "req_e", "sessionId": self.SID,
+            "timestamp": "2026-01-01T00:00:01.000Z",
+            "message": {"id": "msg_e", "model": "claude-sonnet-5-5", "usage": {}}})
+        self._main_file(self._snapshot_calls([8]) + [
+            self._rec("msg_t", "req_t", "claude-sonnet-5-5",
+                      usage={"service_tier": "standard"}, uuid="t"),
+            empty_usage,
+        ])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["malformedUsage"], 2)
+        self.assertFalse(rep["complete"])
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"]), (1, 1))
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+
+    def test_D5_main_session_without_usage_records_is_incomplete(self) -> None:
+        self._main_file([json.dumps({"type": "user", "sessionId": self.SID, "cwd": "/work/repo",
+                                     "timestamp": "2026-01-01T00:00:01.000Z"})])
+        self._sub_file(self.AID, [self._rec("msg_s1", "req_s1", "claude-haiku-5-5",
+                                            sidechain=True)])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        self.assertTrue(any(r.startswith("no-usage-records:") for r in rep["incompleteReasons"]))
+        _, _, text = self._run("--markdown")
+        self.assertIn("INCOMPLETE", text)
+        self.assertNotIn("complete (measured tokens)", text)
+        self.assertNotIn("USD complete", text)
+
+    def test_D6_missing_subagent_transcript_leaves_usd_incomplete(self) -> None:
+        # The subagent's calls are absent from the priced total, so USD is not complete.
+        self._standard_fixture()
+        self._append_main(json.dumps({"type": "user", "sessionId": self.SID,
+                                      "toolUseResult": {"agentId": "deadbeef99"}}))
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+
+    def test_D6_unparsable_line_leaves_usd_incomplete(self) -> None:
+        p = self._main_file([self._rec("msg_m1", "req_m1", "claude-sonnet-5-5")])
+        p.write_text(p.read_text(encoding="utf-8") + "{not json\n", encoding="utf-8")
+        _, rep, _ = self._run("--json")
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+
+    def test_D6_role_map_key_with_no_transcript_does_not_touch_usd(self) -> None:
+        # Control: a mapping typo removes no tokens, so the USD total stays complete.
+        self._standard_fixture()
+        _, rep, _ = self._run("--json", "--role-map",
+                              self._map({"deadbeefdeadbeef0": "verifier"}))
+        self.assertFalse(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+
+    def test_D8_deeply_nested_role_map_is_a_usage_error_with_static_text(self) -> None:
+        # A RecursionError from the JSON parser is a parse error: exit 2, static text, no
+        # traceback, no path.
+        self._standard_fixture()
+        deep = self.home / "deep-roles.json"
+        deep.write_text("[" * 200_000, encoding="utf-8")
+        code, out, err = self._capture("--json", "--role-map", str(deep))
+        self.assertEqual(code, 2)
+        self.assertEqual(out, "")
+        self.assertIn("role map", err)
+        self.assertNotIn("Traceback", err)
+        self.assertNotIn(str(self.home), err)
+
+    def test_D9_actual_billed_spend_is_machine_readably_unverified(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertIs(rep["actualBilledSpend"]["verified"], False)
+        _, rep, _ = self._run("--json", "--billed-usd", "12.5",
+                              "--billed-source", "Anthropic invoice 2026-10")
+        self.assertIs(rep["actualBilledSpend"]["verified"], False)
+
+    def test_O1_suspect_records_below_the_flag_add_a_non_blocking_warning(self) -> None:
+        # One of three records is a snapshot: below the flag, so not incomplete, but said.
+        self._main_file(self._snapshot_calls([8, 400, 400]))
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["outputLikelyUndercounted"])
+        self.assertTrue(rep["complete"])
+        self.assertTrue(rep["usdComplete"])
+        self.assertFalse([r for r in rep["incompleteReasons"]
+                          if r.startswith("output-likely-undercounted:")])
+        warned = [w for w in rep["warnings"] if "streaming snapshots" in w]
+        self.assertEqual(len(warned), 1)
+        self.assertIn("1 of 3", warned[0])
+        self.assertIn("not flagged", warned[0])
+        _, _, text = self._run("--markdown")
+        self.assertIn("- Warning: 1 of 3", text)
+
+    def test_O2_session_scope_flags_are_usage_errors_with_run_report(self) -> None:
+        self._standard_fixture()
+        for argv, flag in ((["--since", "2026-01-01"], "--since"),
+                           (["--list"], "--list"),
+                           (["--all"], "--all"),
+                           (["--by-model"], "--by-model"),
+                           (["--today"], "--today"),
+                           (["--latest"], "--latest"),
+                           (["--current"], "--current")):
+            with self.subTest(flag=flag):
+                code, out, err = self._capture(*argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn(flag, err)
+                self.assertIn("--run-report", err)
+
+    # --- 1.3.2 review findings: R1 all-zero records, R2 whitespace ids, R3 empty subagent,
+    # R4 lead attribution, R5 role-map conflicts, R6 markdown escaping, R8 SKILL.md example
+
+    ZERO = {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": 0,
+            "cache_creation_input_tokens": 0}
+
+    def _digest(self, value: str) -> str:
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()[:8]
+
+    def test_R1_all_zero_usage_records_do_not_dilute_the_undercount_denominator(self) -> None:
+        # Six early snapshots and four healthy calls: 6 of 10 is over half, so flagged.
+        # Ten explicit all-zero records must not dilute that to 6 of 20.
+        zero_lines = [self._rec(f"msg_z{i}", f"req_z{i}", "claude-sonnet-5-5",
+                                usage=dict(self.ZERO), uuid=f"z{i}") for i in range(10)]
+        self._main_file(self._snapshot_calls([8] * 6 + [400] * 4) + zero_lines)
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        uc = rep["outputUndercount"]
+        self.assertEqual((uc["suspectRecords"], uc["totalRecords"], uc["zeroRecords"]),
+                         (6, 10, 10))
+        self.assertAlmostEqual(uc["fraction"], 0.6)
+        self.assertTrue(uc["likelyUndercounted"])
+        self.assertTrue(rep["outputLikelyUndercounted"])
+        self.assertFalse(rep["usdComplete"])
+        # Zero records add nothing to the totals.
+        self.assertEqual(rep["measuredTokens"]["output"], 6 * 8 + 4 * 400)
+
+    def test_R1_all_zero_records_are_counted_warned_and_not_malformed(self) -> None:
+        self._main_file([
+            self._rec("msg_ok", "req_ok", "claude-sonnet-5-5", uuid="a"),
+            self._rec("msg_z", "req_z", "claude-sonnet-5-5", usage=dict(self.ZERO), uuid="b"),
+        ])
+        code, rep, _ = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["malformedUsage"], 0)
+        self.assertTrue(rep["complete"])
+        self.assertEqual(rep["outputUndercount"]["zeroRecords"], 1)
+        self.assertEqual(rep["outputUndercount"]["totalRecords"], 1)
+        self.assertEqual(rep["byRole"]["lead"]["outputUndercount"]["zeroRecords"], 1)
+        warned = [w for w in rep["warnings"] if "all-zero usage record" in w]
+        self.assertEqual(len(warned), 1)
+        self.assertIn("1 all-zero usage record(s)", warned[0])
+        self.assertFalse([r for r in rep["incompleteReasons"] if "zero" in r])
+
+    def test_R2_message_id_with_surrounding_whitespace_dedupes_with_its_bare_copy(self) -> None:
+        self._main_file([self._rec("msg_W", "req_W", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_W ", "req_W", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_R2_request_id_with_surrounding_whitespace_dedupes_with_its_bare_copy(self) -> None:
+        self._main_file([self._rec("msg_W", "req_W", "claude-sonnet-5-5", uuid="a")])
+        self._sub_file(self.AID, [self._rec("\tmsg_W\n", " req_W\n", "claude-sonnet-5-5",
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertEqual(rep["measuredTokens"]["input"], 10)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_R3_subagent_transcript_with_no_usage_records_is_reported_by_id_hash(self) -> None:
+        self._standard_fixture()
+        empty_id = "cccc1111dddd22223"
+        self._sub_file(empty_id, [json.dumps({"type": "user", "sessionId": self.SID,
+                                              "timestamp": "2026-01-01T00:00:01.000Z"})])
+        code, rep, text = self._run("--json")
+        self.assertEqual(code, 0)
+        self.assertFalse(rep["complete"])
+        self.assertFalse(rep["usdComplete"])
+        digest = self._digest(empty_id)
+        reasons = [r for r in rep["incompleteReasons"]
+                   if r.startswith(f"no-usage-records: subagent sha256 {digest}")]
+        self.assertEqual(len(reasons), 1)
+        self.assertEqual(len([w for w in rep["warnings"] if digest in w]), 1)
+        self.assertNotIn(empty_id, json.dumps([rep["incompleteReasons"], rep["warnings"]]))
+        self.assertNotIn(str(self.home), text)
+        entry = [f for f in rep["files"] if f.get("agentId") == empty_id][0]
+        self.assertEqual(entry["usageRecords"], 0)
+        code, _, _ = self._run("--json", "--strict")
+        self.assertEqual(code, 3)
+
+    def test_R3_subagent_with_usage_records_is_not_reported_as_empty(self) -> None:
+        self._standard_fixture()
+        _, rep, _ = self._run("--json")
+        self.assertTrue(rep["complete"])
+        self.assertFalse([r for r in rep["incompleteReasons"]
+                          if r.startswith("no-usage-records:")])
+
+    def test_R4_main_copy_keeps_lead_attribution_when_the_subagent_copy_is_larger(self) -> None:
+        # The main transcript holds an early snapshot of a call that the subagent transcript
+        # finishes. The main copy keeps the call's role; the larger counts are the ones kept.
+        self._main_file([self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                   usage=dict(self.USAGE, output_tokens=8), uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                            usage=dict(self.USAGE, output_tokens=431),
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        rows = self._rows(rep)
+        self.assertEqual(rep["session"]["leadModel"], "claude-sonnet-5-5")
+        self.assertIn(("lead", "claude-sonnet-5-5"), rows)
+        self.assertEqual(rows[("lead", "claude-sonnet-5-5")]["tokens"]["output"], 431)
+        self.assertFalse([r for r in rep["rows"] if r["role"].startswith("subagent:")])
+        self.assertEqual(rep["measuredTokens"]["output"], 431)
+        self.assertEqual(rep["dedupe"]["duplicatesIgnored"], 1)
+
+    def test_R4_no_false_no_main_usage_warning_when_the_main_session_has_records(self) -> None:
+        self._main_file([self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                   usage=dict(self.USAGE, output_tokens=8), uuid="a")])
+        self._sub_file(self.AID, [self._rec("msg_x", "req_x", "claude-sonnet-5-5",
+                                            usage=dict(self.USAGE, output_tokens=431),
+                                            sidechain=True, uuid="b")])
+        _, rep, _ = self._run("--json")
+        self.assertFalse([w for w in rep["warnings"]
+                          if "no usage from the main session" in w])
+
+    def test_R5_role_map_keys_naming_one_agent_with_two_roles_are_a_usage_error(self) -> None:
+        self._standard_fixture()
+        for keys in ({f"agent-{self.AID}": "builder", self.AID: "verifier"},
+                     {f"{self.AID}.jsonl": "builder", f"agent-{self.AID}": "verifier"}):
+            with self.subTest(keys=sorted(keys)):
+                code, out, err = self._capture("--json", "--role-map", self._map(keys))
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn("same agent", err)
+                self.assertNotIn(self.AID, err)
+
+    def test_R5_role_map_keys_naming_one_agent_with_one_role_are_accepted(self) -> None:
+        self._standard_fixture()
+        mapping = self._map({f"agent-{self.AID}": "builder", f"{self.AID}.jsonl": "builder"})
+        code, rep, _ = self._run("--json", "--role-map", mapping)
+        self.assertEqual(code, 0)
+        self.assertIn(("builder", "claude-haiku-5-5"), self._rows(rep))
+        self.assertEqual(rep["roleMap"]["entries"], 1)
+
+    def test_R5_load_role_map_raises_a_conflict_error(self) -> None:
+        mapping = self._map({f"agent-{self.AID}": "builder", self.AID: "verifier"})
+        with self.assertRaises(cost.RoleMapConflict):
+            cost.load_role_map(mapping)
+
+    def test_R6_role_name_with_newline_and_pipe_cannot_break_the_markdown_table(self) -> None:
+        self._standard_fixture()
+        hostile = "builder\n## injected | x\r\t\x1b end"
+        code, _, text = self._run("--markdown", "--role-map", self._map({self.AID: hostile}))
+        self.assertEqual(code, 0)
+        self.assertNotIn("\n## injected", text)
+        for raw in ("\r", "\x1b", " "):
+            self.assertNotIn(raw, text)
+        self.assertIn("| builder\\n## injected \\| x\\r\\t\\u001b\\u2028end | claude-haiku-5-5 |",
+                      text)
+
+    def test_R8_strict_example_comment_matches_the_exit_3_rule(self) -> None:
+        text = Path(cost.__file__).with_name("SKILL.md").read_text(encoding="utf-8")
+        lines = text.splitlines()
+        idx = next(i for i, line in enumerate(lines)
+                   if line.rstrip().endswith("--role-map roles.json --strict"))
+        comment = lines[idx - 1]
+        self.assertTrue(comment.startswith("#"))
+        self.assertIn("exit 3", comment)
+        self.assertIn("complete is false", comment)
+        self.assertNotIn("anything is missing", comment)
+
+
+class LoadPricesRedactionTests(unittest.TestCase):
+    """load_prices warnings name no host path when called for a run report."""
+
+    def test_unparsable_bundled_prices_names_no_path_in_run_report_mode(self) -> None:
+        # D7: --offline never refreshes. An unusable bundled file is an error, not a fetch.
+        with tempfile.TemporaryDirectory() as d:
+            bad = Path(d) / "prices.json"
+            bad.write_text("{not json", encoding="utf-8")
+            err = StringIO()
+            with mock.patch.object(cost, "PRICES_JSON", bad), \
+                 mock.patch.object(cost, "refresh_prices") as refresh, \
+                 mock.patch("sys.stderr", err):
+                with self.assertRaises(cost.PricesUnavailable):
+                    cost.load_prices(offline=True, redact=True)
+            refresh.assert_not_called()
+            self.assertIn("could not parse", err.getvalue())
+            self.assertNotIn(d, err.getvalue())
+
+    def test_default_mode_warning_is_unchanged(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            bad = Path(d) / "prices.json"
+            bad.write_text("{not json", encoding="utf-8")
+            err = StringIO()
+            with mock.patch.object(cost, "PRICES_JSON", bad), \
+                 mock.patch.object(cost, "refresh_prices") as refresh, \
+                 mock.patch("sys.stderr", err):
+                with self.assertRaises(cost.PricesUnavailable):
+                    cost.load_prices(offline=True)
+            refresh.assert_not_called()
+            self.assertIn(str(bad), err.getvalue())
+
+
+class OfflineNeverFetchesTests(unittest.TestCase):
+    """--offline never touches the network (D7). A missing or unusable bundled prices.json
+    is an honest failure with static text, never a refresh attempt."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self._tmp.name)
+        self.prices_path = self.dir / "prices.json"
+        self.urlopen = mock.MagicMock(side_effect=AssertionError("network touched"))
+        self._patches = [
+            mock.patch.object(cost, "PRICES_JSON", self.prices_path),
+            mock.patch.object(cost.urllib.request, "urlopen", self.urlopen),
+            mock.patch.dict(os.environ, {"HOME": str(self.dir)}),
+        ]
+        for patch in self._patches:
+            patch.start()
+
+    def tearDown(self) -> None:
+        for patch in reversed(self._patches):
+            patch.stop()
+        self._tmp.cleanup()
+
+    def _capture(self, *argv: str) -> tuple[int, str, str]:
+        out, err = StringIO(), StringIO()
+        with redirect_stdout(out), mock.patch("sys.stderr", err):
+            code = cost.main(list(argv))
+        return code, out.getvalue(), err.getvalue()
+
+    def test_missing_bundled_prices_fail_without_a_fetch_in_run_report_mode(self) -> None:
+        code, out, err = self._capture("--run-report", "--offline", "--json")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("--offline", err)
+        self.assertNotIn("Traceback", err)
+        self.assertNotIn(str(self.dir), err)
+        self.urlopen.assert_not_called()
+
+    def test_unusable_bundled_prices_fail_without_a_fetch_in_run_report_mode(self) -> None:
+        for label, content in (("unparsable", "{not json"), ("not an object", "[]")):
+            with self.subTest(label):
+                self.prices_path.write_text(content, encoding="utf-8")
+                code, out, err = self._capture("--run-report", "--offline", "--json")
+                self.assertEqual(code, 1)
+                self.assertEqual(out, "")
+                self.assertIn("--offline", err)
+                self.assertNotIn("Traceback", err)
+                self.assertNotIn(str(self.dir), err)
+                self.urlopen.assert_not_called()
+
+    def test_missing_bundled_prices_fail_without_a_fetch_in_the_default_view(self) -> None:
+        code, out, err = self._capture("--offline")
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("--offline", err)
+        self.assertNotIn(str(self.dir), err)
+        self.urlopen.assert_not_called()
+
+    def test_stale_bundled_prices_are_used_without_a_fetch_when_offline(self) -> None:
+        self.prices_path.write_text(json.dumps({"_meta": {"model_count": 0}}), encoding="utf-8")
+        os.utime(self.prices_path, (946_684_800, 946_684_800))      # 2000-01-01: very stale
+        code, _, err = self._capture("--run-report", "--offline", "--json")
+        self.assertEqual(code, 1)                    # no session under this HOME, nothing else
+        self.assertNotIn(str(self.dir), err)
+        self.urlopen.assert_not_called()
+
+    def test_offline_with_refresh_prices_is_a_usage_error(self) -> None:
+        for argv in (("--offline", "--refresh-prices"),
+                     ("--run-report", "--offline", "--refresh-prices")):
+            with self.subTest(argv=argv):
+                code, out, err = self._capture(*argv)
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertIn("--offline", err)
+                self.urlopen.assert_not_called()
 
 
 if __name__ == "__main__":
