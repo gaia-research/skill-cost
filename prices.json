@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-04T12:14:33Z",
-    "model_count": 3697,
+    "fetched_at": "2026-11-05T07:42:36Z",
+    "model_count": 3914,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -4912,6 +4912,14 @@
     "output": 1.5e-05,
     "provider": "baseten"
   },
+  "baseten/moonshotai/Kimi-K3.1-Pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "baseten"
+  },
   "baseten/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B": {
     "cache_read": 1.2e-07,
     "cache_write": null,
@@ -5932,7 +5940,7 @@
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2e-07,
+    "input": 3e-08,
     "output": 0.0,
     "provider": "bedrock"
   },
@@ -5957,6 +5965,30 @@
     "cache_write": null,
     "cache_write_1h": null,
     "input": 5e-07,
+    "output": 1.5e-06,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-east-1/anthropic.claude-3-5-sonnet-20240620-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.6e-06,
+    "output": 1.8e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-east-1/anthropic.claude-3-7-sonnet-20250219-v1:0": {
+    "cache_read": 3.6e-07,
+    "cache_write": 4.5e-06,
+    "cache_write_1h": null,
+    "input": 3.6e-06,
+    "output": 1.8e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-east-1/anthropic.claude-3-haiku-20240307-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
     "output": 1.5e-06,
     "provider": "bedrock"
   },
@@ -6055,6 +6087,14 @@
     "input": 3e-07,
     "output": 2.65e-06,
     "provider": "bedrock"
+  },
+  "bedrock/us-gov-east-1/moonshotai.kimi-k3": {
+    "cache_read": 3.96e-07,
+    "cache_write": 4.95e-06,
+    "cache_write_1h": null,
+    "input": 3.96e-06,
+    "output": 1.98e-05,
+    "provider": "bedrock_converse"
   },
   "bedrock/us-gov-east-1/nvidia.nemotron-nano-12b-v2": {
     "cache_read": null,
@@ -6176,6 +6216,30 @@
     "output": 1.5e-06,
     "provider": "bedrock"
   },
+  "bedrock/us-gov-west-1/anthropic.claude-3-5-sonnet-20240620-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.6e-06,
+    "output": 1.8e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/anthropic.claude-3-7-sonnet-20250219-v1:0": {
+    "cache_read": 3.6e-07,
+    "cache_write": 4.5e-06,
+    "cache_write_1h": null,
+    "input": 3.6e-06,
+    "output": 1.8e-05,
+    "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/anthropic.claude-3-haiku-20240307-v1:0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.5e-06,
+    "provider": "bedrock"
+  },
   "bedrock/us-gov-west-1/anthropic.claude-fable-5-1": {
     "cache_read": 3e-07,
     "cache_write": 1.5e-05,
@@ -6271,6 +6335,14 @@
     "input": 3e-07,
     "output": 6e-07,
     "provider": "bedrock"
+  },
+  "bedrock/us-gov-west-1/moonshotai.kimi-k3": {
+    "cache_read": 3.96e-07,
+    "cache_write": 4.95e-06,
+    "cache_write_1h": null,
+    "input": 3.96e-06,
+    "output": 1.98e-05,
+    "provider": "bedrock_converse"
   },
   "bedrock/us-gov-west-1/nvidia.nemotron-nano-12b-v2": {
     "cache_read": null,
@@ -6696,6 +6768,38 @@
     "output": 2.66e-06,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/us-gov-east-1/nvidia.nemotron-nano-12b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-07,
+    "output": 7.2e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-east-1/nvidia.nemotron-nano-3-30b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.2e-08,
+    "output": 2.88e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-east-1/nvidia.nemotron-nano-9b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.2e-08,
+    "output": 2.76e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-east-1/nvidia.nemotron-super-3-120b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.8e-07,
+    "output": 7.8e-07,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/us-gov-east-1/openai.gpt-5.4": {
     "cache_read": 3.3e-07,
     "cache_write": null,
@@ -6721,6 +6825,14 @@
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-east-1/xai.grok-4.6": {
+    "cache_read": 6.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.64e-06,
+    "output": 7.92e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-east-1/xai.grok-4.7": {
     "cache_read": 6.6e-07,
     "cache_write": null,
     "cache_write_1h": null,
@@ -6776,28 +6888,60 @@
     "output": 9.6e-08,
     "provider": "bedrock_mantle"
   },
-  "bedrock_mantle/us-gov-west-1/openai.gpt-5.4": {
-    "cache_read": 3.375e-07,
+  "bedrock_mantle/us-gov-west-1/nvidia.nemotron-nano-12b-v2": {
+    "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 3.375e-06,
-    "output": 2.025e-05,
+    "input": 2.4e-07,
+    "output": 7.2e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/nvidia.nemotron-nano-3-30b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.2e-08,
+    "output": 2.88e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/nvidia.nemotron-nano-9b-v2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.2e-08,
+    "output": 2.76e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/nvidia.nemotron-super-3-120b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.8e-07,
+    "output": 7.8e-07,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/us-gov-west-1/openai.gpt-5.4": {
+    "cache_read": 3.3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.3e-06,
+    "output": 1.98e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-5.6-luna": {
-    "cache_read": 2.7e-08,
-    "cache_write": 3.375e-07,
+    "cache_read": 2.64e-08,
+    "cache_write": 3.3e-07,
     "cache_write_1h": null,
-    "input": 2.7e-07,
-    "output": 1.62e-06,
+    "input": 2.64e-07,
+    "output": 1.584e-06,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-5.6-terra": {
-    "cache_read": 2.7e-07,
-    "cache_write": 3.375e-06,
+    "cache_read": 2.64e-07,
+    "cache_write": 3.3e-06,
     "cache_write_1h": null,
-    "input": 2.7e-06,
-    "output": 1.62e-05,
+    "input": 2.64e-06,
+    "output": 1.584e-05,
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/us-gov-west-1/openai.gpt-oss-120b": {
@@ -6832,6 +6976,14 @@
     "output": 7.92e-06,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/us-gov-west-1/xai.grok-4.7": {
+    "cache_read": 6.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.64e-06,
+    "output": 7.92e-06,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/xai.grok-4.3": {
     "cache_read": 2e-07,
     "cache_write": null,
@@ -6841,6 +6993,14 @@
     "provider": "bedrock_mantle"
   },
   "bedrock_mantle/xai.grok-4.6": {
+    "cache_read": 5.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.2e-06,
+    "output": 6.6e-06,
+    "provider": "bedrock_mantle"
+  },
+  "bedrock_mantle/xai.grok-4.7": {
     "cache_read": 5.5e-07,
     "cache_write": null,
     "cache_write_1h": null,
@@ -10112,6 +10272,766 @@
     "output": 0.0,
     "provider": "cohere"
   },
+  "empiriolabs/aplomb-1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-08,
+    "output": 0.0,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-1-flash-1017": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-flash-0731": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.24e-07,
+    "output": 1.272e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-flash-0731:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.65e-06,
+    "output": 3.3e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-pro-0813": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.32e-06,
+    "output": 3.96e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-pro:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-06,
+    "output": 4.8e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-pro:variant2": {
+    "cache_read": 1.38e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.65e-06,
+    "output": 3.301e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/deepseek-v4-pro:variant3": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-06,
+    "output": 4.8e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/fugu-max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/fugu-ultra-v1-0": {
+    "cache_read": 1.5e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.5e-06,
+    "output": 4.5e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/fugu-ultra-v1-1": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/fugu-ultra-v2-0": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/gemma-4-26b-a4b": {
+    "cache_read": 2.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.9e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-4-6v-flashx": {
+    "cache_read": 3.6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-08,
+    "output": 4e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-4-7-flashx": {
+    "cache_read": 6.3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7e-08,
+    "output": 4e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-5-1": {
+    "cache_read": 1.65e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.25e-07,
+    "output": 3.301e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-5-2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-5-2:variant1": {
+    "cache_read": 2.75e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.1e-06,
+    "output": 3.851e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-5-2:variant2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-5-3": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/glm-5-3-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.5e-08,
+    "output": 2.5e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/kimi-k2-6": {
+    "cache_read": 1.788e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.939e-07,
+    "output": 3.7131e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/kimi-k2-7-code": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/kimi-k2-7-code-highspeed": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.9e-06,
+    "output": 8e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/kimi-k2-7-code:variant1": {
+    "cache_read": 1.788e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.939e-07,
+    "output": 3.7131e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/kimi-k3": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/mimo-v2-6-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/mimo-v2-6-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.35e-07,
+    "output": 8.7e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/mimo-v2-6-pro-ultraspeed": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.35e-06,
+    "output": 8.7e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/minimax-m2-7": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/minimax-m2-7-highspeed": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/minimax-m3": {
+    "cache_read": 4.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.25e-07,
+    "output": 9e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/minimax-m3-1-flash": {
+    "cache_read": 1.125e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.125e-07,
+    "output": 4.5e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/minimax-m3:priority": {
+    "cache_read": 6.75e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.375e-07,
+    "output": 1.35e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/mistral-small-4": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 6e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/muse-glimmer-30b": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 8e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/muse-spark-1-1": {
+    "cache_read": 1e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.25e-06,
+    "output": 4.25e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/muse-spark-1-2": {
+    "cache_read": 1e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.25e-06,
+    "output": 4.25e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/muse-spark-1-3": {
+    "cache_read": 1e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.25e-06,
+    "output": 4.25e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/nova-lite-1-0": {
+    "cache_read": 3.86e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.9e-08,
+    "output": 2.8e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/nova-lite-2": {
+    "cache_read": 2.128e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.8e-07,
+    "output": 3.16e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/nova-micro-1-0": {
+    "cache_read": 2.24e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-08,
+    "output": 1.6e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/nova-pro-1-0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-06,
+    "output": 9.6e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/perplexity-advanced-deep-research": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.2e-05,
+    "output": 6e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/perplexity-deep-research": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.8e-06,
+    "output": 1.9e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/perplexity-pro-search": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.8e-06,
+    "output": 3.9e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/perplexity-sonar": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-06,
+    "output": 2.4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/perplexity-sonar-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.2e-06,
+    "output": 3.6e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/perplexity-sonar-reasoning-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.8e-06,
+    "output": 1.9e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-122b-a10b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.15e-07,
+    "output": 9.17e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.6e-08,
+    "output": 6.88e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-35b-a3b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5.7e-08,
+    "output": 4.59e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-397b-a17b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.72e-07,
+    "output": 1.032e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-4b": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-08,
+    "output": 7e-08,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-9b": {
+    "cache_read": 4.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9e-08,
+    "output": 1.3e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9e-08,
+    "output": 3.68e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-flash:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.9e-08,
+    "output": 2.87e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-omni-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8e-07,
+    "output": 4.4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-omni-plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.8e-06,
+    "output": 1.66e-05,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.6e-07,
+    "output": 2.21e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-5-plus:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.15e-07,
+    "output": 6.88e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-6-27b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.12564e-07,
+    "output": 2.475384e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-6-35b-a3b": {
+    "cache_read": 3.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7e-08,
+    "output": 4.2e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-6-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-6-flash:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.65e-07,
+    "output": 9.9e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-6-plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-6-plus:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.76e-07,
+    "output": 1.651e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-7-flash": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-08,
+    "output": 1.3e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-7-flash:variant1": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.8e-08,
+    "output": 1.1e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-7-max": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-06,
+    "output": 7.5e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-7-max:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.65e-06,
+    "output": 4.951e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-7-plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-07,
+    "output": 1.6e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-7-plus:variant1": {
+    "cache_read": 5.6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.76e-07,
+    "output": 1.101e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-8-27b": {
+    "cache_read": 8e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.7e-07,
+    "output": 5e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-8-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.6e-07,
+    "output": 4.7e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-8-max": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-8-max-0902": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-8-max:variant1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.65e-06,
+    "output": 4.951e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/qwen3-8-omni-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 9.4e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/seed-2-0-code": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-07,
+    "output": 2.4e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/seed-2-0-lite": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.1e-07,
+    "output": 2.5e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/seed-2-0-mini": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.2e-07,
+    "output": 5e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/seed-2-0-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.3e-07,
+    "output": 3.79e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/seed-2-1-turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.3e-07,
+    "output": 3.13e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/skylark-embedding-vision": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": null,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/step-3-5-flash": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 3e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/step-3-5-flash-2603": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 3e-07,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/step-3-7-flash": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.15e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/step-5-preview": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 2.7e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/stepaudio-2-5-chat": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 3.5e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/stepaudio-3-chat": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 3.5e-06,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/text-embedding-v4": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7e-08,
+    "output": null,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/tongyi-embedding-vision-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9e-08,
+    "output": null,
+    "provider": "empiriolabs"
+  },
+  "empiriolabs/tongyi-embedding-vision-plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9e-08,
+    "output": null,
+    "provider": "empiriolabs"
+  },
   "eu.amazon.nova-2-lite-v1:0": {
     "cache_read": 1.0725e-07,
     "cache_write": null,
@@ -11390,6 +12310,14 @@
     "cache_write_1h": null,
     "input": 3e-06,
     "output": 1.5e-05,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/models/kimi-k3p1-pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/llama-guard-2-8b": {
@@ -12705,11 +13633,11 @@
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/ultramarine-1-flash-us": {
-    "cache_read": 4.5e-08,
+    "cache_read": 3e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2.25e-07,
-    "output": 7.5e-07,
+    "input": 1.5e-07,
+    "output": 5e-07,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/models/yi-34b": {
@@ -12766,6 +13694,14 @@
     "cache_write_1h": null,
     "input": 2.1e-07,
     "output": 8.4e-07,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/deepseek-v4p1-flash-1017-ultrafast": {
+    "cache_read": 4.8e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-06,
+    "output": 9.6e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/routers/deepseek-v4p1-flash-spot": {
@@ -14848,6 +15784,14 @@
     "output": 5.28e-06,
     "provider": "bedrock_converse"
   },
+  "gmi/MiniMaxAI/MiniMax-M2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "gmi"
+  },
   "gmi/MiniMaxAI/MiniMax-M2.1": {
     "cache_read": null,
     "cache_write": null,
@@ -14856,12 +15800,220 @@
     "output": 1.2e-06,
     "provider": "gmi"
   },
+  "gmi/MiniMaxAI/MiniMax-M2.5": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/MiniMaxAI/MiniMax-M2.7": {
+    "cache_read": 4.2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.1e-07,
+    "output": 8.4e-07,
+    "provider": "gmi"
+  },
+  "gmi/MiniMaxAI/MiniMax-M3": {
+    "cache_read": 4.8e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.4e-07,
+    "output": 9.6e-07,
+    "provider": "gmi"
+  },
+  "gmi/MiniMaxAI/MiniMax-M3.1-Flash": {
+    "cache_read": 1.125e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.125e-07,
+    "output": 4.5e-07,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-235B-A22B-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.7e-07,
+    "output": 1.09e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8": {
+    "cache_read": 1.75e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.75e-08,
+    "output": 3.5e-07,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-235B-A22B-Thinking-2507-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.5e-07,
+    "output": 4.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-30B-A3B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8e-08,
+    "output": 2.5e-07,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-32B-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 6e-07,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8": {
+    "cache_read": 1.8e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9e-07,
+    "output": 4.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-Next-80B-A3B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 1.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3-Next-80B-A3B-Thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 1.5e-06,
+    "provider": "gmi"
+  },
   "gmi/Qwen/Qwen3-VL-235B-A22B-Instruct-FP8": {
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 3e-07,
     "output": 1.4e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.5-122B-A10B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-07,
+    "output": 3.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.5-27B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 2.4e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.5-35B-A3B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 2e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.5-397B-A17B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 3.6e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.6-35B-A3B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.48e-07,
+    "output": 1.485e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.6-Plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.6-Plus-2026-04-02": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.7-Max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-06,
+    "output": 7.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.8-27B": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.5e-07,
+    "output": 3.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.8-Flash": {
+    "cache_read": 1.6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.6e-07,
+    "output": 4.7e-07,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.8-Max": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "gmi"
+  },
+  "gmi/Qwen/Qwen3.8-Max-0902": {
+    "cache_read": 2.06e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.65e-06,
+    "output": 4.951e-06,
+    "provider": "gmi"
+  },
+  "gmi/XiaomiMiMo/MiMo-V2.5": {
+    "cache_read": 2.38e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.19e-07,
+    "output": 2.38e-07,
+    "provider": "gmi"
+  },
+  "gmi/XiaomiMiMo/MiMo-V2.5-Pro": {
+    "cache_read": 2.52e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3.045e-07,
+    "output": 6.09e-07,
     "provider": "gmi"
   },
   "gmi/anthropic/claude-opus-4": {
@@ -14896,12 +16048,92 @@
     "output": 1.5e-05,
     "provider": "gmi"
   },
+  "gmi/deepseek-ai/DeepSeek-Prover-V2-671B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 2.18e-06,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 2.18e-06,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1-0528": {
+    "cache_read": 2.3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5.7e-07,
+    "output": 2.29e-06,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1-Distill-Llama-70B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 7.5e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1-Distill-Llama-8B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 3.9e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 9e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 2e-07,
+    "provider": "gmi"
+  },
   "gmi/deepseek-ai/DeepSeek-V3-0324": {
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 2.8e-07,
     "output": 8.8e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-V3.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.7e-07,
+    "output": 1e-06,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-V3.1-Terminus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.7e-07,
+    "output": 1e-06,
     "provider": "gmi"
   },
   "gmi/deepseek-ai/DeepSeek-V3.2": {
@@ -14912,6 +16144,54 @@
     "output": 4e-07,
     "provider": "gmi"
   },
+  "gmi/deepseek-ai/DeepSeek-V3.2-Exp": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.7e-07,
+    "output": 4.1e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-V3.2-Speciale": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.8e-07,
+    "output": 4e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-V4-Flash": {
+    "cache_read": 1.82e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.1e-08,
+    "output": 1.82e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-V4-Flash-0731": {
+    "cache_read": 9.1e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.86e-07,
+    "output": 8.58e-07,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/DeepSeek-V4-Pro-0813": {
+    "cache_read": 3.52e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.056e-06,
+    "output": 3.168e-06,
+    "provider": "gmi"
+  },
+  "gmi/deepseek-ai/deepseek-v4-flash-vision-exp": {
+    "cache_read": 1.4e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.4e-07,
+    "output": 1.32e-06,
+    "provider": "gmi"
+  },
   "gmi/google/gemini-3-flash-preview": {
     "cache_read": null,
     "cache_write": null,
@@ -14920,12 +16200,196 @@
     "output": 3e-06,
     "provider": "gmi"
   },
+  "gmi/google/gemini-3.1-flash-lite-preview": {
+    "cache_read": 2.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 1.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-3.1-pro-preview": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-3.5-flash": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 9e-06,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-3.5-flash-lite": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 2.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-3.6-flash": {
+    "cache_read": 1.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-3.7-flash": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-3.8-flash": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.5e-07,
+    "output": 3.75e-06,
+    "provider": "gmi"
+  },
+  "gmi/google/gemini-4-argon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gmi"
+  },
+  "gmi/google/gemma-4-26b-a4b-it": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.3e-07,
+    "output": 4e-07,
+    "provider": "gmi"
+  },
+  "gmi/google/gemma-4-31b-it": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 4e-07,
+    "provider": "gmi"
+  },
+  "gmi/meta-llama/Llama-3.3-70B-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 7.5e-07,
+    "provider": "gmi"
+  },
+  "gmi/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 8e-07,
+    "provider": "gmi"
+  },
+  "gmi/meta-llama/Llama-4-Scout-17B-16E-Instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8e-08,
+    "output": 5e-07,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/Kimi-K2-Instruct-0905": {
+    "cache_read": 1.4e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5.7e-07,
+    "output": 2.29e-06,
+    "provider": "gmi"
+  },
   "gmi/moonshotai/Kimi-K2-Thinking": {
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 8e-07,
     "output": 1.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/Kimi-K2.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 3e-06,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/Kimi-K2.6": {
+    "cache_read": 1.44e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.55e-07,
+    "output": 3.6e-06,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/kimi-k2.7-code": {
+    "cache_read": 1.9e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/kimi-k2.7-code-highspeed": {
+    "cache_read": 3.8e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.9e-06,
+    "output": 8e-06,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/kimi-k3": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "gmi"
+  },
+  "gmi/moonshotai/kimi-k3.1-pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gmi"
+  },
+  "gmi/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 1e-06,
+    "provider": "gmi"
+  },
+  "gmi/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16": {
+    "cache_read": 5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "gmi"
+  },
+  "gmi/nvidia/nemotron-3-ultra-550b-a55b": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8e-07,
+    "output": 2.6e-06,
     "provider": "gmi"
   },
   "gmi/openai/gpt-4o": {
@@ -14968,12 +16432,252 @@
     "output": 1.4e-05,
     "provider": "gmi"
   },
+  "gmi/openai/gpt-5.4": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.4-mini": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.5e-07,
+    "output": 4.5e-06,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.4-nano": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.25e-06,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.4-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-05,
+    "output": 0.00018,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.5": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.6-luna": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 6e-06,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.6-sol": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": 3e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-5.6-terra": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-6-astra": {
+    "cache_read": 1e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-6-luna": {
+    "cache_read": 1e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-6-sol": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-6.1-sol": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gmi"
+  },
+  "gmi/openai/gpt-oss-120b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.5e-07,
+    "provider": "gmi"
+  },
+  "gmi/stepfun-ai/Step-3.7-Flash": {
+    "cache_read": 4e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.15e-06,
+    "provider": "gmi"
+  },
+  "gmi/stepfun-ai/Step-5-Preview": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 2.7e-06,
+    "provider": "gmi"
+  },
+  "gmi/tencent/HunyuanOCR": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 5e-07,
+    "provider": "gmi"
+  },
+  "gmi/tencent/Hy3": {
+    "cache_read": 3.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 5.8e-07,
+    "provider": "gmi"
+  },
+  "gmi/tencent/hy3-preview": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.8e-07,
+    "output": 6e-07,
+    "provider": "gmi"
+  },
+  "gmi/tencent/hy4-preview": {
+    "cache_read": 4.2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.34e-07,
+    "output": 2.501e-06,
+    "provider": "gmi"
+  },
+  "gmi/x-ai/grok-4.5": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "gmi"
+  },
+  "gmi/xai/grok4.6": {
+    "cache_read": 5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-4.5-Air-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 1.1e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-4.5-FP8": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 2.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-4.6": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 2e-06,
+    "provider": "gmi"
+  },
   "gmi/zai-org/GLM-4.7-FP8": {
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 4e-07,
     "output": 2e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-4.7-Flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7e-08,
+    "output": 4e-07,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-5-FP8": {
+    "cache_read": 1.2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-07,
+    "output": 1.92e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-5.1-FP8": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-5.2-FP8": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-5.3": {
+    "cache_read": 1.3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7e-07,
+    "output": 2.2e-06,
+    "provider": "gmi"
+  },
+  "gmi/zai-org/GLM-5.3-Flash": {
+    "cache_read": 1.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.5e-08,
+    "output": 2.5e-07,
     "provider": "gmi"
   },
   "google.gemma-3-12b-it": {
@@ -15873,6 +17577,22 @@
     "provider": "openai"
   },
   "gpt-image-2.5-sunburst-2026-09-08": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openai"
+  },
+  "gpt-image-2.6-flare": {
+    "cache_read": 1.25e-06,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": null,
+    "provider": "openai"
+  },
+  "gpt-image-2.6-sunburst": {
     "cache_read": 1.25e-06,
     "cache_write": null,
     "cache_write_1h": null,
@@ -25240,6 +26960,14 @@
     "output": 1.5e-05,
     "provider": "together_ai"
   },
+  "together_ai/moonshotai/Kimi-K3.1-Pro": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "together_ai"
+  },
   "together_ai/nvidia/NVIDIA-Nemotron-3.5-Super-VL": {
     "cache_read": 2e-08,
     "cache_write": null,
@@ -25286,6 +27014,14 @@
     "cache_write_1h": null,
     "input": 4e-07,
     "output": 1.2e-06,
+    "provider": "together_ai"
+  },
+  "together_ai/ricursive-ai/Ripple-65B-Preview": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 6e-07,
     "provider": "together_ai"
   },
   "together_ai/thinkingmachines/Inkling": {
