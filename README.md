@@ -96,6 +96,10 @@ You install once. After that:
 | **Prices in this repo**  | GitHub Actions cron runs `--refresh-prices` daily and commits any diff. Fresh installs are always current on day one.     | Daily            |
 | **Script logic**         | Rarely changes. Re-run the one-line installer to upgrade. No silent self-update (security).                               | On demand        |
 
+Refreshes reject empty catalogs and invalid token rates, then stage the new JSON
+beside the cache and atomically replace it. A failed fetch or write leaves the old
+price sheet intact; automatic refresh falls back to that cached copy.
+
 No cron on your machine. No background daemon. No `pip install --upgrade`. Set `SKILL_COST_NO_AUTO_REFRESH=1` if you want to freeze the price sheet.
 
 ---
@@ -231,6 +235,17 @@ Harnesses like pi that route through a proxy typically emit `cost: 0` in their J
 ---
 
 ## Contributing
+
+Run the offline regression suite from the repository root (stdlib only):
+
+```bash
+python3 -m unittest discover -v
+bash -n install.sh
+```
+
+PR CI runs these checks on Python 3.8 and 3.14, separately from the networked
+price-refresh workflow. Tests use synthetic fixtures and mocked fetches; no
+personal session logs or provider credentials are required.
 
 New harness support = a `parse_*` function + `HARNESSES` entry + a note in the compatibility table. PRs welcome.
 

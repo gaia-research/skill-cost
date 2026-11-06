@@ -26,6 +26,7 @@ import os
 import re
 import sqlite3
 import sys
+import tempfile
 import unicodedata
 import urllib.request
 from dataclasses import dataclass, field
@@ -132,6 +133,8 @@ def refresh_prices(write: bool = True, quiet: bool = False) -> dict:
     with urllib.request.urlopen(req, timeout=30) as r:  # noqa: S310
         raw = r.read().decode("utf-8")
     data = json.loads(raw)
+    if not isinstance(data, dict):
+        raise ValueError("price catalog must be a JSON object")
     # Prune to fields we actually need -- keeps the shipped file tiny.
     pruned = {}
     for name, m in data.items():
@@ -151,6 +154,14 @@ def refresh_prices(write: bool = True, quiet: bool = False) -> dict:
             "cache_write_1h": m.get("cache_creation_input_token_cost_above_1hr"),
             "provider":   m.get("litellm_provider"),
         }
+        for field_name in ("input", "output", "cache_read", "cache_write", "cache_write_1h"):
+            rate = pruned[name][field_name]
+            if rate is not None and (
+                type(rate) not in (int, float) or not math.isfinite(rate) or rate < 0
+            ):
+                raise ValueError("price catalog contains an invalid token rate")
+    if not pruned:
+        raise ValueError("price catalog contains no priced models")
     # Embed source attribution so the data always travels with its provenance.
     pruned["_meta"] = {
         "source": "BerriAI/litellm model_prices_and_context_window.json",
@@ -163,9 +174,24 @@ def refresh_prices(write: bool = True, quiet: bool = False) -> dict:
                 "Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     }
     if write:
-        PRICES_JSON.write_text(
-            json.dumps(pruned, indent=2, sort_keys=True), encoding="utf-8"
-        )
+        # Stage beside the cache so replacement is atomic on the same filesystem.
+        # A failed download, serialization, write, or replace leaves the old cache.
+        staged = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=PRICES_JSON.parent,
+                prefix=f".{PRICES_JSON.name}.", suffix=".tmp", delete=False,
+            ) as f:
+                staged = Path(f.name)
+                json.dump(pruned, f, indent=2, sort_keys=True, allow_nan=False)
+                f.flush()
+                os.fsync(f.fileno())
+            if PRICES_JSON.exists():
+                staged.chmod(PRICES_JSON.stat().st_mode & 0o777)
+            os.replace(staged, PRICES_JSON)
+        finally:
+            if staged is not None and staged.exists():
+                staged.unlink()
         if not quiet:
             print(f"wrote {len(pruned) - 1} models to {PRICES_JSON}", file=sys.stderr)
     return pruned
