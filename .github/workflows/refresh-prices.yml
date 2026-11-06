@@ -9,6 +9,8 @@ on:
     - cron: "17 4 * * *"   # 04:17 UTC daily -- offset avoids the top-of-hour rush
   workflow_dispatch:
   push:
+    # Never push generated prices onto code-review branches.
+    branches: [main]
     paths:
       - "cost.py"          # re-run whenever the pruner logic changes
       - ".github/workflows/refresh-prices.yml"
