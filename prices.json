@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-06T12:10:54Z",
-    "model_count": 3930,
+    "fetched_at": "2026-11-06T21:33:53Z",
+    "model_count": 3932,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -10289,11 +10289,11 @@
     "provider": "empiriolabs"
   },
   "empiriolabs/deepseek-v4-1-flash-1017": {
-    "cache_read": null,
+    "cache_read": 2e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 3e-07,
-    "output": 1.2e-06,
+    "input": 2e-07,
+    "output": 8e-07,
     "provider": "empiriolabs"
   },
   "empiriolabs/deepseek-v4-flash-0731": {
@@ -26342,6 +26342,22 @@
     "cache_write_1h": null,
     "input": 3.7e-07,
     "output": 1.25e-06,
+    "provider": "tencent"
+  },
+  "tencent/hy4": {
+    "cache_read": 4.2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.34e-07,
+    "output": 2.501e-06,
+    "provider": "tencent"
+  },
+  "tencent/hy4-preview": {
+    "cache_read": 4.2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.34e-07,
+    "output": 2.501e-06,
     "provider": "tencent"
   },
   "tencent/kimi-k2.7-code": {
