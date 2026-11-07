@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-06T21:37:21Z",
-    "model_count": 3932,
+    "fetched_at": "2026-11-07T11:07:58Z",
+    "model_count": 3942,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -3672,6 +3672,30 @@
     "output": 3.3e-05,
     "provider": "azure"
   },
+  "azure/us/gpt-realtime-1.5": {
+    "cache_read": 4.4e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.4e-06,
+    "output": 1.76e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-realtime-2.1": {
+    "cache_read": 4.4e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.4e-06,
+    "output": 2.64e-05,
+    "provider": "azure"
+  },
+  "azure/us/gpt-realtime-2.1-mini": {
+    "cache_read": 6.6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.6e-07,
+    "output": 2.64e-06,
+    "provider": "azure"
+  },
   "azure/us/o1": {
     "cache_read": 8.25e-06,
     "cache_write": null,
@@ -4304,6 +4328,22 @@
     "output": 0.0,
     "provider": "azure_ai"
   },
+  "azure_ai/cohere-rerank-v5-fast": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-08,
+    "output": 0.0,
+    "provider": "azure_ai"
+  },
+  "azure_ai/cohere-rerank-v5-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 0.0,
+    "provider": "azure_ai"
+  },
   "azure_ai/deepseek-r1": {
     "cache_read": null,
     "cache_write": null,
@@ -4636,8 +4676,8 @@
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 0.0032,
-    "output": 0.00971,
+    "input": 3.2e-06,
+    "output": 9.71e-06,
     "provider": "azure_ai"
   },
   "azure_ai/kimi-k2-thinking": {
@@ -15688,6 +15728,14 @@
     "output": 1.5e-05,
     "provider": "bedrock_converse"
   },
+  "global.moonshotai.kimi-k3.1": {
+    "cache_read": 2e-07,
+    "cache_write": 5e-06,
+    "cache_write_1h": null,
+    "input": 4e-06,
+    "output": 2e-05,
+    "provider": "bedrock_converse"
+  },
   "global.openai.gpt-5.4": {
     "cache_read": 2.5e-07,
     "cache_write": null,
@@ -18062,6 +18110,14 @@
     "cache_write_1h": null,
     "input": 3.3e-06,
     "output": 1.65e-05,
+    "provider": "bedrock_converse"
+  },
+  "in.moonshotai.kimi-k3.1": {
+    "cache_read": 2.2e-07,
+    "cache_write": 5.5e-06,
+    "cache_write_1h": null,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "bedrock_converse"
   },
   "inception/mercury-2": {
@@ -20614,6 +20670,14 @@
     "cache_write_1h": null,
     "input": 3.3e-06,
     "output": 1.65e-05,
+    "provider": "bedrock_converse"
+  },
+  "moonshotai.kimi-k3.1": {
+    "cache_read": 2.2e-07,
+    "cache_write": 5.5e-06,
+    "cache_write_1h": null,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
     "provider": "bedrock_converse"
   },
   "morph/morph-dsv41flash": {
@@ -27784,6 +27848,14 @@
     "output": 1.65e-05,
     "provider": "bedrock_converse"
   },
+  "us.moonshotai.kimi-k3.1": {
+    "cache_read": 2.2e-07,
+    "cache_write": 5.5e-06,
+    "cache_write_1h": null,
+    "input": 4.4e-06,
+    "output": 2.2e-05,
+    "provider": "bedrock_converse"
+  },
   "us.openai.gpt-5.4": {
     "cache_read": 2.75e-07,
     "cache_write": null,
@@ -30361,11 +30433,11 @@
     "provider": "wandb"
   },
   "wandb/Qwen/Qwen3.6-35B-A3B": {
-    "cache_read": null,
+    "cache_read": 3.5e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2.5e-07,
-    "output": 1.25e-06,
+    "input": 1e-07,
+    "output": 8.9e-07,
     "provider": "wandb"
   },
   "wandb/Qwen/Qwen3.8-27B": {
@@ -30377,11 +30449,11 @@
     "provider": "wandb"
   },
   "wandb/deepseek-ai/DeepSeek-V3.1": {
-    "cache_read": null,
+    "cache_read": 2e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 5.5e-07,
-    "output": 1.65e-06,
+    "input": 5e-07,
+    "output": 1.5e-06,
     "provider": "wandb"
   },
   "wandb/deepseek-ai/DeepSeek-V4-Flash": {
@@ -30393,11 +30465,11 @@
     "provider": "wandb"
   },
   "wandb/deepseek-ai/DeepSeek-V4-Flash-0731": {
-    "cache_read": 7e-08,
+    "cache_read": 5e-08,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 1.3e-07,
-    "output": 2.8e-07,
+    "output": 2.7e-07,
     "provider": "wandb"
   },
   "wandb/deepseek-ai/DeepSeek-V4-Pro": {
@@ -30417,10 +30489,18 @@
     "provider": "wandb"
   },
   "wandb/deepseek-ai/DeepSeek-V4.1-Flash": {
-    "cache_read": 3e-08,
+    "cache_read": 2e-09,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2e-07,
+    "input": 1.3e-07,
+    "output": 6.5e-07,
+    "provider": "wandb"
+  },
+  "wandb/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+    "cache_read": 2e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.3e-07,
     "output": 6.5e-07,
     "provider": "wandb"
   },
@@ -30449,10 +30529,10 @@
     "provider": "wandb"
   },
   "wandb/ibm-granite/granite-4.2-8b": {
-    "cache_read": 5e-08,
+    "cache_read": 1.5e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1e-07,
+    "input": 6e-08,
     "output": 1.5e-07,
     "provider": "wandb"
   },
@@ -30497,11 +30577,11 @@
     "provider": "wandb"
   },
   "wandb/moonshotai/Kimi-K2.7-Code": {
-    "cache_read": 1.5e-07,
+    "cache_read": 1.2e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 7.1e-07,
-    "output": 3.5e-06,
+    "input": 6e-07,
+    "output": 3e-06,
     "provider": "wandb"
   },
   "wandb/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B": {
@@ -30521,11 +30601,11 @@
     "provider": "wandb"
   },
   "wandb/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B": {
-    "cache_read": 5e-08,
+    "cache_read": 2e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 2.5e-07,
-    "output": 1.5e-06,
+    "input": 1.5e-07,
+    "output": 5e-07,
     "provider": "wandb"
   },
   "wandb/openai/gpt-oss-120b": {
@@ -30545,18 +30625,18 @@
     "provider": "wandb"
   },
   "wandb/reflection/Beam-1.0-501B-A23B": {
-    "cache_read": 1e-07,
+    "cache_read": 4e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1e-06,
-    "output": 3e-06,
+    "input": 3e-07,
+    "output": 1e-06,
     "provider": "wandb"
   },
   "wandb/zai-org/GLM-5.2": {
     "cache_read": 1.4e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 7.6e-07,
+    "input": 6.2e-07,
     "output": 2.42e-06,
     "provider": "wandb"
   },
@@ -30564,16 +30644,16 @@
     "cache_read": 1.9e-07,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1.2e-06,
-    "output": 4e-06,
+    "input": 7.5e-07,
+    "output": 3e-06,
     "provider": "wandb"
   },
   "wandb/zai-org/GLM-5.3-Flash": {
-    "cache_read": 5e-08,
+    "cache_read": 2e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 1.5e-07,
-    "output": 5e-07,
+    "input": 1.2e-07,
+    "output": 3.8e-07,
     "provider": "wandb"
   },
   "watsonx/bigscience/mt0-xxl": {
@@ -30596,8 +30676,8 @@
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 0.0005,
-    "output": 0.002,
+    "input": 1.8e-06,
+    "output": 1.8e-06,
     "provider": "watsonx"
   },
   "watsonx/google/flan-t5-xl-3b": {
