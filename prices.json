@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-10T12:43:47Z",
-    "model_count": 3966,
+    "fetched_at": "2026-11-11T11:55:41Z",
+    "model_count": 4048,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -4240,6 +4240,22 @@
     "output": 5e-05,
     "provider": "azure_ai"
   },
+  "azure_ai/claude-mythos-5-2": {
+    "cache_read": 2e-07,
+    "cache_write": 1e-05,
+    "cache_write_1h": 1.6e-05,
+    "input": 8e-06,
+    "output": 4e-05,
+    "provider": "azure_ai"
+  },
+  "azure_ai/claude-mythos-5-2-fast": {
+    "cache_read": 4e-07,
+    "cache_write": 2e-05,
+    "cache_write_1h": 3.2e-05,
+    "input": 1.6e-05,
+    "output": 8e-05,
+    "provider": "azure_ai"
+  },
   "azure_ai/claude-opus-4-5": {
     "cache_read": 5e-07,
     "cache_write": 6.25e-06,
@@ -4758,6 +4774,14 @@
     "cache_write_1h": null,
     "input": 5e-07,
     "output": 1.5e-06,
+    "provider": "azure_ai"
+  },
+  "azure_ai/mistral-large-4-latest": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7e-07,
+    "output": 2.1e-06,
     "provider": "azure_ai"
   },
   "azure_ai/mistral-large-latest": {
@@ -6920,6 +6944,14 @@
     "output": 1.98e-05,
     "provider": "bedrock_mantle"
   },
+  "bedrock_mantle/us-gov-east-1/openai.gpt-5.6-cyber": {
+    "cache_read": 1.6875e-06,
+    "cache_write": 2.109375e-05,
+    "cache_write_1h": null,
+    "input": 1.6875e-05,
+    "output": 0.00010125,
+    "provider": "bedrock_mantle"
+  },
   "bedrock_mantle/us-gov-east-1/openai.gpt-oss-120b": {
     "cache_read": null,
     "cache_write": null,
@@ -7326,6 +7358,14 @@
     "cache_write_1h": 2e-05,
     "input": 1e-05,
     "output": 5e-05,
+    "provider": "anthropic"
+  },
+  "claude-mythos-5-2": {
+    "cache_read": 2e-07,
+    "cache_write": 1e-05,
+    "cache_write_1h": 1.6e-05,
+    "input": 8e-06,
+    "output": 4e-05,
     "provider": "anthropic"
   },
   "claude-mythos-preview": {
@@ -8392,6 +8432,14 @@
     "output": 5.000002e-05,
     "provider": "databricks"
   },
+  "databricks/databricks-claude-fable-5-2": {
+    "cache_read": 8e-06,
+    "cache_write": 8e-06,
+    "cache_write_1h": null,
+    "input": 8e-06,
+    "output": 4e-05,
+    "provider": "databricks"
+  },
   "databricks/databricks-claude-haiku-4-5": {
     "cache_read": 1.0003e-07,
     "cache_write": 1.24999e-06,
@@ -9038,6 +9086,14 @@
     "cache_write_1h": null,
     "input": 4.2e-08,
     "output": 0.0,
+    "provider": "databricks"
+  },
+  "databricks/system.ai.claude-fable-5-2": {
+    "cache_read": 8e-06,
+    "cache_write": 8e-06,
+    "cache_write_1h": null,
+    "input": 8e-06,
+    "output": 4e-05,
     "provider": "databricks"
   },
   "davinci-002": {
@@ -11480,6 +11536,46 @@
     "output": 3.5e-06,
     "provider": "fal_ai"
   },
+  "fal_ai/google/gemini-omni-flash/v1.2/edit": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": null,
+    "provider": "fal_ai"
+  },
+  "fal_ai/google/gemini-omni-flash/v1.2/extend": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": null,
+    "provider": "fal_ai"
+  },
+  "fal_ai/google/gemini-omni-flash/v1.2/image-to-video": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": null,
+    "provider": "fal_ai"
+  },
+  "fal_ai/google/gemini-omni-flash/v1.2/reference-to-video": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": null,
+    "provider": "fal_ai"
+  },
+  "fal_ai/google/gemini-omni-flash/v1.2/text-to-video": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": null,
+    "provider": "fal_ai"
+  },
   "fireworks-ai-4.1b-to-16b": {
     "cache_read": null,
     "cache_write": null,
@@ -13840,6 +13936,14 @@
     "output": 2e-07,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/deepseek-flash-latest": {
+    "cache_read": 6e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/routers/deepseek-v4p1-flash-1017-spot": {
     "cache_read": 4.2e-09,
     "cache_write": null,
@@ -13928,6 +14032,38 @@
     "output": 6.6e-06,
     "provider": "fireworks_ai"
   },
+  "fireworks_ai/accounts/fireworks/routers/glm-fast-latest": {
+    "cache_read": 3.9e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.1e-06,
+    "output": 6.6e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/glm-flash-latest": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 5e-07,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/glm-latest": {
+    "cache_read": 2.6e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-06,
+    "output": 4.4e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/kimi-fast-latest": {
+    "cache_read": 4.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.5e-06,
+    "output": 2.25e-05,
+    "provider": "fireworks_ai"
+  },
   "fireworks_ai/accounts/fireworks/routers/kimi-k2p6-fast": {
     "cache_read": 3e-07,
     "cache_write": null,
@@ -13966,6 +14102,30 @@
     "cache_write_1h": null,
     "input": 4.5e-06,
     "output": 2.25e-05,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/kimi-latest": {
+    "cache_read": 3e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/minimax-latest": {
+    "cache_read": 6e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-07,
+    "output": 1.2e-06,
+    "provider": "fireworks_ai"
+  },
+  "fireworks_ai/accounts/fireworks/routers/qwen-max-latest": {
+    "cache_read": 2.5e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 6e-06,
     "provider": "fireworks_ai"
   },
   "fireworks_ai/accounts/fireworks/routers/rune": {
@@ -15104,6 +15264,14 @@
     "output": 1e-05,
     "provider": "gemini"
   },
+  "gemini/gemini-4-carbon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "gemini"
+  },
   "gemini/gemini-embedding-001": {
     "cache_read": null,
     "cache_write": null,
@@ -15497,6 +15665,14 @@
     "provider": "github_copilot"
   },
   "github_copilot/gemini-4-argon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "github_copilot"
+  },
+  "github_copilot/gemini-4-carbon": {
     "cache_read": 1e-07,
     "cache_write": null,
     "cache_write_1h": null,
@@ -25336,6 +25512,62 @@
     "output": 1.5e-05,
     "provider": "replicate"
   },
+  "replicate/anthropic/claude-fable-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-05,
+    "output": 5e-05,
+    "provider": "replicate"
+  },
+  "replicate/anthropic/claude-fable-5.2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8e-06,
+    "output": 4e-05,
+    "provider": "replicate"
+  },
+  "replicate/anthropic/claude-opus-4.6": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "replicate"
+  },
+  "replicate/anthropic/claude-opus-4.7": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-06,
+    "output": 2.5e-05,
+    "provider": "replicate"
+  },
+  "replicate/anthropic/claude-opus-5.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-06,
+    "output": 2e-05,
+    "provider": "replicate"
+  },
+  "replicate/anthropic/claude-sonnet-4.6": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 1.5e-05,
+    "provider": "replicate"
+  },
+  "replicate/anthropic/claude-sonnet-5": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "replicate"
+  },
   "replicate/deepseek-ai/deepseek-r1": {
     "cache_read": null,
     "cache_write": null,
@@ -25368,6 +25600,14 @@
     "output": 2.5e-06,
     "provider": "replicate"
   },
+  "replicate/google/gemini-3-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 3e-06,
+    "provider": "replicate"
+  },
   "replicate/google/gemini-3-pro": {
     "cache_read": null,
     "cache_write": null,
@@ -25376,11 +25616,171 @@
     "output": 1.2e-05,
     "provider": "replicate"
   },
+  "replicate/google/gemini-3.1-flash-tts": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 4e-05,
+    "provider": "replicate"
+  },
+  "replicate/google/gemini-3.1-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1.2e-05,
+    "provider": "replicate"
+  },
+  "replicate/google/gemini-3.5-flash": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 9e-06,
+    "provider": "replicate"
+  },
+  "replicate/google/gemini-3.8-flash-lite-tts": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 6e-06,
+    "provider": "replicate"
+  },
+  "replicate/google/gemini-3.8-flash-tts": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-07,
+    "output": 9e-06,
+    "provider": "replicate"
+  },
+  "replicate/google/gemini-4-carbon": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-20b-code-instruct-8k": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-3.0-2b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-3.0-8b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-3.1-2b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-3.1-8b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-3.2-8b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
   "replicate/ibm-granite/granite-3.3-8b-instruct": {
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 3e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-4.0-h-small": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-4.1-8b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-4.2-8b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-8b-code-instruct-128k": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-speech-3.3-8b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": null,
+    "output": 4.9e-06,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-speech-4.1-2b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-vision-3.3-2b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/ibm-granite/granite-vision-4.1-4b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-08,
     "output": 2.5e-07,
     "provider": "replicate"
   },
@@ -25464,6 +25864,110 @@
     "output": 2.5e-07,
     "provider": "replicate"
   },
+  "replicate/meta/llama-4-maverick-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-07,
+    "output": 9.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/meta/llama-4-scout-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.7e-07,
+    "output": 6.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/meta/llama-guard-4-12b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-07,
+    "output": 2e-07,
+    "provider": "replicate"
+  },
+  "replicate/meta/meta-llama-3-70b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.5e-07,
+    "output": 2.75e-06,
+    "provider": "replicate"
+  },
+  "replicate/meta/meta-llama-3-70b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.5e-07,
+    "output": 2.75e-06,
+    "provider": "replicate"
+  },
+  "replicate/meta/meta-llama-3-8b": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/meta/meta-llama-3-8b-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 5e-08,
+    "output": 2.5e-07,
+    "provider": "replicate"
+  },
+  "replicate/minimax/speech-02-hd": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0001,
+    "output": null,
+    "provider": "replicate"
+  },
+  "replicate/minimax/speech-02-turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-05,
+    "output": null,
+    "provider": "replicate"
+  },
+  "replicate/minimax/speech-2.6-hd": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0001,
+    "output": null,
+    "provider": "replicate"
+  },
+  "replicate/minimax/speech-2.6-turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-05,
+    "output": null,
+    "provider": "replicate"
+  },
+  "replicate/minimax/speech-2.8-hd": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 0.0001,
+    "output": null,
+    "provider": "replicate"
+  },
+  "replicate/minimax/speech-2.8-turbo": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-05,
+    "output": null,
+    "provider": "replicate"
+  },
   "replicate/mistralai/mistral-7b-instruct-v0.2": {
     "cache_read": null,
     "cache_write": null,
@@ -25486,6 +25990,30 @@
     "cache_write_1h": null,
     "input": 3e-07,
     "output": 1e-06,
+    "provider": "replicate"
+  },
+  "replicate/moonshotai/kimi-k2-thinking": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6.6e-07,
+    "output": 2.7e-06,
+    "provider": "replicate"
+  },
+  "replicate/moonshotai/kimi-k2.5": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 7.2e-07,
+    "output": 3.6e-06,
+    "provider": "replicate"
+  },
+  "replicate/moonshotai/kimi-k2.6": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 9.5e-07,
+    "output": 4e-06,
     "provider": "replicate"
   },
   "replicate/openai/gpt-4.1": {
@@ -25528,6 +26056,22 @@
     "output": 6e-07,
     "provider": "replicate"
   },
+  "replicate/openai/gpt-4o-mini-transcribe": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 3e-06,
+    "output": 5e-06,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-4o-transcribe": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 6e-06,
+    "output": 1e-05,
+    "provider": "replicate"
+  },
   "replicate/openai/gpt-5": {
     "cache_read": null,
     "cache_write": null,
@@ -25550,6 +26094,62 @@
     "cache_write_1h": null,
     "input": 5e-08,
     "output": 4e-07,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5-pro": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-05,
+    "output": 0.00012,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.25e-06,
+    "output": 1e-05,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5.2": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.75e-06,
+    "output": 1.4e-05,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5.4": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5.6-luna": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1e-06,
+    "output": 6e-06,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5.6-sol": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "replicate"
+  },
+  "replicate/openai/gpt-5.6-terra": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.5e-06,
+    "output": 1.5e-05,
     "provider": "replicate"
   },
   "replicate/openai/gpt-oss-120b": {
@@ -25592,12 +26192,36 @@
     "output": 4e-06,
     "provider": "replicate"
   },
+  "replicate/perceptron-ai-inc/isaac-0.1": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.6e-07,
+    "output": 2.17e-06,
+    "provider": "replicate"
+  },
   "replicate/qwen/qwen3-235b-a22b-instruct-2507": {
     "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 2.64e-07,
     "output": 1.06e-06,
+    "provider": "replicate"
+  },
+  "replicate/qwen/qwen3-7-plus": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2.76e-07,
+    "output": 1.101e-06,
+    "provider": "replicate"
+  },
+  "replicate/snowflake/snowflake-arctic-instruct": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-05,
+    "output": 2e-05,
     "provider": "replicate"
   },
   "replicate/xai/grok-4": {
@@ -26537,19 +27161,19 @@
     "provider": "tencent"
   },
   "tencent/hy4": {
-    "cache_read": 4.2e-08,
+    "cache_read": 2.1e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 8.34e-07,
-    "output": 2.501e-06,
+    "input": 4.17e-07,
+    "output": 1.2505e-06,
     "provider": "tencent"
   },
   "tencent/hy4-preview": {
-    "cache_read": 4.2e-08,
+    "cache_read": 2.1e-08,
     "cache_write": null,
     "cache_write_1h": null,
-    "input": 8.34e-07,
-    "output": 2.501e-06,
+    "input": 4.17e-07,
+    "output": 1.2505e-06,
     "provider": "tencent"
   },
   "tencent/kimi-k2.7-code": {
@@ -29144,6 +29768,22 @@
     "output": 5e-07,
     "provider": "vertex_ai-anthropic_models"
   },
+  "vertex_ai/claude-mythos-5-2": {
+    "cache_read": 2e-07,
+    "cache_write": 1e-05,
+    "cache_write_1h": 1.6e-05,
+    "input": 8e-06,
+    "output": 4e-05,
+    "provider": "vertex_ai-anthropic_models"
+  },
+  "vertex_ai/claude-mythos-5-2@default": {
+    "cache_read": 2e-07,
+    "cache_write": 1e-05,
+    "cache_write_1h": 1.6e-05,
+    "input": 8e-06,
+    "output": 4e-05,
+    "provider": "vertex_ai-anthropic_models"
+  },
   "vertex_ai/claude-opus-4-5": {
     "cache_read": 5e-07,
     "cache_write": 6.25e-06,
@@ -29665,6 +30305,22 @@
     "provider": "vertex_ai"
   },
   "vertex_ai/gemini-4-argon-cyber-permissive": {
+    "cache_read": 2e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4e-06,
+    "output": 2e-05,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/gemini-4-carbon": {
+    "cache_read": 1e-07,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 2e-06,
+    "output": 1e-05,
+    "provider": "vertex_ai"
+  },
+  "vertex_ai/gemini-4-carbon-cyber-permissive": {
     "cache_read": 2e-07,
     "cache_write": null,
     "cache_write_1h": null,
