@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-13T12:18:10Z",
-    "model_count": 4062,
+    "fetched_at": "2026-11-14T11:34:05Z",
+    "model_count": 4068,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -9504,6 +9504,14 @@
     "output": 3e-06,
     "provider": "deepinfra"
   },
+  "deepinfra/XiaomiMiMo/MiMo-V2.6-Flash": {
+    "cache_read": 2.8e-09,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.4e-07,
+    "output": 2.8e-07,
+    "provider": "deepinfra"
+  },
   "deepinfra/allenai/olmOCR-7B-0725-FP8": {
     "cache_read": null,
     "cache_write": null,
@@ -10096,6 +10104,14 @@
     "output": 1.6e-07,
     "provider": "deepinfra"
   },
+  "deepinfra/nvidia/NVIDIA-Nemotron-3.5-Super-VL": {
+    "cache_read": 2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 5e-07,
+    "provider": "deepinfra"
+  },
   "deepinfra/nvidia/NVIDIA-Nemotron-Nano-9B-v2": {
     "cache_read": null,
     "cache_write": null,
@@ -10168,6 +10184,14 @@
     "output": 5.8e-07,
     "provider": "deepinfra"
   },
+  "deepinfra/tencent/Hy4-preview": {
+    "cache_read": 4.2e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 8.34e-07,
+    "output": 2.501e-06,
+    "provider": "deepinfra"
+  },
   "deepinfra/thinkingmachines/Inkling": {
     "cache_read": 1.6e-07,
     "cache_write": null,
@@ -10238,6 +10262,14 @@
     "cache_write_1h": null,
     "input": 7.5e-07,
     "output": 2.4e-06,
+    "provider": "deepinfra"
+  },
+  "deepinfra/zai-org/GLM-5.3-Flash": {
+    "cache_read": 3e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-07,
+    "output": 5e-07,
     "provider": "deepinfra"
   },
   "deepseek-chat": {
@@ -15249,7 +15281,7 @@
     "provider": "gemini"
   },
   "gemini/gemini-3.8-flash-lite-tts": {
-    "cache_read": 1.25e-07,
+    "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 5e-07,
@@ -15257,7 +15289,7 @@
     "provider": "gemini"
   },
   "gemini/gemini-3.8-flash-tts": {
-    "cache_read": 1.25e-07,
+    "cache_read": null,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 5e-07,
@@ -15718,6 +15750,14 @@
     "cache_write_1h": null,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "github_copilot"
+  },
+  "github_copilot/gemini-4-hydrogen": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
     "provider": "github_copilot"
   },
   "github_copilot/gpt-5-mini": {
@@ -20665,7 +20705,7 @@
     "provider": "mistral"
   },
   "mistral/mistral-embed": {
-    "cache_read": null,
+    "cache_read": 1e-08,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 1e-07,
@@ -20673,7 +20713,7 @@
     "provider": "mistral"
   },
   "mistral/mistral-embed-2312": {
-    "cache_read": null,
+    "cache_read": 1e-08,
     "cache_write": null,
     "cache_write_1h": null,
     "input": 1e-07,
@@ -24398,6 +24438,14 @@
     "cache_write_1h": null,
     "input": 2e-06,
     "output": 1e-05,
+    "provider": "perplexity"
+  },
+  "perplexity/google/gemini-4-hydrogen": {
+    "cache_read": 7.5e-08,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 1.5e-06,
+    "output": 7.5e-06,
     "provider": "perplexity"
   },
   "perplexity/llama-2-70b-chat": {
