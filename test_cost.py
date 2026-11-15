@@ -1887,10 +1887,41 @@ class AgyHarnessTests(unittest.TestCase):
         self.assertAlmostEqual(s["by_model"]["fake-model [high]"]["cost_usd"], 20 * 2e-6)
         self.assertAlmostEqual(s["by_model"]["fake-model [low]"]["cost_usd"], 10 * 2e-6)
 
-    def test_effort_label_never_changes_pricing_for_other_harnesses(self) -> None:
-        self.assertIsNotNone(cost.price_for("fake-model [medium]", {"fake-model": {"input": 1}}))
+    def test_agy_lookup_is_literal_keys_only(self) -> None:
+        prices = {"fake": {"input": 1e-6, "output": 1e-6}, "gemini/other": {"input": 2e-6}}
+        self.assertIsNone(cost.agy_price_for("openai/fake", prices))   # no shared normalizers
+        self.assertIsNone(cost.agy_price_for("fake-extra", prices))    # no substring match
+        self.assertIsNone(cost.agy_price_for("<unknown>", prices))
         self.assertIsNone(cost.agy_price_for("fake-model", {}))
-        self.assertIsNone(cost.agy_price_for("<unknown>", self.PRICES))
+        self.assertIs(cost.agy_price_for("fake [high]", prices), prices["fake"])
+        self.assertIs(cost.agy_price_for("other [low]", prices), prices["gemini/other"])
+
+    def test_effort_label_is_not_stripped_by_the_shared_lookups(self) -> None:
+        prices = {"fake": {"input": 1e-6}, "fake [high]": {"input": 9e-6}}
+        self.assertIs(cost.price_for("fake [high]", prices), prices["fake [high]"])
+        self.assertIs(cost.exact_price_for("fake [high]", prices), prices["fake [high]"])
+        self.assertIsNone(cost.exact_price_for("fake [low]", prices))
+
+    def test_a_partial_repeat_of_a_step_keeps_the_fields_it_does_not_carry(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps(self._step(1, inp=100, cache=0, out=5)), agg)
+        cost.parse_agy(json.dumps({"step_index": 1, "output_tokens": 10}), agg)
+        b = agg.by_model["fake-model [medium]"]
+        self.assertEqual((b.input, b.output, b.cache_read), (100, 10, 0))
+        self.assertNotIn("<unknown>", {m for m, x in agg.by_model.items() if x.total_tokens()})
+
+    def test_explicit_files_resolve_to_the_canonical_transcript(self) -> None:
+        logs = self._write(self.brain / self.CONV_A, [self._step(1), self._step(2)])
+        full, plain = logs / "transcript_full.jsonl", logs / "transcript.jsonl"
+        chunk = logs / "chunks" / "transcript_full" / "00000000.jsonl"
+        data = self._json("--agy-path", str(full), "--agy-path", str(plain))
+        self.assertEqual(len(data["sessions"]), 1)
+        self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
+        self.assertEqual(self._json("--agy-path", str(plain))["grand_total_tokens"], 2 * 1_110)
+        self.assertTrue(self._json("--agy-path", str(plain))["sessions"][0]["path"]
+                        .endswith("transcript_full.jsonl"))
+        code, _ = self._run("--agy-path", str(chunk))        # a chunk copy is never read
+        self.assertEqual(code, 1)
 
     def test_agy_path_reads_an_archived_lane_copy_and_nothing_else(self) -> None:
         self._write(self.brain / self.CONV_B, [self._step(1)])        # live, must be ignored

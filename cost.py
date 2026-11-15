@@ -249,7 +249,6 @@ def _strip_effort_label(model: str) -> str:
 
 def price_for(model: str, prices: dict) -> dict | None:
     """Look up a model in the pricing catalog with progressive fallback."""
-    model = _strip_effort_label(model)
     if not model or model == "_meta":
         return None
     candidates = [model, model.lower()]
@@ -279,7 +278,6 @@ def price_for(model: str, prices: dict) -> dict | None:
 def exact_price_for(model: str, prices: dict) -> dict | None:
     """Exact-key lookup only (after name normalization), with no substring fallback.
     Run reports use this so a model is never priced with a different model's rate."""
-    model = _strip_effort_label(model)
     if not model or model == "_meta":
         return None
     candidates = [model, model.lower()]
@@ -295,13 +293,18 @@ def exact_price_for(model: str, prices: dict) -> dict | None:
 
 
 def agy_price_for(model: str, prices: dict) -> dict | None:
-    """Antigravity pricing: exact catalog key only, never a substring match. Google's
-    own catalog entries are published under a `gemini/` provider prefix, so that exact
-    key is also accepted. Anything else is unpriced rather than guessed."""
+    """Antigravity pricing: the effort-stripped model name as a literal catalog key, or the
+    same name under Google's `gemini/` provider prefix, and nothing else. No shared name
+    normalizers and no substring matching, so a model can never borrow another model's
+    rate; anything else is unpriced rather than guessed."""
     base = _strip_effort_label(model)
     if not base or base in ("<unknown>", "_meta"):
         return None
-    return exact_price_for(base, prices) or exact_price_for("gemini/" + base, prices)
+    for key in (base, base.lower(), "gemini/" + base, "gemini/" + base.lower()):
+        p = prices.get(key)
+        if isinstance(p, dict) and p.get("input") is not None:
+            return p
+    return None
 
 
 # =============================================================================
@@ -641,18 +644,24 @@ def parse_agy(line: str, agg: SessionAgg) -> None:
     if not any(k in d for k in ("input_tokens", "output_tokens", "cache_read_tokens")):
         return
     raw_model = d.get("model")
-    model = effort_label(raw_model) if isinstance(raw_model, str) and raw_model else "<unknown>"
-    tokens = (_int(d.get("input_tokens")), _int(d.get("output_tokens")),
-              _int(d.get("cache_read_tokens")))
+    model = effort_label(raw_model) if isinstance(raw_model, str) and raw_model else None
+    tokens = [_int(d.get("input_tokens")), _int(d.get("output_tokens")),
+              _int(d.get("cache_read_tokens"))]
     step = d.get("step_index")
     if isinstance(step, int) and not isinstance(step, bool):
         prev = agg.agy_steps.get(step)
         if prev is not None:
+            # A repeat of a step replaces what was billed for it. Fields the repeat does
+            # not carry keep their earlier value rather than being zeroed.
             pb = agg.bucket(prev[0])
             pb.input -= prev[1]
             pb.output -= prev[2]
             pb.cache_read -= prev[3]
-        agg.agy_steps[step] = (model, *tokens)
+            keys = ("input_tokens", "output_tokens", "cache_read_tokens")
+            tokens = [t if k in d else p for k, t, p in zip(keys, tokens, prev[1:])]
+            model = model or (prev[0] if prev[0] != "<unknown>" else None)
+        agg.agy_steps[step] = (model or "<unknown>", *tokens)
+    model = model or "<unknown>"
     b = agg.bucket(model)
     b.input += tokens[0]
     b.output += tokens[1]
@@ -848,13 +857,30 @@ AGY_LOG_DIR = Path(".system_generated") / "logs"
 AGY_TRANSCRIPTS = ("transcript_full.jsonl", "transcript.jsonl")
 
 
+def agy_canonical_file(path: Path) -> str | None:
+    """Map an explicit transcript path to its conversation's canonical transcript. A chunk
+    copy is rejected, and a plain `transcript.jsonl` is replaced by the `transcript_full.jsonl`
+    beside it when one exists, so naming both (or either) never counts a conversation twice.
+    A file outside the agy layout is taken as given."""
+    if path.suffix != ".jsonl":
+        return None
+    in_layout = path.parent.name == "logs" and path.parent.parent.name == ".system_generated"
+    if ".system_generated" in path.parts and "chunks" in path.parts:
+        return None
+    if in_layout and path.name in AGY_TRANSCRIPTS:
+        for name in AGY_TRANSCRIPTS:
+            if (path.parent / name).is_file():
+                return str(path.parent / name)
+    return str(path)
+
+
 def agy_transcripts(root: Path) -> list[str]:
     """One canonical transcript per Antigravity conversation under `root` (or `root`
     itself when it is a transcript file). `transcript_full.jsonl` is preferred; the
     plain `transcript.jsonl` is used only when no full copy exists beside it. The
     `logs/chunks/` copies are never read -- they repeat the same steps."""
     if root.is_file():
-        return [str(root)] if root.suffix == ".jsonl" else []
+        return [canonical] if (canonical := agy_canonical_file(root)) else []
     out: list[str] = []
     for log_dir in sorted({p.parent for p in root.rglob("transcript*.jsonl")
                            if p.parent.name == "logs" and p.parent.parent.name == ".system_generated"}):
