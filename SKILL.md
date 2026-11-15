@@ -27,9 +27,31 @@ Auto-detected from `~`:
 | OpenAI Codex | `~/.codex/sessions/**/*.jsonl`          |
 | opencode     | `~/.local/share/opencode/**/*.jsonl`    |
 | Hermes Agent | `$HERMES_HOME/state.db`                 |
+| Antigravity CLI (`agy`) | `~/.gemini/antigravity-cli/brain/<conversation-id>/.system_generated/logs/transcript_full.jsonl` |
 
 Hermes is read through SQLite in `mode=ro`. The parser queries only `sessions`
 and `session_model_usage`; it never reads transcript rows from `messages`.
+
+Antigravity (`--harness agy`) caveats:
+
+- One transcript per conversation is read: `transcript_full.jsonl`, or `transcript.jsonl`
+  only when no full copy exists. The `logs/chunks/` copies repeat the same steps and are
+  never read, so nothing is counted twice. Only token counters, the model name, the step
+  index and the timestamp are read; message content is never used.
+- Model names carry the reasoning effort (`gemini-4-hydrogen-medium`). The effort is split
+  off for pricing and kept in the output as `gemini-4-hydrogen [medium]`.
+- Prices are an exact LiteLLM catalog key (`<model>` or `gemini/<model>`), never a
+  substring match. A model with no such key, and any step that records no model name
+  (shown as `<unknown>`), is **unpriced**: its tokens are counted, its cost is *unknown*,
+  and `$0` next to it means "no price", not "free". JSON carries `unpriced_models`,
+  `unpriced_tokens` and `cost_complete`.
+- Antigravity runs on a subscription pool, so the USD figure is a public-rate equivalent
+  at Google's published API rate, not a charge.
+- `cwd` comes from `cache/last_conversations.json`, which only keeps the newest
+  conversation per directory; older conversations have no `cwd`. Use `--session` for those.
+- `--agy-path PATH` (repeatable; a transcript file or a directory) reads an archived copy,
+  e.g. `--agy-path ~/skill-heaven-wt/sessions/<lane>/agy`, and reports every conversation
+  found there instead of only the newest. It ignores the live `~/.gemini` transcripts.
 
 Adding a new line-oriented harness = one small `parse_*` function in `cost.py`.
 
@@ -51,6 +73,10 @@ python3 cost.py --today --by-model
 # Since a date, one harness only
 python3 cost.py --since 2026-07-01 --harness claude-code
 python3 cost.py --harness hermes
+python3 cost.py --harness agy --all --by-model
+
+# An archived Antigravity lane (reads only that path)
+python3 cost.py --agy-path ~/skill-heaven-wt/sessions/DASH/agy
 
 # Filter by working directory or session id substring
 python3 cost.py --cwd "$PWD"

@@ -68,7 +68,8 @@ As a slash-command inside an agent conversation (once installed as a skill):
 | `/cost --since 2026-07-01` | Everything since a date. Use `YYYY-MM-DD` or a full ISO timestamp. |
 | `/cost --since 2026-07-01 --by-model` | Same, with a per-model breakdown so you can see whether Opus or Sonnet is doing the damage. |
 | `/cost --cwd $PWD` | Only sessions whose recorded `cwd` matches this directory. "What has this project cost me?" |
-| `/cost --harness pi` | Restrict to one harness. Also: `claude-code`, `codex`, `opencode`, `hermes`. |
+| `/cost --harness pi` | Restrict to one harness. Also: `claude-code`, `codex`, `opencode`, `hermes`, `agy`. |
+| `/cost --agy-path DIR` | Antigravity conversations found under an archived directory (or one transcript file), instead of the live `~/.gemini` data. |
 | `/cost --session 019f4e66` | Substring match on session id. Useful when a coworker sends you a session id. |
 | `/cost --all --list` | Every session on the machine, one line each. Sorted by recency. |
 | `/cost --all --list --today` | Today, one line each. Fits on a terminal. |
@@ -139,6 +140,15 @@ Auto-detected from `$HOME`:
 | OpenAI Codex | `~/.codex/sessions/**/*.jsonl`          | **Schema-only** — parser written from public Codex JSONL docs; no live-session validation yet. PRs welcome |
 | opencode     | `~/.local/share/opencode/**/*.jsonl`    | **Schema-only** — parser written from opencode's assistant-message shape; no live-session validation yet. PRs welcome |
 | Hermes Agent | `$HERMES_HOME/state.db`                 | **Schema-verified (v20)** — reads aggregate and per-model usage in SQLite read-only mode; never reads message content |
+| Antigravity CLI (`agy`) | `~/.gemini/antigravity-cli/brain/*/.system_generated/logs/transcript_full.jsonl` | **Verified against v1.5.9 transcripts** — one canonical transcript per conversation (chunk copies skipped); reads token counters, model, step index and timestamp only. See caveats below |
+
+### Antigravity caveats
+
+- **Subscription pool.** Antigravity usage is drawn from a subscription, not billed per token. The USD figure is the public API rate for the same tokens, an estimate and not a charge.
+- **Unpriced models.** Prices are matched by exact LiteLLM key (`<model>` or `gemini/<model>`), never by substring. A model with no key, and any step that records no model name (shown as `<unknown>`), is reported as **unpriced**: its tokens are counted but its cost is *unknown*. `$0` beside it means "no price", not "free". JSON adds `unpriced_models`, `unpriced_tokens` and `cost_complete`.
+- **Effort.** `gemini-4-hydrogen-medium` is priced as `gemini-4-hydrogen` and shown as `gemini-4-hydrogen [medium]`, so efforts stay separate in `--by-model`.
+- **`cwd` is partial.** agy only keeps the newest conversation per directory in `cache/last_conversations.json`; older conversations have no `cwd`. Use `--session`.
+- **Archived copies.** `--agy-path PATH` (repeatable) reads a transcript file or a directory such as `~/skill-heaven-wt/sessions/<lane>/agy` and reports every conversation in it, ignoring the live `~/.gemini` data.
 
 ### What "verified" actually means here
 
