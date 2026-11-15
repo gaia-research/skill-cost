@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "fetched_at": "2026-11-14T11:34:05Z",
-    "model_count": 4068,
+    "fetched_at": "2026-11-15T11:59:49Z",
+    "model_count": 4072,
     "note": "Pruned to input/output/cache_read/cache_write/cache_write_1h/provider. Consumed by skill-cost (https://github.com/gaia-research/skill-cost).",
     "source": "BerriAI/litellm model_prices_and_context_window.json",
     "source_license": "MIT",
@@ -29584,6 +29584,14 @@
     "output": 6e-07,
     "provider": "vercel_ai_gateway"
   },
+  "vercel_ai_gateway/openai/gpt-6-luna-decisions": {
+    "cache_read": 1e-08,
+    "cache_write": 1.25e-07,
+    "cache_write_1h": null,
+    "input": 1e-07,
+    "output": 0.0,
+    "provider": "vercel_ai_gateway"
+  },
   "vercel_ai_gateway/openai/o1": {
     "cache_read": 7.5e-06,
     "cache_write": 0.0,
@@ -29670,6 +29678,30 @@
     "cache_write_1h": null,
     "input": 2e-06,
     "output": 8e-06,
+    "provider": "vercel_ai_gateway"
+  },
+  "vercel_ai_gateway/typesafe-ai/jev": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.2e-08,
+    "output": 0.0,
+    "provider": "vercel_ai_gateway"
+  },
+  "vercel_ai_gateway/typesafe-ai/jev-1.13.0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.2e-08,
+    "output": 0.0,
+    "provider": "vercel_ai_gateway"
+  },
+  "vercel_ai_gateway/typesafe-ai/jev-1.14.0": {
+    "cache_read": null,
+    "cache_write": null,
+    "cache_write_1h": null,
+    "input": 4.2e-08,
+    "output": 0.0,
     "provider": "vercel_ai_gateway"
   },
   "vercel_ai_gateway/vercel/v0-1.0-md": {
