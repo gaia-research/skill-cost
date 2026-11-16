@@ -649,7 +649,12 @@ def parse_agy(line: str, agg: SessionAgg) -> None:
         # A repeat that only names the model still moves that step to the model's bucket.
         if not (has_step and has_model and step in agg.agy_steps):
             return
-    model = effort_label(raw_model) if isinstance(raw_model, str) and raw_model else None
+    # A literal name that already looks like a display label ("x [high]") must not be read
+    # back as an effort label later, so its brackets are swapped out; it then has no exact
+    # catalog key and stays unpriced.
+    if has_model:
+        raw_model = raw_model.replace("[", "(").replace("]", ")")
+    model = effort_label(raw_model) if has_model else None
     tokens = [_int(d.get("input_tokens")), _int(d.get("output_tokens")),
               _int(d.get("cache_read_tokens"))]
     if has_step:
@@ -1052,7 +1057,8 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
     if hit is not None and c.cache_read:
         saved = a.cache_savings(prices)
         print(f"   cache:  {hit * 100:.1f}% of {toks(c.prompt_tokens())} prompt tokens "
-              f"served from cache · saved {money(saved)} vs the same tokens as fresh input")
+              f"served from cache · saved {money(saved)} vs the same tokens as fresh input"
+              + (" (priced models only)" if a.unpriced(prices) else ""))
     parts = a.cost_parts(prices)
     if any(parts[k] for k in ("input", "output", "cache_read", "cache_write", "cache_write_1h")):
         print(f"   spend:  in {money(parts['input'])} · out {money(parts['output'])} "
@@ -2185,6 +2191,10 @@ def run_report_entry(args: argparse.Namespace) -> int:
         return 1
 
 
+def _agy_copy_rank(s: SessionAgg) -> tuple:
+    return (s.last_ts or "", s.combined().total_tokens())
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(
         description="Compute token-usage cost from agent harness session logs.",
@@ -2338,14 +2348,19 @@ def main(argv: list[str]) -> int:
     ]
 
     # The same conversation reached through two roots (say the live brain dir and an archived
-    # copy of it) is one conversation: keep the copy with the most tokens, never the sum.
+    # copy of it) is one conversation: keep the copy with the latest activity (then the most
+    # tokens), never the sum.
     keep: dict[str, SessionAgg] = {}
     rest: list[SessionAgg] = []
     for s in sessions:
         p = Path(s.path)
         if s.harness == "agy" and p.parent.name == "logs" and p.parent.parent.name == ".system_generated":
             cur = keep.get(s.session_id)
-            if cur is None or s.combined().total_tokens() > cur.combined().total_tokens():
+            if cur is not None and cur.combined().total_tokens() != s.combined().total_tokens():
+                print(f"warning: conversation {s.session_id} appears in more than one place "
+                      "with different totals; using the copy with the latest activity",
+                      file=sys.stderr)
+            if cur is None or _agy_copy_rank(s) > _agy_copy_rank(cur):
                 keep[s.session_id] = s
         else:
             rest.append(s)
@@ -2442,7 +2457,8 @@ def main(argv: list[str]) -> int:
     if tot_cached:
         pct = tot_cached / tot_prompt * 100 if tot_prompt else 0.0
         print(f"cache: {pct:.1f}% of {toks(tot_prompt)} prompt tokens were cache hits   "
-              f"saved={money(tot_saved)} vs uncached")
+              f"saved={money(tot_saved)} vs uncached"
+              + (" (priced models only)" if tot_unpriced_tokens else ""))
 
     all_unpriced = {m for s in sessions for m in s.unpriced(prices)}
     if all_unpriced:

@@ -1951,6 +1951,26 @@ class AgyHarnessTests(unittest.TestCase):
         self.assertEqual(len(data["sessions"]), 1)
         self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
 
+    def test_a_literal_bracketed_model_name_is_not_read_as_an_effort_label(self) -> None:
+        prices = {"fake": {"input": 1e-6}, "gemini/fake": {"input": 1e-6}}
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps(self._step(1, model="fake [high]")), agg)
+        (name,) = agg.by_model
+        self.assertIsNone(cost.agy_price_for(name, prices))
+        self.assertEqual(agg.unpriced({"fake": {"input": 1e-6}}), [name])
+
+    def test_two_copies_of_a_conversation_use_the_newest_not_the_most_tokens(self) -> None:
+        old = self.home / "old"
+        new = self.home / "new"
+        self._write(old / f"brain-{self.CONV_A}", [self._step(1, model=None, ts="2026-01-01T00:00:00Z")],
+                    chunks=False)
+        self._write(new / f"brain-{self.CONV_A}", [self._step(1, ts="2026-02-01T00:00:00Z")],
+                    chunks=False)
+        data = self._json("--agy-path", str(old), "--agy-path", str(new))
+        (s,) = data["sessions"]
+        self.assertEqual(list(s["by_model"]), ["fake-model [medium]"])
+        self.assertEqual(s["last_ts"], "2026-02-01T00:00:00Z")
+
     def test_only_a_recognised_effort_label_is_stripped(self) -> None:
         prices = {"fake": {"input": 1e-6}}
         self.assertIsNone(cost.agy_price_for("fake [banana]", prices))
