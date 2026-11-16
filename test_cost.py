@@ -1892,9 +1892,10 @@ class AgyHarnessTests(unittest.TestCase):
         self.assertIsNone(cost.agy_price_for("openai/fake", prices))   # no shared normalizers
         self.assertIsNone(cost.agy_price_for("fake-extra", prices))    # no substring match
         self.assertIsNone(cost.agy_price_for("<unknown>", prices))
+        self.assertIsNone(cost.agy_price_for("", prices))
         self.assertIsNone(cost.agy_price_for("fake-model", {}))
-        self.assertIs(cost.agy_price_for("fake [high]", prices), prices["fake"])
-        self.assertIs(cost.agy_price_for("other [low]", prices), prices["gemini/other"])
+        self.assertIs(cost.agy_price_for("fake", prices), prices["fake"])
+        self.assertIs(cost.agy_price_for("other", prices), prices["gemini/other"])
 
     def test_effort_label_is_not_stripped_by_the_shared_lookups(self) -> None:
         prices = {"fake": {"input": 1e-6}, "fake [high]": {"input": 9e-6}}
@@ -1952,12 +1953,24 @@ class AgyHarnessTests(unittest.TestCase):
         self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
 
     def test_a_literal_bracketed_model_name_is_not_read_as_an_effort_label(self) -> None:
-        prices = {"fake": {"input": 1e-6}, "gemini/fake": {"input": 1e-6}}
         agg = cost.SessionAgg(harness="agy", path="x")
         cost.parse_agy(json.dumps(self._step(1, model="fake [high]")), agg)
-        (name,) = agg.by_model
-        self.assertIsNone(cost.agy_price_for(name, prices))
-        self.assertEqual(agg.unpriced({"fake": {"input": 1e-6}}), [name])
+        cost.parse_agy(json.dumps(self._step(2, model="fake-high")), agg)
+        self.assertEqual(len(agg.by_model), 2)          # distinct models, distinct buckets
+        self.assertEqual(sorted(agg.by_model), ["fake [high]", "fake [high] (literal)"])
+        only_fake = {"fake": {"input": 1e-6}}
+        # `fake-high` is `fake` at high effort and prices as `fake`; the literal
+        # `fake [high]` has no key of its own and must not borrow `fake`'s rate.
+        self.assertEqual(agg.unpriced(only_fake), ["fake [high] (literal)"])
+        both = {"fake": {"input": 1e-6}, "fake [high]": {"input": 9e-6}}
+        self.assertEqual(agg.lookup()("fake [high]", both)["input"], 1e-6)
+        self.assertEqual(agg.lookup()("fake [high] (literal)", both)["input"], 9e-6)
+
+    def test_only_a_recognised_effort_label_is_stripped(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps(self._step(1, model="fake-banana")), agg)
+        cost.parse_agy(json.dumps(self._step(2, model="fake-medium")), agg)
+        self.assertEqual(sorted(agg.agy_models.values()), ["fake", "fake-banana"])
 
     def test_two_copies_of_a_conversation_use_the_newest_not_the_most_tokens(self) -> None:
         old = self.home / "old"
@@ -1970,11 +1983,6 @@ class AgyHarnessTests(unittest.TestCase):
         (s,) = data["sessions"]
         self.assertEqual(list(s["by_model"]), ["fake-model [medium]"])
         self.assertEqual(s["last_ts"], "2026-02-01T00:00:00Z")
-
-    def test_only_a_recognised_effort_label_is_stripped(self) -> None:
-        prices = {"fake": {"input": 1e-6}}
-        self.assertIsNone(cost.agy_price_for("fake [banana]", prices))
-        self.assertIsNotNone(cost.agy_price_for("fake [medium]", prices))
 
     def test_a_model_only_repeat_moves_the_step_to_that_model(self) -> None:
         agg = cost.SessionAgg(harness="agy", path="x")

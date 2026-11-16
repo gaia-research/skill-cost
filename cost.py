@@ -224,7 +224,6 @@ NORMALIZERS: list[Callable[[str], str]] = [
 # catalog, so it is split off for pricing and kept in the display label
 # (`gemini-4-hydrogen [medium]`).
 AGY_EFFORTS = ("minimal", "low", "medium", "high")
-_EFFORT_LABEL_RE = re.compile(r" \[(?:%s)\]$" % "|".join(AGY_EFFORTS))
 
 
 def split_effort(model: str) -> tuple[str, str | None]:
@@ -241,10 +240,6 @@ def split_effort(model: str) -> tuple[str, str | None]:
 def effort_label(model: str) -> str:
     base, effort = split_effort(model)
     return f"{base} [{effort}]" if effort else model
-
-
-def _strip_effort_label(model: str) -> str:
-    return _EFFORT_LABEL_RE.sub("", model or "")
 
 
 def price_for(model: str, prices: dict) -> dict | None:
@@ -292,12 +287,11 @@ def exact_price_for(model: str, prices: dict) -> dict | None:
     return None
 
 
-def agy_price_for(model: str, prices: dict) -> dict | None:
-    """Antigravity pricing: the effort-stripped model name as a literal catalog key, or the
-    same name under Google's `gemini/` provider prefix, and nothing else. No shared name
-    normalizers and no substring matching, so a model can never borrow another model's
-    rate; anything else is unpriced rather than guessed."""
-    base = _strip_effort_label(model)
+def agy_price_for(base: str, prices: dict) -> dict | None:
+    """Antigravity pricing for a base model name (effort already split off by the parser):
+    the name as a literal catalog key, or the same name under Google's `gemini/` provider
+    prefix, and nothing else. No shared name normalizers and no substring matching, so a
+    model can never borrow another model's rate; anything else is unpriced, not guessed."""
     if not base or base in ("<unknown>", "_meta"):
         return None
     for key in (base, base.lower(), "gemini/" + base, "gemini/" + base.lower()):
@@ -390,10 +384,17 @@ class SessionAgg:
     # written twice replaces its first entry instead of being billed twice.
     agy_steps: dict = field(default_factory=dict)
 
+    # Antigravity: display label -> base model used for pricing. The base is recorded by the
+    # parser, never recovered by parsing the label, so a model whose literal name looks like
+    # a label cannot be mistaken for an effort-suffixed one.
+    agy_models: dict = field(default_factory=dict)
+
     def lookup(self) -> Callable | None:
         """Price lookup for this session's harness. Antigravity prices exactly or not at
         all; every other harness keeps the catalog's progressive fallback."""
-        return agy_price_for if self.harness == "agy" else None
+        if self.harness != "agy":
+            return None
+        return lambda label, prices: agy_price_for(self.agy_models.get(label, ""), prices)
 
     def bucket(self, model: str) -> Bucket:
         return self.by_model.setdefault(model or "<unknown>", Bucket())
@@ -649,12 +650,15 @@ def parse_agy(line: str, agg: SessionAgg) -> None:
         # A repeat that only names the model still moves that step to the model's bucket.
         if not (has_step and has_model and step in agg.agy_steps):
             return
-    # A literal name that already looks like a display label ("x [high]") must not be read
-    # back as an effort label later, so its brackets are swapped out; it then has no exact
-    # catalog key and stays unpriced.
+    model = None
     if has_model:
-        raw_model = raw_model.replace("[", "(").replace("]", ")")
-    model = effort_label(raw_model) if has_model else None
+        base, effort = split_effort(raw_model)
+        model = f"{base} [{effort}]" if effort else base
+        # A literal name that already looks like a label ("x [high]") is marked so it can
+        # never share a bucket with the effort-split `x-high`.
+        if not effort and "[" in base:
+            model += " (literal)"
+        agg.agy_models[model] = base
     tokens = [_int(d.get("input_tokens")), _int(d.get("output_tokens")),
               _int(d.get("cache_read_tokens"))]
     if has_step:
