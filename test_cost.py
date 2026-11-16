@@ -1728,6 +1728,292 @@ class OfflineNeverFetchesTests(unittest.TestCase):
                 self.urlopen.assert_not_called()
 
 
+class AgyHarnessTests(unittest.TestCase):
+    """Antigravity CLI: one canonical transcript per conversation, effort-suffixed model
+    names, and unpriced models reported as unknown rather than free. Every id, model and
+    price here is synthetic and no transcript content is involved."""
+
+    CONV_A = "00000000-aaaa-4000-8000-000000000001"
+    CONV_B = "00000000-bbbb-4000-8000-000000000002"
+    PRICES = {
+        "gemini/fake-model": {"input": 2e-6, "output": 1e-5, "cache_read": 1e-7},
+        "fake-flash": {"input": 9e-6, "output": 9e-5, "cache_read": 9e-7},
+    }
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self._tmp.name)
+        self._env = mock.patch.dict(os.environ, {"HOME": str(self.home)})
+        self._env.start()
+        self.brain = self.home / ".gemini" / "antigravity-cli" / "brain"
+
+    def tearDown(self) -> None:
+        self._env.stop()
+        self._tmp.cleanup()
+
+    @staticmethod
+    def _step(i, model="fake-model-medium", inp=100, cache=1_000, out=10,
+              ts="2026-01-02T03:04:05Z"):
+        d = {"step_index": i, "source": "MODEL", "type": "PLANNER_RESPONSE", "status": "DONE",
+             "created_at": ts, "content": "synthetic placeholder",
+             "input_tokens": inp, "cache_read_tokens": cache, "output_tokens": out}
+        if model is not None:
+            d["model"] = model
+        return d
+
+    def _write(self, conv_dir: Path, steps, *, full=True, plain=True, chunks=True) -> Path:
+        logs = conv_dir / ".system_generated" / "logs"
+        text = "".join(json.dumps(s) + "\n" for s in steps)
+        for name, wanted in (("transcript_full.jsonl", full), ("transcript.jsonl", plain)):
+            if wanted:
+                logs.mkdir(parents=True, exist_ok=True)
+                (logs / name).write_text(text)
+        if chunks:
+            for kind in ("transcript", "transcript_full"):
+                chunk = logs / "chunks" / kind
+                chunk.mkdir(parents=True, exist_ok=True)
+                (chunk / "00000000.jsonl").write_text(text)
+        return logs
+
+    def _run(self, *argv: str) -> tuple[int, str]:
+        out = StringIO()
+        with mock.patch.object(cost, "load_prices", return_value=self.PRICES), \
+                redirect_stdout(out), mock.patch("sys.stderr", StringIO()):
+            code = cost.main(["--offline", *argv])
+        return code, out.getvalue()
+
+    def _json(self, *argv: str) -> dict:
+        code, out = self._run("--json", *argv)
+        self.assertEqual(code, 0)
+        return json.loads(out)
+
+    def test_effort_suffix_is_split_from_the_base_model(self) -> None:
+        self.assertEqual(cost.split_effort("gemini-4-hydrogen-medium"),
+                         ("gemini-4-hydrogen", "medium"))
+        self.assertEqual(cost.split_effort("gemini-4-hydrogen-high"),
+                         ("gemini-4-hydrogen", "high"))
+        self.assertEqual(cost.split_effort("gemini-3.8-flash-tiered"),
+                         ("gemini-3.8-flash-tiered", None))
+        self.assertEqual(cost.effort_label("gemini-4-hydrogen-low"), "gemini-4-hydrogen [low]")
+        self.assertEqual(cost.effort_label("gemini-3.8-flash-tiered"), "gemini-3.8-flash-tiered")
+
+    def test_parses_tokens_with_cache_reads_kept_separate_from_input(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        # cache reads larger than input: the two must add, never overlap or subtract.
+        cost.parse_agy(json.dumps(self._step(1, inp=50, cache=4_000, out=7)), agg)
+        cost.parse_agy(json.dumps(self._step(2, inp=5, cache=0, out=3,
+                                             ts="2026-01-02T03:09:00Z")), agg)
+        b = agg.by_model["fake-model [medium]"]
+        self.assertEqual((b.input, b.output, b.cache_read), (55, 10, 4_000))
+        self.assertEqual(b.total_tokens(), 4_065)
+        self.assertEqual((agg.first_ts, agg.last_ts),
+                         ("2026-01-02T03:04:05Z", "2026-01-02T03:09:00Z"))
+
+    def test_a_step_written_twice_is_billed_once(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        line = json.dumps(self._step(7, inp=100, cache=200, out=30))
+        cost.parse_agy(line, agg)
+        cost.parse_agy(line, agg)
+        self.assertEqual(agg.combined().total_tokens(), 330)
+
+    def test_unparseable_and_tokenless_lines_are_ignored(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy("not json", agg)
+        cost.parse_agy("[1, 2]", agg)
+        cost.parse_agy(json.dumps({"step_index": 1, "type": "USER_INPUT",
+                                   "created_at": "2026-01-02T03:04:05Z"}), agg)
+        self.assertEqual(agg.by_model, {})
+        self.assertEqual(agg.first_ts, "2026-01-02T03:04:05Z")
+
+    def test_chunks_and_the_plain_copy_are_not_double_counted(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1), self._step(2)])
+        files = cost.discover("agy")
+        self.assertEqual(len(files), 1)
+        self.assertTrue(files[0].endswith("transcript_full.jsonl"))
+        self.assertNotIn("chunks", files[0])
+        data = self._json("--harness", "agy", "--all")
+        self.assertEqual(len(data["sessions"]), 1)
+        # two steps of 100 + 1,000 + 10 -- not 2x, 3x or 5x that
+        self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
+        self.assertEqual(data["sessions"][0]["session_id"], self.CONV_A)
+
+    def test_plain_transcript_is_used_only_when_no_full_copy_exists(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1)], full=False, chunks=False)
+        self._write(self.brain / self.CONV_B, [self._step(1), self._step(2)])
+        files = cost.discover("agy")
+        self.assertEqual(sorted(Path(f).name for f in files),
+                         ["transcript.jsonl", "transcript_full.jsonl"])
+        data = self._json("--harness", "agy", "--all")
+        self.assertEqual(data["grand_total_tokens"], 1_110 + 2 * 1_110)
+
+    def test_a_catalog_priced_model_uses_the_gemini_prefixed_exact_key(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1, inp=1_000, cache=10_000, out=100)])
+        s = self._json("--harness", "agy", "--all")["sessions"][0]
+        m = s["by_model"]["fake-model [medium]"]
+        self.assertTrue(m["priced"])
+        self.assertAlmostEqual(m["cost_usd"], 1_000 * 2e-6 + 100 * 1e-5 + 10_000 * 1e-7)
+        self.assertEqual(s["unpriced_models"], [])
+        self.assertTrue(s["cost_complete"])
+
+    def test_unpriced_models_are_unknown_not_free_and_never_borrow_a_rate(self) -> None:
+        # `fake-flash-tiered` contains the catalog key `fake-flash`: a substring match would
+        # price it at fake-flash's rate. It must stay unpriced.
+        self._write(self.brain / self.CONV_A, [
+            self._step(1, model="fake-flash-tiered"),
+            self._step(2, model=None),                      # no model recorded at all
+            self._step(3, model="fake-model-high", inp=10, cache=0, out=1),
+        ])
+        data = self._json("--harness", "agy", "--all")
+        s = data["sessions"][0]
+        self.assertEqual(sorted(s["unpriced_models"]), ["<unknown>", "fake-flash-tiered"])
+        self.assertIsNone(s["by_model"]["fake-flash-tiered"]["cost_usd"])
+        self.assertIsNone(s["by_model"]["<unknown>"]["cost_usd"])
+        self.assertFalse(s["by_model"]["fake-flash-tiered"]["priced"])
+        self.assertEqual(s["unpriced_tokens"], 2 * 1_110)
+        self.assertFalse(s["cost_complete"])
+        self.assertFalse(data["grand_total_cost_complete"])
+        self.assertAlmostEqual(s["totals"]["cost_usd"], 10 * 2e-6 + 1 * 1e-5)  # priced part only
+        _, text = self._run("--harness", "agy", "--all", "--by-model")
+        self.assertIn("UNPRICED, cost unknown", text)
+        self.assertIn("unpriced", text)
+
+    def test_efforts_stay_separate_in_the_output_but_price_as_one_model(self) -> None:
+        self._write(self.brain / self.CONV_A, [
+            self._step(1, model="fake-model-low", inp=10, cache=0, out=0),
+            self._step(2, model="fake-model-high", inp=20, cache=0, out=0),
+        ])
+        s = self._json("--harness", "agy", "--all")["sessions"][0]
+        self.assertEqual(sorted(s["by_model"]), ["fake-model [high]", "fake-model [low]"])
+        self.assertAlmostEqual(s["by_model"]["fake-model [high]"]["cost_usd"], 20 * 2e-6)
+        self.assertAlmostEqual(s["by_model"]["fake-model [low]"]["cost_usd"], 10 * 2e-6)
+
+    def test_agy_lookup_is_literal_keys_only(self) -> None:
+        prices = {"fake": {"input": 1e-6, "output": 1e-6}, "gemini/other": {"input": 2e-6}}
+        self.assertIsNone(cost.agy_price_for("openai/fake", prices))   # no shared normalizers
+        self.assertIsNone(cost.agy_price_for("fake-extra", prices))    # no substring match
+        self.assertIsNone(cost.agy_price_for("<unknown>", prices))
+        self.assertIsNone(cost.agy_price_for("", prices))
+        self.assertIsNone(cost.agy_price_for("fake-model", {}))
+        self.assertIs(cost.agy_price_for("fake", prices), prices["fake"])
+        self.assertIs(cost.agy_price_for("other", prices), prices["gemini/other"])
+
+    def test_effort_label_is_not_stripped_by_the_shared_lookups(self) -> None:
+        prices = {"fake": {"input": 1e-6}, "fake [high]": {"input": 9e-6}}
+        self.assertIs(cost.price_for("fake [high]", prices), prices["fake [high]"])
+        self.assertIs(cost.exact_price_for("fake [high]", prices), prices["fake [high]"])
+        self.assertIsNone(cost.exact_price_for("fake [low]", prices))
+
+    def test_a_partial_repeat_of_a_step_keeps_the_fields_it_does_not_carry(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps(self._step(1, inp=100, cache=0, out=5)), agg)
+        cost.parse_agy(json.dumps({"step_index": 1, "output_tokens": 10}), agg)
+        b = agg.by_model["fake-model [medium]"]
+        self.assertEqual((b.input, b.output, b.cache_read), (100, 10, 0))
+        self.assertNotIn("<unknown>", {m for m, x in agg.by_model.items() if x.total_tokens()})
+
+    def test_explicit_files_resolve_to_the_canonical_transcript(self) -> None:
+        logs = self._write(self.brain / self.CONV_A, [self._step(1), self._step(2)])
+        full, plain = logs / "transcript_full.jsonl", logs / "transcript.jsonl"
+        chunk = logs / "chunks" / "transcript_full" / "00000000.jsonl"
+        data = self._json("--agy-path", str(full), "--agy-path", str(plain))
+        self.assertEqual(len(data["sessions"]), 1)
+        self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
+        self.assertEqual(self._json("--agy-path", str(plain))["grand_total_tokens"], 2 * 1_110)
+        self.assertTrue(self._json("--agy-path", str(plain))["sessions"][0]["path"]
+                        .endswith("transcript_full.jsonl"))
+        code, _ = self._run("--agy-path", str(chunk))        # a chunk copy is never read
+        self.assertEqual(code, 1)
+
+    def test_agy_path_reads_an_archived_lane_copy_and_nothing_else(self) -> None:
+        self._write(self.brain / self.CONV_B, [self._step(1)])        # live, must be ignored
+        lane = self.home / "lane" / "agy"
+        self._write(lane / f"brain-{self.CONV_A}", [self._step(1), self._step(2), self._step(3)])
+        data = self._json("--agy-path", str(lane))
+        self.assertEqual([s["session_id"] for s in data["sessions"]], [self.CONV_A])
+        self.assertEqual(data["grand_total_tokens"], 3 * 1_110)
+        # a transcript file can be named directly
+        f = lane / f"brain-{self.CONV_A}" / ".system_generated" / "logs" / "transcript_full.jsonl"
+        data = self._json("--agy-path", str(f))
+        self.assertEqual(data["grand_total_tokens"], 3 * 1_110)
+
+    def test_path_aliases_of_one_transcript_count_once(self) -> None:
+        logs = self._write(self.brain / self.CONV_A, [self._step(1)], chunks=False)
+        alias = logs / ".." / "logs" / "transcript_full.jsonl"
+        data = self._json("--agy-path", str(logs / "transcript_full.jsonl"),
+                          "--agy-path", str(alias), "--agy-path", str(self.brain))
+        self.assertEqual(len(data["sessions"]), 1)
+        self.assertEqual(data["grand_total_tokens"], 1_110)
+
+    def test_the_same_conversation_in_two_roots_is_not_summed(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1)], chunks=False)
+        lane = self.home / "lane"
+        self._write(lane / f"brain-{self.CONV_A}", [self._step(1), self._step(2)], chunks=False)
+        data = self._json("--agy-path", str(self.brain), "--agy-path", str(lane))
+        self.assertEqual(len(data["sessions"]), 1)
+        self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
+
+    def test_a_literal_bracketed_model_name_is_not_read_as_an_effort_label(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps(self._step(1, model="fake [high]")), agg)
+        cost.parse_agy(json.dumps(self._step(2, model="fake-high")), agg)
+        self.assertEqual(len(agg.by_model), 2)          # distinct models, distinct buckets
+        self.assertEqual(sorted(agg.by_model), ["fake [high]", "fake [high] (literal)"])
+        only_fake = {"fake": {"input": 1e-6}}
+        # `fake-high` is `fake` at high effort and prices as `fake`; the literal
+        # `fake [high]` has no key of its own and must not borrow `fake`'s rate.
+        self.assertEqual(agg.unpriced(only_fake), ["fake [high] (literal)"])
+        both = {"fake": {"input": 1e-6}, "fake [high]": {"input": 9e-6}}
+        self.assertEqual(agg.lookup()("fake [high]", both)["input"], 1e-6)
+        self.assertEqual(agg.lookup()("fake [high] (literal)", both)["input"], 9e-6)
+
+    def test_only_a_recognised_effort_label_is_stripped(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps(self._step(1, model="fake-banana")), agg)
+        cost.parse_agy(json.dumps(self._step(2, model="fake-medium")), agg)
+        self.assertEqual(sorted(agg.agy_models.values()), ["fake", "fake-banana"])
+
+    def test_two_copies_of_a_conversation_use_the_newest_not_the_most_tokens(self) -> None:
+        old = self.home / "old"
+        new = self.home / "new"
+        self._write(old / f"brain-{self.CONV_A}", [self._step(1, model=None, ts="2026-01-01T00:00:00Z")],
+                    chunks=False)
+        self._write(new / f"brain-{self.CONV_A}", [self._step(1, ts="2026-02-01T00:00:00Z")],
+                    chunks=False)
+        data = self._json("--agy-path", str(old), "--agy-path", str(new))
+        (s,) = data["sessions"]
+        self.assertEqual(list(s["by_model"]), ["fake-model [medium]"])
+        self.assertEqual(s["last_ts"], "2026-02-01T00:00:00Z")
+
+    def test_a_model_only_repeat_moves_the_step_to_that_model(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps({"step_index": 1, "input_tokens": 100}), agg)
+        cost.parse_agy(json.dumps({"step_index": 1, "model": "fake-model-low"}), agg)
+        self.assertEqual(agg.by_model["fake-model [low]"].input, 100)
+        self.assertEqual(agg.by_model["<unknown>"].total_tokens(), 0)
+
+    def test_agy_path_conflicts_with_another_harness(self) -> None:
+        code, _ = self._run("--agy-path", str(self.home), "--harness", "pi")
+        self.assertEqual(code, 2)
+
+    def test_session_and_cwd_filters_work_for_agy(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1)])
+        self._write(self.brain / self.CONV_B, [self._step(1), self._step(2)])
+        cache = self.home / ".gemini" / "antigravity-cli" / "cache"
+        cache.mkdir(parents=True)
+        (cache / "last_conversations.json").write_text(
+            json.dumps({"/fake/project": self.CONV_B}))
+        by_session = self._json("--harness", "agy", "--session", "bbbb")
+        self.assertEqual([s["session_id"] for s in by_session["sessions"]], [self.CONV_B])
+        by_cwd = self._json("--harness", "agy", "--cwd", "/fake/project")
+        self.assertEqual([s["session_id"] for s in by_cwd["sessions"]], [self.CONV_B])
+        self.assertEqual(by_cwd["sessions"][0]["cwd"], "/fake/project")
+
+    def test_auto_detection_finds_agy_without_flags(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1)])
+        data = self._json("--all")
+        self.assertEqual([s["harness"] for s in data["sessions"]], ["agy"])
+
+
 if __name__ == "__main__":
     unittest.main()
 

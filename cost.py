@@ -219,6 +219,29 @@ NORMALIZERS: list[Callable[[str], str]] = [
 ]
 
 
+# Antigravity (agy) reports the reasoning effort as a suffix of the model name
+# (`gemini-4-hydrogen-medium`). The effort is not a separate model in any price
+# catalog, so it is split off for pricing and kept in the display label
+# (`gemini-4-hydrogen [medium]`).
+AGY_EFFORTS = ("minimal", "low", "medium", "high")
+
+
+def split_effort(model: str) -> tuple[str, str | None]:
+    """`gemini-4-hydrogen-medium` -> (`gemini-4-hydrogen`, `medium`). A name without a
+    known effort suffix is returned unchanged with effort None."""
+    low = (model or "").lower()
+    for effort in AGY_EFFORTS:
+        suffix = "-" + effort
+        if low.endswith(suffix) and len(low) > len(suffix):
+            return model[: -len(suffix)], effort
+    return model, None
+
+
+def effort_label(model: str) -> str:
+    base, effort = split_effort(model)
+    return f"{base} [{effort}]" if effort else model
+
+
 def price_for(model: str, prices: dict) -> dict | None:
     """Look up a model in the pricing catalog with progressive fallback."""
     if not model or model == "_meta":
@@ -261,6 +284,20 @@ def exact_price_for(model: str, prices: dict) -> dict | None:
     for c in candidates:
         if c != "_meta" and isinstance(prices.get(c), dict):
             return prices[c]
+    return None
+
+
+def agy_price_for(base: str, prices: dict) -> dict | None:
+    """Antigravity pricing for a base model name (effort already split off by the parser):
+    the name as a literal catalog key, or the same name under Google's `gemini/` provider
+    prefix, and nothing else. No shared name normalizers and no substring matching, so a
+    model can never borrow another model's rate; anything else is unpriced, not guessed."""
+    if not base or base in ("<unknown>", "_meta"):
+        return None
+    for key in (base, base.lower(), "gemini/" + base, "gemini/" + base.lower()):
+        p = prices.get(key)
+        if isinstance(p, dict) and p.get("input") is not None:
+            return p
     return None
 
 
@@ -343,6 +380,21 @@ class SessionAgg:
     # repeating the same usage. This maps an API call to what was already
     # billed for it so a repeat replaces rather than adds.
     claude_calls: dict = field(default_factory=dict)
+    # Antigravity: step_index -> (model, input, output, cache_read), so a step that is
+    # written twice replaces its first entry instead of being billed twice.
+    agy_steps: dict = field(default_factory=dict)
+
+    # Antigravity: display label -> base model used for pricing. The base is recorded by the
+    # parser, never recovered by parsing the label, so a model whose literal name looks like
+    # a label cannot be mistaken for an effort-suffixed one.
+    agy_models: dict = field(default_factory=dict)
+
+    def lookup(self) -> Callable | None:
+        """Price lookup for this session's harness. Antigravity prices exactly or not at
+        all; every other harness keeps the catalog's progressive fallback."""
+        if self.harness != "agy":
+            return None
+        return lambda label, prices: agy_price_for(self.agy_models.get(label, ""), prices)
 
     def bucket(self, model: str) -> Bucket:
         return self.by_model.setdefault(model or "<unknown>", Bucket())
@@ -354,11 +406,18 @@ class SessionAgg:
         return agg
 
     def total_cost(self, prices: dict) -> float:
-        return sum((b.cost(m, prices) or 0.0) for m, b in self.by_model.items())
+        lk = self.lookup()
+        return sum((b.cost(m, prices, lk) or 0.0) for m, b in self.by_model.items())
 
     def unpriced(self, prices: dict) -> list[str]:
+        lk = self.lookup() or price_for
         return [m for m, b in self.by_model.items()
-                if price_for(m, prices) is None and b.total_tokens() > 0]
+                if lk(m, prices) is None and b.total_tokens() > 0]
+
+    def unpriced_tokens(self, prices: dict) -> int:
+        lk = self.lookup() or price_for
+        return sum(b.total_tokens() for m, b in self.by_model.items()
+                   if lk(m, prices) is None)
 
     def cost_parts(self, prices: dict) -> dict:
         """Per-component spend summed across models, each at its own rate."""
@@ -366,7 +425,7 @@ class SessionAgg:
                "cache_write": 0.0, "cache_write_1h": 0.0,
                "uncached_equivalent": 0.0}
         for model, bucket in self.by_model.items():
-            parts = bucket.cost_parts(model, prices)
+            parts = bucket.cost_parts(model, prices, self.lookup())
             if parts is None:
                 continue
             for key in agg:
@@ -566,6 +625,62 @@ def parse_opencode(line: str, agg: SessionAgg) -> None:
     b.cache_write += _int(cache.get("write"))
 
 
+def parse_agy(line: str, agg: SessionAgg) -> None:
+    """Antigravity CLI transcript line. Only the token counters, the model name, the step
+    index and the timestamp are read; message content in the same line is never touched.
+
+    `input_tokens` is uncached input and `cache_read_tokens` is separate from it (cache
+    reads routinely exceed input), so the two add rather than overlap. Steps with no
+    `model` field are kept under `<unknown>` and reported as unpriced: the transcript does
+    not say which model produced them, and this tool does not guess."""
+    try:
+        d = json.loads(line)
+    except Exception:
+        return
+    if not isinstance(d, dict):
+        return
+    ts = d.get("created_at")
+    if isinstance(ts, str):
+        _ts_update(agg, ts)
+    step = d.get("step_index")
+    has_step = isinstance(step, int) and not isinstance(step, bool)
+    raw_model = d.get("model")
+    has_model = isinstance(raw_model, str) and bool(raw_model)
+    if not any(k in d for k in ("input_tokens", "output_tokens", "cache_read_tokens")):
+        # A repeat that only names the model still moves that step to the model's bucket.
+        if not (has_step and has_model and step in agg.agy_steps):
+            return
+    model = None
+    if has_model:
+        base, effort = split_effort(raw_model)
+        model = f"{base} [{effort}]" if effort else base
+        # A literal name that already looks like a label ("x [high]") is marked so it can
+        # never share a bucket with the effort-split `x-high`.
+        if not effort and "[" in base:
+            model += " (literal)"
+        agg.agy_models[model] = base
+    tokens = [_int(d.get("input_tokens")), _int(d.get("output_tokens")),
+              _int(d.get("cache_read_tokens"))]
+    if has_step:
+        prev = agg.agy_steps.get(step)
+        if prev is not None:
+            # A repeat of a step replaces what was billed for it. Fields the repeat does
+            # not carry keep their earlier value rather than being zeroed.
+            pb = agg.bucket(prev[0])
+            pb.input -= prev[1]
+            pb.output -= prev[2]
+            pb.cache_read -= prev[3]
+            keys = ("input_tokens", "output_tokens", "cache_read_tokens")
+            tokens = [t if k in d else p for k, t, p in zip(keys, tokens, prev[1:])]
+            model = model or (prev[0] if prev[0] != "<unknown>" else None)
+        agg.agy_steps[step] = (model or "<unknown>", *tokens)
+    model = model or "<unknown>"
+    b = agg.bucket(model)
+    b.input += tokens[0]
+    b.output += tokens[1]
+    b.cache_read += tokens[2]
+
+
 def _epoch_iso(value) -> str:
     """Convert a Unix timestamp to the ISO form used by the JSONL parsers."""
     try:
@@ -745,7 +860,73 @@ HARNESSES = {
         "roots": [".hermes"],
         "parse": None,
     },
+    "agy": {
+        "roots": [".gemini/antigravity-cli/brain"],
+        "parse": parse_agy,
+    },
 }
+
+AGY_LOG_DIR = Path(".system_generated") / "logs"
+AGY_TRANSCRIPTS = ("transcript_full.jsonl", "transcript.jsonl")
+
+
+def agy_canonical_file(path: Path) -> str | None:
+    """Map an explicit transcript path to its conversation's canonical transcript. A chunk
+    copy is rejected, and a plain `transcript.jsonl` is replaced by the `transcript_full.jsonl`
+    beside it when one exists, so naming both (or either) never counts a conversation twice.
+    A file outside the agy layout is taken as given."""
+    if path.suffix != ".jsonl":
+        return None
+    path = Path(os.path.realpath(path))      # `..` and symlink aliases of one file are one file
+    in_layout = path.parent.name == "logs" and path.parent.parent.name == ".system_generated"
+    if ".system_generated" in path.parts and "chunks" in path.parts:
+        return None
+    if in_layout and path.name in AGY_TRANSCRIPTS:
+        for name in AGY_TRANSCRIPTS:
+            if (path.parent / name).is_file():
+                return str(path.parent / name)
+    return str(path)
+
+
+def agy_transcripts(root: Path) -> list[str]:
+    """One canonical transcript per Antigravity conversation under `root` (or `root`
+    itself when it is a transcript file). `transcript_full.jsonl` is preferred; the
+    plain `transcript.jsonl` is used only when no full copy exists beside it. The
+    `logs/chunks/` copies are never read -- they repeat the same steps."""
+    root = Path(os.path.realpath(root))
+    if root.is_file():
+        return [canonical] if (canonical := agy_canonical_file(root)) else []
+    out: list[str] = []
+    for log_dir in sorted({p.parent for p in root.rglob("transcript*.jsonl")
+                           if p.parent.name == "logs" and p.parent.parent.name == ".system_generated"}):
+        for name in AGY_TRANSCRIPTS:
+            if (log_dir / name).is_file():
+                out.append(str(log_dir / name))
+                break
+    return sorted(out)
+
+
+def agy_conversation_id(path: str) -> str:
+    """`<conv>/.system_generated/logs/transcript_full.jsonl` -> `<conv>`; archived copies
+    named `brain-<conv>` lose the prefix. A file outside that layout falls back to its stem."""
+    p = Path(path)
+    if p.parent.name == "logs" and p.parent.parent.name == ".system_generated":
+        name = p.parent.parent.parent.name
+        return name[len("brain-"):] if name.startswith("brain-") else name
+    return p.stem
+
+
+def agy_cwd_map() -> dict[str, str]:
+    """conversation id -> cwd, inverted from agy's `cache/last_conversations.json`. That file
+    keeps only the most recent conversation per directory, so older conversations have no cwd."""
+    f = Path.home() / ".gemini" / "antigravity-cli" / "cache" / "last_conversations.json"
+    try:
+        data = json.loads(f.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {v: k for k, v in data.items() if isinstance(k, str) and isinstance(v, str)}
 
 
 # =============================================================================
@@ -767,11 +948,14 @@ def discover(harness: str) -> list[str]:
         root = home / rel
         if not root.exists():
             continue
-        out.extend(str(p) for p in root.rglob("*.jsonl"))
+        if harness == "agy":
+            out.extend(agy_transcripts(root))
+        else:
+            out.extend(str(p) for p in root.rglob("*.jsonl"))
     return sorted(out)
 
 
-def load_session(path: str, harness: str) -> SessionAgg:
+def load_session(path: str, harness: str, cwd_map: dict | None = None) -> SessionAgg:
     agg = SessionAgg(harness=harness, path=path)
     parse = HARNESSES[harness]["parse"]
     try:
@@ -782,16 +966,22 @@ def load_session(path: str, harness: str) -> SessionAgg:
                     parse(s, agg)
     except OSError:
         pass
+    if harness == "agy":
+        # A step that moved to another model leaves an empty bucket behind; drop it.
+        agg.by_model = {m: b for m, b in agg.by_model.items() if b.total_tokens() > 0}
+        agg.session_id = agy_conversation_id(path)
+        if not agg.cwd:
+            agg.cwd = (cwd_map if cwd_map is not None else agy_cwd_map()).get(agg.session_id, "")
     if not agg.session_id:
         agg.session_id = Path(path).stem
     return agg
 
 
-def load_sessions(path: str, harness: str) -> list[SessionAgg]:
+def load_sessions(path: str, harness: str, cwd_map: dict | None = None) -> list[SessionAgg]:
     """Load every logical session stored in one harness artifact."""
     if harness == "hermes":
         return load_hermes_db(path)
-    return [load_session(path, harness)]
+    return [load_session(path, harness, cwd_map)]
 
 
 def artifact_activity(path: str, harness: str) -> float:
@@ -871,7 +1061,8 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
     if hit is not None and c.cache_read:
         saved = a.cache_savings(prices)
         print(f"   cache:  {hit * 100:.1f}% of {toks(c.prompt_tokens())} prompt tokens "
-              f"served from cache · saved {money(saved)} vs the same tokens as fresh input")
+              f"served from cache · saved {money(saved)} vs the same tokens as fresh input"
+              + (" (priced models only)" if a.unpriced(prices) else ""))
     parts = a.cost_parts(prices)
     if any(parts[k] for k in ("input", "output", "cache_read", "cache_write", "cache_write_1h")):
         print(f"   spend:  in {money(parts['input'])} · out {money(parts['output'])} "
@@ -882,12 +1073,14 @@ def print_session(a: SessionAgg, prices: dict, by_model: bool) -> None:
     unpriced = a.unpriced(prices)
     line = f"   cost:   {money(a.total_cost(prices))}"
     if unpriced:
-        line += f"   (unpriced: {', '.join(unpriced)})"
+        # $0 here means "no price known", not "free": say so, with the token volume it covers.
+        line += (f"   (priced models only; UNPRICED, cost unknown: {', '.join(unpriced)} "
+                 f"= {toks(a.unpriced_tokens(prices))} tokens)")
     print(line)
-    if by_model and len(a.by_model) > 1:
+    if by_model and (len(a.by_model) > 1 or a.harness == "agy"):
         for m, b in sorted(a.by_model.items()):
-            cst = b.cost(m, prices)
-            cs = money(cst) if cst is not None else "n/a"
+            cst = b.cost(m, prices, a.lookup())
+            cs = money(cst) if cst is not None else "unpriced"
             print(f"     - {m:40s} in={toks(b.input):>10s} "
                   f"out={toks(b.output):>10s} "
                   f"cache_r={toks(b.cache_read):>10s} "
@@ -926,12 +1119,14 @@ def to_dict(a: SessionAgg, prices: dict) -> dict:
                 "cache_read": b.cache_read,
                 "cache_write": b.cache_write,
                 "cache_write_1h": b.cache_write_1h,
-                "cost_usd":   (round(b.cost(m, prices), 6)
-                               if b.cost(m, prices) is not None else None),
-                "priced":     price_for(m, prices) is not None,
+                "cost_usd":   (round(b.cost(m, prices, a.lookup()), 6)
+                               if b.cost(m, prices, a.lookup()) is not None else None),
+                "priced":     (a.lookup() or price_for)(m, prices) is not None,
             } for m, b in a.by_model.items()
         },
         "unpriced_models": a.unpriced(prices),
+        "unpriced_tokens": a.unpriced_tokens(prices),
+        "cost_complete":   not a.unpriced(prices),
     }
 
 
@@ -2000,6 +2195,10 @@ def run_report_entry(args: argparse.Namespace) -> int:
         return 1
 
 
+def _agy_copy_rank(s: SessionAgg) -> tuple:
+    return (s.last_ts or "", s.combined().total_tokens())
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(
         description="Compute token-usage cost from agent harness session logs.",
@@ -2015,6 +2214,10 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--cwd", metavar="PATH", help="filter by session cwd")
     ap.add_argument("--session", metavar="ID", help="substring match on session id")
     ap.add_argument("--by-model", action="store_true", help="per-model breakdown")
+    ap.add_argument("--agy-path", metavar="PATH", action="append",
+                    help="Antigravity transcript file or a directory to search for agy "
+                         "conversations (e.g. an archived lane copy); repeatable. Reads only "
+                         "these, reports every conversation found, and implies --harness agy")
     ap.add_argument("--list", action="store_true", help="one line per session")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     ap.add_argument("--refresh-prices", action="store_true",
@@ -2055,6 +2258,16 @@ def main(argv: list[str]) -> int:
               file=sys.stderr)
         return 2
 
+    if args.agy_path:
+        if args.harness not in ("all", "agy"):
+            print("error: --agy-path only reads Antigravity transcripts; it cannot be "
+                  f"combined with --harness {args.harness}", file=sys.stderr)
+            return 2
+        if args.run_report:
+            print("error: --agy-path is not valid with --run-report", file=sys.stderr)
+            return 2
+        args.harness = "agy"
+
     if args.run_report:
         # A run report covers one session. These flags select or list many, so they would be
         # silently ignored; refuse them instead.
@@ -2084,16 +2297,31 @@ def main(argv: list[str]) -> int:
         print(OFFLINE_PRICES_MESSAGE, file=sys.stderr)
         return 1
 
-    # Default view = --current
+    # Default view = --current. Explicit agy paths mean "this lane's conversations", so
+    # they default to everything found there instead of only the newest one.
     if not (args.all or args.today or args.since or args.session
             or args.cwd or args.current or args.latest):
-        args.current = True
+        if args.agy_path:
+            args.all = True
+        else:
+            args.current = True
 
     # Collect candidate files
     harnesses = list(HARNESSES) if args.harness == "all" else [args.harness]
     files: list[tuple[str, str]] = []
 
-    if args.current:
+    if args.agy_path:
+        found: list[str] = []
+        for raw in args.agy_path:
+            p = Path(raw).expanduser()
+            if not p.exists():
+                print(f"warning: --agy-path {raw!r} does not exist", file=sys.stderr)
+                continue
+            found.extend(agy_transcripts(p))
+        files = [("agy", p) for p in sorted(set(found))]
+        if args.current:
+            files = files and [max(files, key=lambda hp: artifact_activity(hp[1], hp[0]))]
+    elif args.current:
         # Hermes DBs contain many logical sessions, so load each active DB.
         # JSONL artifacts hold one session each; inspect only a bounded tail to
         # choose the newest logical session before fully parsing one file.
@@ -2116,11 +2344,31 @@ def main(argv: list[str]) -> int:
         print("no session files found", file=sys.stderr)
         return 1
 
+    cwd_map = agy_cwd_map() if any(h == "agy" for h, _ in files) else None
     sessions = [
         session
         for h, p in files
-        for session in load_sessions(p, h)
+        for session in load_sessions(p, h, cwd_map)
     ]
+
+    # The same conversation reached through two roots (say the live brain dir and an archived
+    # copy of it) is one conversation: keep the copy with the latest activity (then the most
+    # tokens), never the sum.
+    keep: dict[str, SessionAgg] = {}
+    rest: list[SessionAgg] = []
+    for s in sessions:
+        p = Path(s.path)
+        if s.harness == "agy" and p.parent.name == "logs" and p.parent.parent.name == ".system_generated":
+            cur = keep.get(s.session_id)
+            if cur is not None and cur.combined().total_tokens() != s.combined().total_tokens():
+                print(f"warning: conversation {s.session_id} appears in more than one place "
+                      "with different totals; using the copy with the latest activity",
+                      file=sys.stderr)
+            if cur is None or _agy_copy_rank(s) > _agy_copy_rank(cur):
+                keep[s.session_id] = s
+        else:
+            rest.append(s)
+    sessions = rest + list(keep.values())
 
     # Filters
     if args.cwd:
@@ -2158,6 +2406,8 @@ def main(argv: list[str]) -> int:
         out = {
             "sessions": [to_dict(s, prices) for s in sessions],
             "grand_total_cost_usd": round(sum(s.total_cost(prices) for s in sessions), 6),
+            "grand_total_unpriced_tokens": sum(s.unpriced_tokens(prices) for s in sessions),
+            "grand_total_cost_complete": not any(s.unpriced(prices) for s in sessions),
             "grand_total_tokens":   sum(s.combined().total_tokens() for s in sessions),
             "prices": {
                 "file":         str(PRICES_JSON),
@@ -2179,9 +2429,12 @@ def main(argv: list[str]) -> int:
         for s in sessions:
             b = s.combined()
             cmp_ = str(len(s.compactions)) if s.compactions else "-"
+            cost_s = money(s.total_cost(prices))
+            if s.unpriced(prices):
+                cost_s = "unpriced" if cost_s == money(0) else cost_s + "+?"
             print(f"{s.harness:<12} {s.session_id[:40]:<40} "
                   f"{toks(b.total_tokens()):>14} "
-                  f"{money(s.total_cost(prices)):>12} {cmp_:>4}  {s.cwd}")
+                  f"{cost_s:>12} {cmp_:>4}  {s.cwd}")
     else:
         for s in sessions:
             print_session(s, prices, args.by_model)
@@ -2192,6 +2445,10 @@ def main(argv: list[str]) -> int:
     tot_cmp  = sum(len(s.compactions) for s in sessions)
     print("------------------------------------------------------")
     line = f"{len(sessions)} session(s)   tokens={toks(tot_toks)}   cost={money(tot_cost)}"
+    tot_unpriced_tokens = sum(s.unpriced_tokens(prices) for s in sessions)
+    if tot_unpriced_tokens:
+        line += (f" (priced models only; {toks(tot_unpriced_tokens)} tokens are UNPRICED, "
+                 "their cost is unknown, not $0)")
     if tot_cmp:
         line += f"   compactions={tot_cmp}"
     print(line)
@@ -2204,12 +2461,16 @@ def main(argv: list[str]) -> int:
     if tot_cached:
         pct = tot_cached / tot_prompt * 100 if tot_prompt else 0.0
         print(f"cache: {pct:.1f}% of {toks(tot_prompt)} prompt tokens were cache hits   "
-              f"saved={money(tot_saved)} vs uncached")
+              f"saved={money(tot_saved)} vs uncached"
+              + (" (priced models only)" if tot_unpriced_tokens else ""))
 
     all_unpriced = {m for s in sessions for m in s.unpriced(prices)}
     if all_unpriced:
         print(f"note: unpriced model(s): {', '.join(sorted(all_unpriced))}")
         print("      run  cost.py --refresh-prices  to pull the latest catalog.")
+        if any(s.harness == "agy" for s in sessions):
+            print("      agy: models with no exact LiteLLM key stay unpriced; steps that carry "
+                  "no model name are listed as <unknown>.")
 
     # Attribution footer -- prices are not our data; credit the source.
     meta = prices.get("_meta") or {}
