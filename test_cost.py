@@ -1935,6 +1935,34 @@ class AgyHarnessTests(unittest.TestCase):
         data = self._json("--agy-path", str(f))
         self.assertEqual(data["grand_total_tokens"], 3 * 1_110)
 
+    def test_path_aliases_of_one_transcript_count_once(self) -> None:
+        logs = self._write(self.brain / self.CONV_A, [self._step(1)], chunks=False)
+        alias = logs / ".." / "logs" / "transcript_full.jsonl"
+        data = self._json("--agy-path", str(logs / "transcript_full.jsonl"),
+                          "--agy-path", str(alias), "--agy-path", str(self.brain))
+        self.assertEqual(len(data["sessions"]), 1)
+        self.assertEqual(data["grand_total_tokens"], 1_110)
+
+    def test_the_same_conversation_in_two_roots_is_not_summed(self) -> None:
+        self._write(self.brain / self.CONV_A, [self._step(1)], chunks=False)
+        lane = self.home / "lane"
+        self._write(lane / f"brain-{self.CONV_A}", [self._step(1), self._step(2)], chunks=False)
+        data = self._json("--agy-path", str(self.brain), "--agy-path", str(lane))
+        self.assertEqual(len(data["sessions"]), 1)
+        self.assertEqual(data["grand_total_tokens"], 2 * 1_110)
+
+    def test_only_a_recognised_effort_label_is_stripped(self) -> None:
+        prices = {"fake": {"input": 1e-6}}
+        self.assertIsNone(cost.agy_price_for("fake [banana]", prices))
+        self.assertIsNotNone(cost.agy_price_for("fake [medium]", prices))
+
+    def test_a_model_only_repeat_moves_the_step_to_that_model(self) -> None:
+        agg = cost.SessionAgg(harness="agy", path="x")
+        cost.parse_agy(json.dumps({"step_index": 1, "input_tokens": 100}), agg)
+        cost.parse_agy(json.dumps({"step_index": 1, "model": "fake-model-low"}), agg)
+        self.assertEqual(agg.by_model["fake-model [low]"].input, 100)
+        self.assertEqual(agg.by_model["<unknown>"].total_tokens(), 0)
+
     def test_agy_path_conflicts_with_another_harness(self) -> None:
         code, _ = self._run("--agy-path", str(self.home), "--harness", "pi")
         self.assertEqual(code, 2)

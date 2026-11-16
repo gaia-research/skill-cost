@@ -224,7 +224,7 @@ NORMALIZERS: list[Callable[[str], str]] = [
 # catalog, so it is split off for pricing and kept in the display label
 # (`gemini-4-hydrogen [medium]`).
 AGY_EFFORTS = ("minimal", "low", "medium", "high")
-_EFFORT_LABEL_RE = re.compile(r" \[[a-z]+\]$")
+_EFFORT_LABEL_RE = re.compile(r" \[(?:%s)\]$" % "|".join(AGY_EFFORTS))
 
 
 def split_effort(model: str) -> tuple[str, str | None]:
@@ -641,14 +641,18 @@ def parse_agy(line: str, agg: SessionAgg) -> None:
     ts = d.get("created_at")
     if isinstance(ts, str):
         _ts_update(agg, ts)
-    if not any(k in d for k in ("input_tokens", "output_tokens", "cache_read_tokens")):
-        return
+    step = d.get("step_index")
+    has_step = isinstance(step, int) and not isinstance(step, bool)
     raw_model = d.get("model")
+    has_model = isinstance(raw_model, str) and bool(raw_model)
+    if not any(k in d for k in ("input_tokens", "output_tokens", "cache_read_tokens")):
+        # A repeat that only names the model still moves that step to the model's bucket.
+        if not (has_step and has_model and step in agg.agy_steps):
+            return
     model = effort_label(raw_model) if isinstance(raw_model, str) and raw_model else None
     tokens = [_int(d.get("input_tokens")), _int(d.get("output_tokens")),
               _int(d.get("cache_read_tokens"))]
-    step = d.get("step_index")
-    if isinstance(step, int) and not isinstance(step, bool):
+    if has_step:
         prev = agg.agy_steps.get(step)
         if prev is not None:
             # A repeat of a step replaces what was billed for it. Fields the repeat does
@@ -864,6 +868,7 @@ def agy_canonical_file(path: Path) -> str | None:
     A file outside the agy layout is taken as given."""
     if path.suffix != ".jsonl":
         return None
+    path = Path(os.path.realpath(path))      # `..` and symlink aliases of one file are one file
     in_layout = path.parent.name == "logs" and path.parent.parent.name == ".system_generated"
     if ".system_generated" in path.parts and "chunks" in path.parts:
         return None
@@ -879,6 +884,7 @@ def agy_transcripts(root: Path) -> list[str]:
     itself when it is a transcript file). `transcript_full.jsonl` is preferred; the
     plain `transcript.jsonl` is used only when no full copy exists beside it. The
     `logs/chunks/` copies are never read -- they repeat the same steps."""
+    root = Path(os.path.realpath(root))
     if root.is_file():
         return [canonical] if (canonical := agy_canonical_file(root)) else []
     out: list[str] = []
@@ -952,6 +958,8 @@ def load_session(path: str, harness: str, cwd_map: dict | None = None) -> Sessio
     except OSError:
         pass
     if harness == "agy":
+        # A step that moved to another model leaves an empty bucket behind; drop it.
+        agg.by_model = {m: b for m, b in agg.by_model.items() if b.total_tokens() > 0}
         agg.session_id = agy_conversation_id(path)
         if not agg.cwd:
             agg.cwd = (cwd_map if cwd_map is not None else agy_cwd_map()).get(agg.session_id, "")
@@ -2328,6 +2336,20 @@ def main(argv: list[str]) -> int:
         for h, p in files
         for session in load_sessions(p, h, cwd_map)
     ]
+
+    # The same conversation reached through two roots (say the live brain dir and an archived
+    # copy of it) is one conversation: keep the copy with the most tokens, never the sum.
+    keep: dict[str, SessionAgg] = {}
+    rest: list[SessionAgg] = []
+    for s in sessions:
+        p = Path(s.path)
+        if s.harness == "agy" and p.parent.name == "logs" and p.parent.parent.name == ".system_generated":
+            cur = keep.get(s.session_id)
+            if cur is None or s.combined().total_tokens() > cur.combined().total_tokens():
+                keep[s.session_id] = s
+        else:
+            rest.append(s)
+    sessions = rest + list(keep.values())
 
     # Filters
     if args.cwd:
